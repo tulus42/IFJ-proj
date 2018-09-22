@@ -1,4 +1,4 @@
-# IFJ PROJEKT, VUT FIT, IFJ 2018
+# IFJ PROJEKT 2018
 
 Riešitelia:<br />
 Adam Hostin, xhosti02<br />

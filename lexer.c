@@ -40,15 +40,19 @@ int get_next_token() // konecny automat, v podstate while cyklus, ve kterem je s
 					current_status = STATE_START;
 				}
 				else if(c == '*'){
+					// token->token = TYPE_MUL;
 					current_status = STATE_START;
 				}
 				else if(c == '+'){
+					// token->token = TYPE_PLUS;
 					current_status = STATE_START;
 				}
 				else if(c == '/'){
+					// token->token = TYPE_DIV;
 					current_status = STATE_START;
 				}
 				else if(c == '-'){
+					// token->token = TYPE_MINUS;
 					current_status = STATE_START;
 				}
 				else if(c == '<'){
@@ -61,15 +65,21 @@ int get_next_token() // konecny automat, v podstate while cyklus, ve kterem je s
 					current_status = STATE_ASSIGN;
 				}
 				else if(c == '#'){
+					// token->token = TYPE_COMMENT;
 					current_status = STATE_LINE_COMMENTARY;
 				}
 				else if(c == '('){
+					// token->token = TYPE_LEFT_BRACKET;
 					;
 				}
 				else if(c == ')'){
 					;
 				}
 				else if(c == ','){
+					;
+				}
+				else if(c == '!'){
+					current_status = STATE_EXCLAMATION_MARK;
 					;
 				}
 				else if(isdigit(c)){
@@ -89,10 +99,12 @@ int get_next_token() // konecny automat, v podstate while cyklus, ve kterem je s
 				break;
 			case(STATE_LESS_THAN):
 				if(c == '='){
+					// token->token = TYPE_LEQ;
 					; // <=
 				}
 				else{
-					; // <
+					// token->token = TYPE_LTN;
+					current_status = STATE_START; // <
 				}
 				break;
 			case(STATE_GRATER_THAN):
@@ -122,7 +134,10 @@ int get_next_token() // konecny automat, v podstate while cyklus, ve kterem je s
 					current_status = STATE_LINE_COMMENTARY;
 				}
 				break;
-			
+			case(STATE_EXCLAMATION_MARK):
+				if(c == '='){
+					// token->token = TYPE_NEQ;
+				}
 
 		}
 		if(c == EOF){

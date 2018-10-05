@@ -36,43 +36,94 @@ int get_next_token() // konecny automat, v podstate while cyklus, ve kterem je s
 		
 		switch(current_status){
 			case(STATE_START): // first comparison
-			if(c == '*'){
-				;
-			}
-			else if(c == '+'){
-				;
-			}
-			else if(c == '/'){
-				;
-			}
-			else if(c == '-'){
-				;
-			}
-			else if(c == '<'){
-				;
-			}
-			else if(c == '>'){
-				;
-			}
-			else if(c == '#'){
-				;
-			}
-			else if(c == '('){
-				;
-			}
-			else if(c == ')'){
-				;
-			}
-			else if(c == ','){
-				;
-			}
-			else if(isdigit(c)){
-				;
-			}
-			else if(ischar(c)){
-				;
-			}
-			break;
+				if(isspace(c)){
+					current_status = STATE_START;
+				}
+				else if(c == '*'){
+					current_status = STATE_START;
+				}
+				else if(c == '+'){
+					current_status = STATE_START;
+				}
+				else if(c == '/'){
+					current_status = STATE_START;
+				}
+				else if(c == '-'){
+					current_status = STATE_START;
+				}
+				else if(c == '<'){
+					current_status = STATE_LESS_THAN;
+				}
+				else if(c == '>'){
+					current_status = STATE_GRATER_THAN;
+				}
+				else if(c == '='){
+					current_status = STATE_ASSIGN;
+				}
+				else if(c == '#'){
+					current_status = STATE_LINE_COMMENTARY;
+				}
+				else if(c == '('){
+					;
+				}
+				else if(c == ')'){
+					;
+				}
+				else if(c == ','){
+					;
+				}
+				else if(isdigit(c)){
+					if(c == '0'){
+						current_status = STATE_FIRST_ZERO;
+					}
+					else{
+						current_status = STATE_FIRST_NONZERO;
+					}
+				}
+				else if(ischar(c) || c == '_'){
+					current_status = STATE_NEXT_CHARS;
+				}
+				else{
+					; // ERROR
+				}
+				break;
+			case(STATE_LESS_THAN):
+				if(c == '='){
+					; // <=
+				}
+				else{
+					; // <
+				}
+				break;
+			case(STATE_GRATER_THAN):
+				if(c == '='){
+					; // >=
+				}
+				else{
+					; // <
+				}
+				break;
+			case(STATE_ASSIGN):
+				if(c == '='){
+					; // ==
+				}
+				else if(ischar(c)){
+					; // begin or end of comment
+				}
+				else{
+					; // =
+				}
+				break;
+			case(STATE_LINE_COMMENTARY):
+				if(c == '\n'){
+					current_status = STATE_START;
+				}
+				else{
+					current_status = STATE_LINE_COMMENTARY;
+				}
+				break;
+			
+
 		}
 		if(c == EOF){
 			break;

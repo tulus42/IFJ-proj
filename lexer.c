@@ -6,7 +6,6 @@ Dominik Peza, xpezad00
 Adrián Tulušák, xtulus00
 */
 
-#include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -24,12 +23,60 @@ void get_source(FILE *f)
 	source = f;
 }
 
-int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
+int get_next_token() // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
 {
-	if (source_file == NULL)
+	int current_status = STATE_START;
+	if (source == NULL)
 	{
 		return ER_INTERNAL;
 	}
-
-	//todo
+	
+	while(1){
+		char c = getc(source); // read characters one by one
+		
+		switch(current_status){
+			case(STATE_START): // first comparison
+			if(c == '*'){
+				;
+			}
+			else if(c == '+'){
+				;
+			}
+			else if(c == '/'){
+				;
+			}
+			else if(c == '-'){
+				;
+			}
+			else if(c == '<'){
+				;
+			}
+			else if(c == '>'){
+				;
+			}
+			else if(c == '#'){
+				;
+			}
+			else if(c == '('){
+				;
+			}
+			else if(c == ')'){
+				;
+			}
+			else if(c == ','){
+				;
+			}
+			else if(isdigit(c)){
+				;
+			}
+			else if(ischar(c)){
+				;
+			}
+			break;
+		}
+		if(c == EOF){
+			break;
+		}
+	}
+	return 0;
 }

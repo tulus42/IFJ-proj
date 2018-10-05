@@ -8,6 +8,26 @@ Adrián Tulušák, xtulus00
 
 #include <stdio.h>
 
+#define STATE_START 500 // start
+#define STATE_CHAR  501 // character
+#define STATE_UNDERSCORE 502 // _
+#define STATE_DIGIT 503 // 0-9
+#define STATE_ASSIGN 504 // =
+#define STATE_EQUAL 505 // ==
+#define STATE_LESS_THAN 506 // <
+#define STATE_LESS_THAN_EQUAL 507 // <=
+#define STATE_GRATER_THAN 508 // >
+#define STATE_GRATER_THAN_EQUAL 509 // >=
+#define STATE_PLUS 510
+#define STATE_MINUS 511
+#define STATE_MULTIPLY 512
+#define STATE_DIVIDE 513
+#define STATE_COMMA 514
+#define STATE_EXCLAMATION_MARK 515
+#define STATE_NOT_EQUAL 516
+#define STATE_LINE_COMMENTARY 517
+
+
 typedef enum
 {
 	KEYWORD_DEF,
@@ -69,4 +89,4 @@ typedef struct
 } Token_t;
 
 void get_source(FILE *f);
-int get_next_token(Token_t *token);
+int get_next_token();

@@ -9,28 +9,17 @@ Adrián Tulušák, xtulus00
 #include <stdio.h>
 
 #define STATE_START 500 // start
-#define STATE_CHAR  501 // character
-#define STATE_UNDERSCORE 502 // _
-#define STATE_DIGIT 503 // 0-9
 #define STATE_ASSIGN 504 // =
-#define STATE_EQUAL 505 // ==
 #define STATE_LESS_THAN 506 // <
-#define STATE_GRATER_THAN 508 // >
-#define STATE_PLUS 510
-#define STATE_MINUS 511
-#define STATE_MULTIPLY 512
-#define STATE_DIVIDE 513
+#define STATE_GREATER_THAN 508 // >
 #define STATE_COMMA 514
 #define STATE_EXCLAMATION_MARK 515
-#define STATE_NOT_EQUAL 516
 #define STATE_LINE_COMMENTARY 517
 #define STATE_EOL 518
 #define STATE_EON 519
 #define STATE_NEXT_CHARS 520
 #define STATE_FIRST_ZERO 521
 #define STATE_FIRST_NONZERO 522
-#define STATE_LEFT_CURLY_BRACKET 523 // {
-#define STATE_RIGHT_CURLY_BRACKET 524 // }
 #define STATE_COMMENT_START
 #define STATE_COMMENT_END
 

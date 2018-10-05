@@ -8,18 +8,6 @@ Adrián Tulušák, xtulus00
 
 #include <stdio.h>
 
-void get_source(FILE *f);
-
-int get_next_token(Token_t *token);
-
-
-typedef struct
-{
-    Token_type token;
-    Token_attr attr;
-} Token_t;
-
-
 typedef enum
 {
 	KEYWORD_DEF,
@@ -33,7 +21,6 @@ typedef enum
 	KEYWORD_WHILE,
 
 } Keyword;
-
 
 typedef union
 {
@@ -74,3 +61,12 @@ typedef enum
 	TYPE_FLOAT, 
 	TYPE_STRING,
 } Token_type;
+
+typedef struct
+{
+    Token_type token;
+    Token_attr attr;
+} Token_t;
+
+void get_source(FILE *f);
+int get_next_token(Token_t *token);

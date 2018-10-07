@@ -8,6 +8,7 @@ Adrián Tulušák, xtulus00
 
 #include <stdio.h>
 
+// TODO - Finish the state list, give it proper numbers
 #define STATE_START 500 // start
 #define STATE_ASSIGN 504 // =
 #define STATE_LESS_THAN 506 // <
@@ -85,4 +86,4 @@ typedef struct
 } Token_t;
 
 void get_source(FILE *f);
-int get_next_token();
+int get_next_token(Token_t *token);

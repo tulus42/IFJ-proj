@@ -23,7 +23,7 @@ void get_source(FILE *f)
 	source = f;
 }
 
-int get_next_token() // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
+int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
 {
 	int current_status = STATE_START;
 	if (source == NULL)
@@ -31,7 +31,7 @@ int get_next_token() // konecny automat, v podstate while cyklus, ve kterem je s
 		return ER_INTERNAL;
 	}
 	
-	while(1){
+	while(true){
 		char c = getc(source); // read characters one by one
 		
 		switch(current_status){
@@ -40,46 +40,46 @@ int get_next_token() // konecny automat, v podstate while cyklus, ve kterem je s
 					current_status = STATE_START;
 				}
 				else if(c == '*'){
-					// token->token = TYPE_MUL;
+					token->token = TYPE_MUL;
 					current_status = STATE_START;
 				}
 				else if(c == '+'){
-					// token->token = TYPE_PLUS;
+					token->token = TYPE_PLUS;
 					current_status = STATE_START;
 				}
 				else if(c == '/'){
-					// token->token = TYPE_DIV;
+					token->token = TYPE_DIV;
 					current_status = STATE_START;
 				}
 				else if(c == '-'){
-					// token->token = TYPE_MINUS;
+					token->token = TYPE_MINUS;
 					current_status = STATE_START;
 				}
 				else if(c == '<'){
-					// token->token = TYPE_LTN;
+					token->token = TYPE_LTN;
 					current_status = STATE_LESS_THAN;
 				}
 				else if(c == '>'){
-					// token->token = TYPE_MTN;
+					token->token = TYPE_MTN;
 					current_status = STATE_GREATER_THAN;
 				}
 				else if(c == '='){
 					current_status = STATE_ASSIGN;
 				}
 				else if(c == '#'){
-					// token->token = TYPE_COMMENT;
+					token->token = TYPE_COMMENT;
 					current_status = STATE_LINE_COMMENTARY;
 				}
 				else if(c == '('){
-					// token->token = TYPE_LEFT_BRACKET;
+					token->token = TYPE_LEFT_BRACKET;
 					;
 				}
 				else if(c == ')'){
-					// token->token = TYPE_RIGHT_BRACKET;
+					token->token = TYPE_RIGHT_BRACKET;
 					;
 				}
 				else if(c == ','){
-					// token->token = TYPE_COMMA;
+					token->token = TYPE_COMMA;
 					;
 				}
 				else if(c == '!'){
@@ -94,40 +94,34 @@ int get_next_token() // konecny automat, v podstate while cyklus, ve kterem je s
 						current_status = STATE_FIRST_NONZERO;
 					}
 				}
-				else if(ischar(c) || c == '_'){
-					current_status = STATE_NEXT_CHARS;
-				}
 				else{
 					; // ERROR
 				}
 				break;
 			case(STATE_LESS_THAN):
 				if(c == '='){
-					// token->token = TYPE_LEQ;
+					token->token = TYPE_LEQ;
 					; // <=
 				}
 				else{
-					// token->token = TYPE_LTN;
+					token->token = TYPE_LTN;
 					current_status = STATE_START; // <
 				}
 				break;
 			case(STATE_GREATER_THAN):
 				if(c == '='){
-					// token->token = TYPE_MEQ;
+					token->token = TYPE_MEQ;
 					; // >=
 				}
 				else{
-					// token->token = TYPE_MTN;
+					token->token = TYPE_MTN;
 					; // <
 				}
 				break;
 			case(STATE_ASSIGN):
 				if(c == '='){
-					// token->token = EQ;
+					token->token = TYPE_EQ;
 					; // ==
-				}
-				else if(ischar(c)){
-					; // begin or end of comment
 				}
 				else{
 					; // =
@@ -135,6 +129,7 @@ int get_next_token() // konecny automat, v podstate while cyklus, ve kterem je s
 				break;
 			case(STATE_LINE_COMMENTARY):
 				if(c == '\n'){
+					token->token = TYPE_COMMENT;
 					current_status = STATE_START;
 				}
 				else{
@@ -143,7 +138,7 @@ int get_next_token() // konecny automat, v podstate while cyklus, ve kterem je s
 				break;
 			case(STATE_EXCLAMATION_MARK):
 				if(c == '='){
-					// token->token = TYPE_NEQ;
+					token->token = TYPE_NEQ;
 				}
 
 		}

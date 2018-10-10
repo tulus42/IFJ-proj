@@ -28,17 +28,28 @@ void change_state(int * current_state, int next_state){
 	*current_state = next_state;
 }
 
-//void reserved_or_keywords(){;};
-// process_chars
+void reserved_or_keywords(string* string_ptr, Token_t* token){
+	if(compare_strings(string_ptr, "def")){
+		token->token = TYPE_KEYWORD;
+	}
+	else if(compare_strings(string_ptr, "do"));
+	else if(compare_strings(string_ptr, "else"));
+	else if(compare_strings(string_ptr, "end"));
+	else if(compare_strings(string_ptr, "if"));
+	else if(compare_strings(string_ptr, "not"));
+	else if(compare_strings(string_ptr, "nil"));
+	else if(compare_strings(string_ptr, "then"));
+	else if(compare_strings(string_ptr, "while"));
 
-//void process_digits
+}
+
 
 int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
 {
 	// current state is start
 	int current_status = STATE_START;
 	// variable for string
-	string * string_ptr = NULL;
+	string* string_ptr = NULL;
 	init_struc_pointer(string_ptr);
 
 	if (source == NULL)
@@ -117,7 +128,8 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				else if(isalpha(c) || c == '_'){
 					if(islower(c)){
 						// can continue, first char is
-						// allocate_memory_for_string
+						//allocate_string(string_ptr);
+						//add_char(string_ptr, c);
 						change_state(&current_status, STATE_START);
 					}
 					else{
@@ -193,7 +205,24 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				else{
 					; // error - invalid character
 				}
-
+				break;
+			
+			// array of chars
+			case(STATE_NEXT_CHARS):
+				if(isalpha(c) || isdigit(c) || c == '_'){
+					add_char(string_ptr, c); // ADDING NEW CHARS TO THE STRING
+				}
+				else if(c == '?' || c == '!'){
+					add_char(string_ptr, c);
+					change_state(&current_status, STATE_LAST_CHAR);
+					// this has to be the end of string
+				}
+				else{
+					// TUTO JE KONIEC
+					ungetc(c, source);
+					/// HAVE TO COMPARE IT WITH ALL THE KEYWORDS!!!! TODO
+					free_string(string_ptr);
+				}
 		}
 		//printf("Toto je token %d\n", token->token);
 		//printf("Som vo while a current status je %d\n", current_status);

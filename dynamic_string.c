@@ -68,5 +68,14 @@ void add_char(string* string_ptr, char to_add){
     check_empty_bites(string_ptr);
     string_ptr->s[string_ptr->size] = to_add;
     string_ptr++;
+}
 
+// true if they are the same, false if not the same
+bool compare_strings(string* string_ptr, char word[]){
+    if(string_ptr->size == strlen(word)){
+        return false;
+    }
+    else{
+        return false;
+    }
 }

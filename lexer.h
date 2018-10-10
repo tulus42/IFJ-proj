@@ -21,6 +21,7 @@ Adrián Tulušák, xtulus00
 #define STATE_NEXT_CHARS 520
 #define STATE_FIRST_ZERO 521
 #define STATE_FIRST_NONZERO 522
+#define STATE_LAST_CHAR 523
 //#define STATE_COMMENT_START
 //#define STATE_COMMENT_END
 
@@ -91,3 +92,4 @@ typedef struct
 void get_source(FILE *f);
 int get_next_token(Token_t *token);
 void change_state(int * current_state, int next_state);
+void reserved_or_keywords(string* string_ptr);

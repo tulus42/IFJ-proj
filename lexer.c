@@ -28,18 +28,47 @@ void change_state(int * current_state, int next_state){
 	*current_state = next_state;
 }
 
-void reserved_or_keywords(string* string_ptr, Token_t* token){
+void keywords(string* string_ptr, Token_t* token){
 	if(compare_strings(string_ptr, "def")){
 		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_DEF;
 	}
-	else if(compare_strings(string_ptr, "do"));
-	else if(compare_strings(string_ptr, "else"));
-	else if(compare_strings(string_ptr, "end"));
-	else if(compare_strings(string_ptr, "if"));
-	else if(compare_strings(string_ptr, "not"));
-	else if(compare_strings(string_ptr, "nil"));
-	else if(compare_strings(string_ptr, "then"));
-	else if(compare_strings(string_ptr, "while"));
+	else if(compare_strings(string_ptr, "do")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_DO;
+	}
+	else if(compare_strings(string_ptr, "else")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_ELSE;
+	}
+	else if(compare_strings(string_ptr, "end")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_END;
+	}
+	else if(compare_strings(string_ptr, "if")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_IF;
+	}
+	else if(compare_strings(string_ptr, "not")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_NOT;
+	}
+	else if(compare_strings(string_ptr, "nil")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_NIL;
+	}
+	else if(compare_strings(string_ptr, "then")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_THEN;
+	}
+	else if(compare_strings(string_ptr, "while")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_WHILE;
+	}
+	else{
+		token->token = TYPE_IDENTIFIER;
+		/// MA TO IST DO ATTR STRING????? ALEBO NE??????
+	}
 
 }
 
@@ -220,9 +249,28 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				else{
 					// TUTO JE KONIEC
 					ungetc(c, source);
+					keywords(string_ptr, token);
 					/// HAVE TO COMPARE IT WITH ALL THE KEYWORDS!!!! TODO
 					free_string(string_ptr);
 				}
+				break;
+
+			case(STATE_LAST_CHAR):
+				if(isalpha(c) || isdigit(c) || c == '_'){
+					ungetc(c, source);
+					free_string(string_ptr);
+					change_state(&current_status, STATE_START);
+					// ERROR
+					; // NOT ALL WELL, CANT BE IDENTIFIER
+				}
+				else{
+					ungetc(c, source);
+					change_state(&current_status, STATE_START);
+					token->token = TYPE_IDENTIFIER;
+					;// ALL IS WELL, CAN BE IDENTIFIER
+				}
+				break;
+
 		}
 		//printf("Toto je token %d\n", token->token);
 		//printf("Som vo while a current status je %d\n", current_status);

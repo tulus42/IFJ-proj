@@ -15,6 +15,7 @@ Adrián Tulušák, xtulus00
 
 #include "error.h"
 #include "lexer.h"
+#include "dynamic_string.c"
 
 FILE* source;
 
@@ -34,7 +35,12 @@ void change_state(int * current_state, int next_state){
 
 int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
 {
+	// current state is start
 	int current_status = STATE_START;
+	// variable for string
+	string * string_ptr = NULL;
+	init_struc_pointer(string_ptr);
+
 	if (source == NULL)
 	{
 		return ER_INTERNAL;
@@ -46,7 +52,8 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 		;
 		switch(current_status){
 			
-			case(STATE_START): // first comparison
+			// all possible first states
+			case(STATE_START):
 				if(isspace(c)){
 					change_state(&current_status, STATE_START);
 				}
@@ -109,7 +116,8 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				else if(isalpha(c) || c == '_'){
 					if(islower(c)){
-						// can continue, first char is OK
+						// can continue, first char is
+						// allocate_memory_for_string
 						change_state(&current_status, STATE_START);
 					}
 					else{
@@ -117,23 +125,29 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					}
 				}
 				else if(c == EOF){
+					token->token = TYPE_EOF;
 					change_state(&current_status, STATE_EOF);
 				}
 				else{
 					printf("ERROR\n"); // ERROR
 				}
 				break;
+
+			// previous char was <
 			case(STATE_LESS_THAN):
-				if(c == '='){
+				if(c == '='){ // <=
 					token->token = TYPE_LEQ;
 					change_state(&current_status, STATE_START);
 				
 				}
-				else{
+				else{ // only <, puts the previous char back to buffer
 					token->token = TYPE_LTN;
+					ungetc(c, source);
 					change_state(&current_status, STATE_START);
 				}
 				break;
+
+			// previous char was >
 			case(STATE_GREATER_THAN):
 				if(c == '='){
 					token->token = TYPE_MEQ;
@@ -142,18 +156,24 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				else{
 					token->token = TYPE_MTN;
+					ungetc(c, source);
 					change_state(&current_status, STATE_START);
 				}
 				break;
+
+			// previous char was =
 			case(STATE_ASSIGN):
 				if(c == '='){
 					token->token = TYPE_EQ;
 					change_state(&current_status, STATE_START); // ==
 				}
 				else{
+					ungetc(c, source);
 					current_status = STATE_START; // =
 				}
 				break;
+
+			// line commentary
 			case(STATE_LINE_COMMENTARY):
 				if(c == '\n'){
 					token->token = TYPE_COMMENT;
@@ -163,18 +183,25 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					current_status = STATE_LINE_COMMENTARY;
 				}
 				break;
+
+			// previous char was !, only != can be accepted
 			case(STATE_EXCLAMATION_MARK):
 				if(c == '='){
 					token->token = TYPE_NEQ;
 					change_state(&current_status, STATE_START);
 				}
+				else{
+					; // error - invalid character
+				}
 
 		}
+		//printf("Toto je token %d\n", token->token);
 		//printf("Som vo while a current status je %d\n", current_status);
 		if(c == EOF){
 			break;
 		}
 		
 	}
+	free_struc_pointer(string_ptr);
 	return 0;
 }

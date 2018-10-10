@@ -17,12 +17,14 @@ Adrián Tulušák, xtulus00
 #define STATE_EXCLAMATION_MARK 515
 #define STATE_LINE_COMMENTARY 517
 #define STATE_EOL 518
-#define STATE_EON 519
+#define STATE_EOF 519
 #define STATE_NEXT_CHARS 520
 #define STATE_FIRST_ZERO 521
 #define STATE_FIRST_NONZERO 522
-#define STATE_COMMENT_START
-#define STATE_COMMENT_END
+//#define STATE_COMMENT_START
+//#define STATE_COMMENT_END
+
+#define LEXER_OK 0
 
 
 typedef enum
@@ -52,7 +54,8 @@ typedef enum
 	TYPE_EOF, 
 	TYPE_EOL, 
 	TYPE_IDENTIFIER, 
-	TYPE_KEYWORD, 
+	TYPE_KEYWORD,
+	TYPE_STRING_LITERAL, 
 
 	TYPE_NEQ, // !=
 	TYPE_LEQ, // <=
@@ -87,3 +90,4 @@ typedef struct
 
 void get_source(FILE *f);
 int get_next_token(Token_t *token);
+void change_state(int * current_state, int next_state)

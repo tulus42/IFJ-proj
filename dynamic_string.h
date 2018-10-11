@@ -19,8 +19,11 @@ typedef struct string
 } string;
 
 
-// TODO
-// add_char
-// reallocate
-// allocate string size
-// free string
+
+string* init_struc_pointer(string* string_ptr);
+void free_struc_pointer(string* string_ptr);
+void check_empty_bites(string* string_ptr);
+string* allocate_string(string* string_ptr);
+void free_string(string* string_ptr);
+void add_char(string* string_ptr, char to_add);
+bool compare_strings(string* string_ptr, char word[]);

@@ -75,11 +75,14 @@ void keywords(string* string_ptr, Token_t* token){
 
 int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
 {
+	
 	// current state is start
 	int current_status = STATE_START;
 	// variable for string
-	string* string_ptr = NULL;
-	init_struc_pointer(string_ptr);
+	string* string_ptr;
+	string_ptr = init_struc_pointer(string_ptr);
+	
+	
 
 	if (source == NULL)
 	{
@@ -94,7 +97,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			
 			// all possible first states
 			case(STATE_START):
-				if(isspace(c)){
+				if(isspace(c) || c == '\n'){
 					change_state(&current_status, STATE_START);
 				}
 				else if(c == '*'){
@@ -157,12 +160,12 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				else if(isalpha(c) || c == '_'){
 					if(islower(c)){
 						// can continue, first char is
-						//allocate_string(string_ptr);
-						//add_char(string_ptr, c);
-						change_state(&current_status, STATE_START);
+						string_ptr = allocate_string(string_ptr);
+						add_char(string_ptr, c);
+						change_state(&current_status, STATE_NEXT_CHARS);
 					}
 					else{
-						// not allowed to start with uppercase!!!
+						// not allowed to start with uppercase!!! CO TERAZ?
 					}
 				}
 				else if(c == EOF){
@@ -242,23 +245,24 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					add_char(string_ptr, c); // ADDING NEW CHARS TO THE STRING
 				}
 				else if(c == '?' || c == '!'){
-					add_char(string_ptr, c);
+					;//add_char(string_ptr, c);
 					change_state(&current_status, STATE_LAST_CHAR);
 					// this has to be the end of string
 				}
 				else{
 					// TUTO JE KONIEC
 					ungetc(c, source);
-					keywords(string_ptr, token);
+					//keywords(string_ptr, token);
 					/// HAVE TO COMPARE IT WITH ALL THE KEYWORDS!!!! TODO
 					free_string(string_ptr);
+					change_state(&current_status, STATE_START);
 				}
 				break;
 
 			case(STATE_LAST_CHAR):
 				if(isalpha(c) || isdigit(c) || c == '_'){
 					ungetc(c, source);
-					free_string(string_ptr);
+					//free_string(string_ptr);
 					change_state(&current_status, STATE_START);
 					// ERROR
 					; // NOT ALL WELL, CANT BE IDENTIFIER

@@ -92,4 +92,3 @@ typedef struct
 void get_source(FILE *f);
 int get_next_token(Token_t *token);
 void change_state(int * current_state, int next_state);
-void reserved_or_keywords(string* string_ptr);

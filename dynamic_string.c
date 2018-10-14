@@ -51,17 +51,51 @@ void check_empty_bites(struct string_t *string_ptr){
 
 void add_char(struct string_t *string_ptr, char to_add){
     check_empty_bites(string_ptr);
-    // check whether it is empty
-    //check_empty_bites(&string_ptr);
-    printf("Size je: %d\n", string_ptr->current_size);
-    printf("Buffer size is %d\n", string_ptr->buffer_size);
-    printf("Char to add is %c\n", to_add);
     string_ptr->s[string_ptr->current_size] = to_add;
     string_ptr->current_size++;
     string_ptr->s[string_ptr->current_size] = '\0';
-    printf("The string is %s\n\n", string_ptr->s);
 }
 
-void free_dynamic_string(struct string_t *string_ptr){
-    ;
+// true if they are the same, false if not the same
+bool compare_strings(struct string_t *string_ptr, char word[]){
+    bool tmp_result;
+    if(string_ptr->current_size == strlen(word)){
+        for(int i = 0; i < strlen(word); i++){
+            if(string_ptr->s[i] == word[i]){
+                tmp_result = true;
+            }
+            else{
+                tmp_result = false;
+                break;
+            }
+        }
+        return tmp_result;
+    }
+    else{
+        return false;
+    }
+}
+
+bool check_comment_begin(int match_count, struct string_t *string_ptr){
+    char* expected_input = "=begin";
+    for(int i = 0; i < match_count; i++){
+        if(string_ptr->s[i] == expected_input[i])
+            continue;
+        else{
+            return false;
+        }
+    }
+    return true;
+}
+
+bool check_comment_end(int match_count, struct string_t *string_ptr){
+    char* expected_input = "=end";
+    for(int i = 0; i < match_count; i++){
+        if(string_ptr->s[i] == expected_input[i])
+            continue;
+        else{
+            return false;
+        }
+    }
+    return true;
 }

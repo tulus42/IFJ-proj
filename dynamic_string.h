@@ -11,19 +11,18 @@ Adrián Tulušák, xtulus00
 #define NEW_ALLOCATION 5
 
 // struct for dynamic string
-typedef struct string
-{
+struct string_t {
 	char *s;
-	int size;
-	int b_size;
-} string;
+	int current_size;
+	int buffer_size;
+};
 
 
 
-string* init_struc_pointer(string* string_ptr);
-void free_struc_pointer(string* string_ptr);
-void check_empty_bites(string* string_ptr);
-string* allocate_string(string* string_ptr);
-void free_string(string* string_ptr);
-void add_char(string* string_ptr, char to_add);
-bool compare_strings(string* string_ptr, char word[]);
+//void init_struc_pointer(struct string_t **string_ptr);
+//void free_struc_pointer(struct string_t **string_ptr);
+//void check_empty_bites(struct string_t *string_ptr);
+//void allocate_string(struct string_t *string_ptr);
+//void free_string(struct string_t *string_ptr);
+//void add_char(struct string_t *string_ptr, char to_add);
+//bool compare_strings(struct string_t *string_ptr, char word[]);

@@ -28,61 +28,70 @@ void change_state(int * current_state, int next_state){
 	*current_state = next_state;
 }
 
-void keywords(string* string_ptr, Token_t* token){
-	if(compare_strings(string_ptr, "def")){
-		token->token = TYPE_KEYWORD;
-		token->attr.keyword = KEYWORD_DEF;
-	}
-	else if(compare_strings(string_ptr, "do")){
-		token->token = TYPE_KEYWORD;
-		token->attr.keyword = KEYWORD_DO;
-	}
-	else if(compare_strings(string_ptr, "else")){
-		token->token = TYPE_KEYWORD;
-		token->attr.keyword = KEYWORD_ELSE;
-	}
-	else if(compare_strings(string_ptr, "end")){
-		token->token = TYPE_KEYWORD;
-		token->attr.keyword = KEYWORD_END;
-	}
-	else if(compare_strings(string_ptr, "if")){
-		token->token = TYPE_KEYWORD;
-		token->attr.keyword = KEYWORD_IF;
-	}
-	else if(compare_strings(string_ptr, "not")){
-		token->token = TYPE_KEYWORD;
-		token->attr.keyword = KEYWORD_NOT;
-	}
-	else if(compare_strings(string_ptr, "nil")){
-		token->token = TYPE_KEYWORD;
-		token->attr.keyword = KEYWORD_NIL;
-	}
-	else if(compare_strings(string_ptr, "then")){
-		token->token = TYPE_KEYWORD;
-		token->attr.keyword = KEYWORD_THEN;
-	}
-	else if(compare_strings(string_ptr, "while")){
-		token->token = TYPE_KEYWORD;
-		token->attr.keyword = KEYWORD_WHILE;
-	}
-	else{
-		token->token = TYPE_IDENTIFIER;
-		/// MA TO IST DO ATTR STRING????? ALEBO NE??????
-	}
+//void keywords(struct string_t *string_ptr, Token_t* token){
+//	if(compare_strings(string_ptr, "def")){
+//		token->token = TYPE_KEYWORD;
+//		token->attr.keyword = KEYWORD_DEF;
+//	}
+//	else if(compare_strings(string_ptr, "do")){
+//		token->token = TYPE_KEYWORD;
+//		token->attr.keyword = KEYWORD_DO;
+//	}
+//	else if(compare_strings(string_ptr, "else")){
+//		token->token = TYPE_KEYWORD;
+//		token->attr.keyword = KEYWORD_ELSE;
+//	}
+//	else if(compare_strings(string_ptr, "end")){
+//		token->token = TYPE_KEYWORD;
+//		token->attr.keyword = KEYWORD_END;
+//	}
+//	else if(compare_strings(string_ptr, "if")){
+//		token->token = TYPE_KEYWORD;
+//		token->attr.keyword = KEYWORD_IF;
+//	}
+//	else if(compare_strings(string_ptr, "not")){
+//		token->token = TYPE_KEYWORD;
+//		token->attr.keyword = KEYWORD_NOT;
+//	}
+//	else if(compare_strings(string_ptr, "nil")){
+//		token->token = TYPE_KEYWORD;
+//		token->attr.keyword = KEYWORD_NIL;
+//	}
+//	else if(compare_strings(string_ptr, "then")){
+//		token->token = TYPE_KEYWORD;
+//		token->attr.keyword = KEYWORD_THEN;
+//	}
+//	else if(compare_strings(string_ptr, "while")){
+//		token->token = TYPE_KEYWORD;
+//		token->attr.keyword = KEYWORD_WHILE;
+//	}
+//	else{
+//		token->token = TYPE_IDENTIFIER;
+//		/// MA TO IST DO ATTR STRING????? ALEBO NE??????
+//	}
+//
+//}
 
-}
+/*
+
+TODO: 
+kde je malloc, treba tam return type bool;
+
+
+
+*/
 
 
 int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
 {
-	
+
 	// current state is start
 	int current_status = STATE_START;
-	// variable for string
-	string* string_ptr;
-	string_ptr = init_struc_pointer(string_ptr);
-	
-	
+	// variable for string struct
+	struct string_t string;
+	struct string_t *string_ptr = &string;
+	allocate_string(string_ptr);
+
 
 	if (source == NULL)
 	{
@@ -91,7 +100,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 
 	while(true){
 		char c = getc(source); // read characters one by one
-		printf("%c\n", c);
+		//printf("%c\n", c);
 		;
 		switch(current_status){
 			
@@ -160,9 +169,10 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				else if(isalpha(c) || c == '_'){
 					if(islower(c)){
 						// can continue, first char is
-						string_ptr = allocate_string(string_ptr);
+						allocate_string(string_ptr);
 						add_char(string_ptr, c);
-						change_state(&current_status, STATE_NEXT_CHARS);
+						free_string(string_ptr);
+						change_state(&current_status, STATE_START);
 					}
 					else{
 						// not allowed to start with uppercase!!! CO TERAZ?
@@ -242,7 +252,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			// array of chars
 			case(STATE_NEXT_CHARS):
 				if(isalpha(c) || isdigit(c) || c == '_'){
-					add_char(string_ptr, c); // ADDING NEW CHARS TO THE STRING
+					;//add_char(string_ptr, c); // ADDING NEW CHARS TO THE STRING
 				}
 				else if(c == '?' || c == '!'){
 					;//add_char(string_ptr, c);
@@ -254,7 +264,6 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					ungetc(c, source);
 					//keywords(string_ptr, token);
 					/// HAVE TO COMPARE IT WITH ALL THE KEYWORDS!!!! TODO
-					free_string(string_ptr);
 					change_state(&current_status, STATE_START);
 				}
 				break;
@@ -262,7 +271,6 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			case(STATE_LAST_CHAR):
 				if(isalpha(c) || isdigit(c) || c == '_'){
 					ungetc(c, source);
-					//free_string(string_ptr);
 					change_state(&current_status, STATE_START);
 					// ERROR
 					; // NOT ALL WELL, CANT BE IDENTIFIER
@@ -279,10 +287,12 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 		//printf("Toto je token %d\n", token->token);
 		//printf("Som vo while a current status je %d\n", current_status);
 		if(c == EOF){
+			
 			break;
 		}
-		
 	}
-	free_struc_pointer(string_ptr);
+	// toto bude musieť byť inde
+	free_string(string_ptr);
+
 	return 0;
 }

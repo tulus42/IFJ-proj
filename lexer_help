@@ -1,6 +1,10 @@
-pos <= rate * 69
+pos! <= rate * 69
+funkcia 0
+fun02 15
+funkcia1 0.1
 # Som komentar
 =begin
-pokracujem pos + 1
+pokracujem = pos + 1
 =end
+"Ahoj\n Sve'te\s\\\x22"
 def funkcia nil

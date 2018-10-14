@@ -25,8 +25,10 @@ Adrián Tulušák, xtulus00
 #define STATE_COMMENT_START 524
 #define STATE_INSIDE_BLOCK_COMMENT 525
 #define STATE_COMMENT_END 526
+#define STATE_STRING_LITERAL 527
 
 #define LEXER_OK 0
+#define LEXER_ERROR 1
 
 
 typedef enum
@@ -93,3 +95,4 @@ typedef struct
 void get_source(FILE *f);
 int get_next_token(Token_t *token);
 void change_state(int * current_state, int next_state);
+//int lexer_error(struct string_t* string_ptr);

@@ -15,7 +15,7 @@ Adrián Tulušák, xtulus00
 
 #include "dynamic_string.h"
 
-void allocate_string(struct string_t *string_ptr){
+void allocate_string(struct string_t* string_ptr){
     string_ptr->s = (char *) malloc(STARTING_SIZE);
     if(string_ptr->s == NULL){
         printf("Failed to reallocate memory\n");
@@ -28,7 +28,7 @@ void allocate_string(struct string_t *string_ptr){
     }
 }
 
-void free_string(struct string_t *string_ptr){
+void free_string(struct string_t* string_ptr){
     free(string_ptr->s);
 }
 
@@ -49,7 +49,7 @@ void check_empty_bites(struct string_t *string_ptr){
     }
 }
 
-void add_char(struct string_t *string_ptr, char to_add){
+void add_char(struct string_t* string_ptr, char to_add){
     check_empty_bites(string_ptr);
     string_ptr->s[string_ptr->current_size] = to_add;
     string_ptr->current_size++;
@@ -57,7 +57,7 @@ void add_char(struct string_t *string_ptr, char to_add){
 }
 
 // true if they are the same, false if not the same
-bool compare_strings(struct string_t *string_ptr, char word[]){
+bool compare_strings(struct string_t* string_ptr, char word[]){
     bool tmp_result;
     if(string_ptr->current_size == strlen(word)){
         for(int i = 0; i < strlen(word); i++){
@@ -76,7 +76,7 @@ bool compare_strings(struct string_t *string_ptr, char word[]){
     }
 }
 
-bool check_comment_begin(int match_count, struct string_t *string_ptr){
+bool check_comment_begin(int match_count, struct string_t* string_ptr){
     char* expected_input = "=begin";
     for(int i = 0; i < match_count; i++){
         if(string_ptr->s[i] == expected_input[i])
@@ -88,7 +88,7 @@ bool check_comment_begin(int match_count, struct string_t *string_ptr){
     return true;
 }
 
-bool check_comment_end(int match_count, struct string_t *string_ptr){
+bool check_comment_end(int match_count, struct string_t* string_ptr){
     char* expected_input = "=end";
     for(int i = 0; i < match_count; i++){
         if(string_ptr->s[i] == expected_input[i])
@@ -98,4 +98,11 @@ bool check_comment_end(int match_count, struct string_t *string_ptr){
         }
     }
     return true;
+}
+
+void clear_string_content(struct string_t* string_ptr){
+    for(int i = 0; i < string_ptr->current_size; i++){
+        string_ptr->s[i] = '\0';
+    }
+    string_ptr->current_size = 0;
 }

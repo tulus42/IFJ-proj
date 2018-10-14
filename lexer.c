@@ -70,7 +70,7 @@ void keywords(struct string_t *string_ptr, Token_t* token){
 		token->attr.string = string_ptr->s;
 		/// MA TO IST DO ATTR STRING????? ALEBO NE??????
 	}
-	printf("Token pre %s je: %d\n", string_ptr->s, token->token);
+	//printf("Token pre %s je: %d\n", string_ptr->s, token->token);
 }
 
 /*
@@ -250,13 +250,16 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 
 			// check whether input is '=begin'
 			case(STATE_COMMENT_START):
+				
 				add_char(string_ptr, c);
+				
 				registered_input = strlen(string_ptr->s);
+
 				if(check_comment_begin(registered_input, string_ptr)){
 					if(registered_input == strlen("=begin")){
-						change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
 						free_string(string_ptr);
 						allocate_string(string_ptr);
+						change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
 					}
 				}
 				else{
@@ -272,7 +275,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				else{
 					token->token = TYPE_COMMENT;
-					continue; // Inside of a block comment gets ignored
+					 // Inside of a block comment gets ignored
 				}
 				break;
 
@@ -318,7 +321,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					ungetc(c, source);
 					keywords(string_ptr, token);
 					/// HAVE TO COMPARE IT WITH ALL THE KEYWORDS!!!! TODO
-					printf("%s\n", string_ptr->s);
+					//printf("%s\n", string_ptr->s);
 					free_string(string_ptr);
 					allocate_string(string_ptr);
 					change_state(&current_status, STATE_START);

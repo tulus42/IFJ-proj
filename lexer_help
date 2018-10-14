@@ -1,6 +1,6 @@
 pos <= rate * 69
 # Som komentar
 =begin
-pokracujem = pos + 1
+pokracujem pos + 1
 =end
 def funkcia nil

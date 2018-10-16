@@ -13,7 +13,7 @@ end # function factorial
 print "Zadejte cislo pro vypocet faktorialu: "
 a = inputi
 if a < 0 then
-    print "\nFaltproaô meôze spocitat\n"
+    print "\nFaktorial nelze spocitat\n"
 else
     vysl = factorial a
     print("\nVylsedek je:", vysl, "\n")

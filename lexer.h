@@ -10,24 +10,27 @@ Adrián Tulušák, xtulus00
 
 // TODO - Finish the state list, give it proper numbers
 #define STATE_START 500 // start
-#define STATE_ASSIGN 504 // =
-#define STATE_LESS_THAN 506 // <
-#define STATE_GREATER_THAN 508 // >
-#define STATE_COMMA 514
-#define STATE_EXCLAMATION_MARK 515 // !
-#define STATE_LINE_COMMENTARY 517 // # I am a line comment and get ignored
-#define STATE_EOL 518
-#define STATE_EOF 519
-#define STATE_NEXT_CHARS 520
-#define STATE_FIRST_ZERO 521
-#define STATE_FIRST_NONZERO 522
-#define STATE_LAST_CHAR 523 // ! or ?
-#define STATE_COMMENT_START 524 // '=begin'
-#define STATE_INSIDE_BLOCK_COMMENT 525
-#define STATE_COMMENT_END 526 // '=end'
-#define STATE_STRING_LITERAL 527 // "xxxxxx"
-#define STATE_BACKSLASH_LITERAL 528 // backslash
-#define STATE_HEX_NUM 529 // xx
+#define STATE_ASSIGN 501 // =
+#define STATE_LESS_THAN 502 // <
+#define STATE_GREATER_THAN 503 // >
+#define STATE_COMMA 504
+#define STATE_EXCLAMATION_MARK 505 // !
+#define STATE_LINE_COMMENTARY 506 // # I am a line comment and get ignored
+#define STATE_EOL 507
+#define STATE_EOF 508
+#define STATE_NEXT_CHARS 509
+#define STATE_FIRST_ZERO 510
+#define STATE_FIRST_NONZERO 511
+#define STATE_LAST_CHAR 512 // ! or ?
+#define STATE_COMMENT_START 513 // '=begin'
+#define STATE_INSIDE_BLOCK_COMMENT 514
+#define STATE_COMMENT_END 515 // '=end'
+#define STATE_STRING_LITERAL 516 // "xxxxxx"
+#define STATE_BACKSLASH_LITERAL 517 // backslash
+#define STATE_HEX_NUM 518 // xx
+#define STATE_DECIMAL 519 // 5.42
+#define STATE_EXPONENTIAL 520
+#define STATE_EXPONENTIAL_SIGN 521
 
 typedef enum
 {
@@ -82,7 +85,7 @@ typedef enum
 
 	TYPE_INT, 
 	TYPE_FLOAT, 
-	TYPE_STRING,
+	TYPE_STRING, /// STRING A STRING LITERAL - ROZDIEL?????
 } Token_type;
 
 typedef struct
@@ -94,4 +97,5 @@ typedef struct
 void get_source(FILE *f);
 int get_next_token(Token_t *token);
 void change_state(int * current_state, int next_state);
-//int lexer_error(struct string_t* string_ptr);
+void keywords(struct string_t *string_ptr, Token_t* token);
+int lexer_error(struct string_t* string_ptr);

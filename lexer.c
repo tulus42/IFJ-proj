@@ -186,10 +186,12 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				else if(isdigit(c)){ // [0-9]
 					if(c == '0'){
-						;//change_state(&current_status, STATE_FIRST_ZERO);
+						add_char(string_ptr, c);
+						change_state(&current_status, STATE_FIRST_ZERO);
 					}
 					else{
-						;//change_state(&current_status, STATE_FIRST_NONZERO);
+						add_char(string_ptr, c);
+						change_state(&current_status, STATE_FIRST_NONZERO);
 					}
 				}
 				else if(isalpha(c) || c == '_'){ // [a-zA-Z_]
@@ -422,29 +424,85 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 
 			// this should work like a string
 			case(STATE_FIRST_ZERO):
-				//token->token = TYPE_INT;
-				//token->attr.integer = 0;
-				change_state(&current_status, STATE_START);
+				if(c == '.'){ // 0.xxx
+					add_char(string_ptr, c);
+					change_state(&current_status, STATE_DECIMAL);
+				}
+				else{
+					token->token = TYPE_INT;
+					token->attr.integer = 0;
+					printf("%s : %d\n", tokens[token->token], token->attr.integer);
+					change_state(&current_status, STATE_START);
+				}
 				break;
 
 			
 			case(STATE_FIRST_NONZERO):
-				change_state(&current_status, STATE_START);
+				if(isdigit(c)){
+					add_char(string_ptr, c);
+				}
+				else if(c == '.'){
+					add_char(string_ptr, c);
+					change_state(&current_status, STATE_DECIMAL);
+				}
+				else if(c == 'e' || c == 'E'){
+					add_char(string_ptr, c);
+					change_state(&current_status, STATE_EXPONENTIAL_SIGN);
+				}
+				else{
+					ungetc(c, source);
+					token->token = TYPE_INT;
+					token->attr.integer = (int) strtol(string_ptr->s, NULL, 10);
+					printf("%s : %d\n", tokens[token->token], token->attr.integer);
+					clear_string_content(string_ptr);
+					change_state(&current_status, STATE_START);
+				}
 				break;
 			
-			
-		}
-		
-		/*
-		if(string_ptr->s[0] != '\0'){
-			printf("I am %s and my token type is %s\n", string_ptr->s, tokens[token->token]);
-		}
-		else{
-			printf("I am %c token type is %s\n", c, tokens[token->token]);
-		}
-		*/
-		
+			case(STATE_DECIMAL):
+				if(isdigit(c)){
+					add_char(string_ptr, c);
+				}
+				else if(c == 'e' || c == 'E'){
+					add_char(string_ptr, c);
+					change_state(&current_status, STATE_EXPONENTIAL_SIGN);
+				}
+				else{
+					ungetc(c, source);
+					token->token = TYPE_FLOAT;
+					token->attr.flt = strtof(string_ptr->s, NULL);
+					printf("%s : %f\n", tokens[token->token], token->attr.flt);
+					clear_string_content(string_ptr);
+					change_state(&current_status, STATE_START);
+				}
+				break;
 
+			case(STATE_EXPONENTIAL_SIGN):
+				if(c == '+' || c == '-'){
+					add_char(string_ptr, c);
+				}
+				else if(isdigit(c)){
+					ungetc(c, source);
+					add_char(string_ptr, '+');
+				}
+				change_state(&current_status, STATE_EXPONENTIAL);
+				break;
+
+			case(STATE_EXPONENTIAL):
+				if(isdigit(c)){
+					add_char(string_ptr, c);
+				}
+				else{
+					ungetc(c, source);
+					token->token = TYPE_FLOAT;
+					token->attr.flt = strtof(string_ptr->s, NULL);
+					printf("%s : %f\n", tokens[token->token], token->attr.flt);	
+					clear_string_content(string_ptr);
+					change_state(&current_status, STATE_START);
+				}
+				break;
+		}
+				
 		if(c == EOF){
 			free_string(string_ptr);
 			break;

@@ -7,7 +7,7 @@ else
     vysl = 1
     while a > 0
         vysl = vysl * a
-        a = a - 42.42
+        a = a - 42.11
     end
     print "Vysledek je: ", vysk, "\n"
 end

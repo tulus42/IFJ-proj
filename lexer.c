@@ -445,6 +445,10 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					add_char(string_ptr, c);
 					change_state(&current_status, STATE_DECIMAL);
 				}
+				else if(c == 'e' || c == 'E'){
+					add_char(string_ptr, c);
+					change_state(&current_status, STATE_EXPONENTIAL_SIGN);
+				}
 				else{
 					ungetc(c, source);
 					token->token = TYPE_INT;
@@ -459,6 +463,10 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				if(isdigit(c)){
 					add_char(string_ptr, c);
 				}
+				else if(c == 'e' || c == 'E'){
+					add_char(string_ptr, c);
+					change_state(&current_status, STATE_EXPONENTIAL_SIGN);
+				}
 				else{
 					ungetc(c, source);
 					token->token = TYPE_FLOAT;
@@ -468,7 +476,31 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					change_state(&current_status, STATE_START);
 				}
 				break;
-			
+
+			case(STATE_EXPONENTIAL_SIGN):
+				if(c == '+' || c == '-'){
+					add_char(string_ptr, c);
+				}
+				else if(isdigit(c)){
+					ungetc(c, source);
+					add_char(string_ptr, '+');
+				}
+				change_state(&current_status, STATE_EXPONENTIAL);
+				break;
+
+			case(STATE_EXPONENTIAL):
+				if(isdigit(c)){
+					add_char(string_ptr, c);
+				}
+				else{
+					ungetc(c, source);
+					token->token = TYPE_FLOAT;
+					token->attr.flt = strtof(string_ptr->s, NULL);
+					printf("%s : %f\n", tokens[token->token], token->attr.flt);	
+					clear_string_content(string_ptr);
+					change_state(&current_status, STATE_START);
+				}
+				break;
 		}
 				
 		if(c == EOF){

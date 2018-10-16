@@ -8,6 +8,27 @@ Adrián Tulušák, xtulus00
 
 #include <stdio.h>
 
+// TODO - Finish the state list, give it proper numbers
+#define STATE_START 500 // start
+#define STATE_ASSIGN 504 // =
+#define STATE_LESS_THAN 506 // <
+#define STATE_GREATER_THAN 508 // >
+#define STATE_COMMA 514
+#define STATE_EXCLAMATION_MARK 515 // !
+#define STATE_LINE_COMMENTARY 517 // # I am a line comment and get ignored
+#define STATE_EOL 518
+#define STATE_EOF 519
+#define STATE_NEXT_CHARS 520
+#define STATE_FIRST_ZERO 521
+#define STATE_FIRST_NONZERO 522
+#define STATE_LAST_CHAR 523 // ! or ?
+#define STATE_COMMENT_START 524 // '=begin'
+#define STATE_INSIDE_BLOCK_COMMENT 525
+#define STATE_COMMENT_END 526 // '=end'
+#define STATE_STRING_LITERAL 527 // "xxxxxx"
+#define STATE_BACKSLASH_LITERAL 528 // backslash
+#define STATE_HEX_NUM 529 // xx
+
 typedef enum
 {
 	KEYWORD_DEF,
@@ -35,8 +56,10 @@ typedef enum
 	TYPE_EOF, 
 	TYPE_EOL, 
 	TYPE_IDENTIFIER, 
-	TYPE_KEYWORD, 
+	TYPE_KEYWORD,
+	TYPE_STRING_LITERAL, 
 
+	TYPE_ASSIGN, // =
 	TYPE_NEQ, // !=
 	TYPE_LEQ, // <=
 	TYPE_LTN, // <
@@ -70,3 +93,5 @@ typedef struct
 
 void get_source(FILE *f);
 int get_next_token(Token_t *token);
+void change_state(int * current_state, int next_state);
+//int lexer_error(struct string_t* string_ptr);

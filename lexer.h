@@ -21,15 +21,13 @@ Adrián Tulušák, xtulus00
 #define STATE_NEXT_CHARS 520
 #define STATE_FIRST_ZERO 521
 #define STATE_FIRST_NONZERO 522
-#define STATE_LAST_CHAR 523
-#define STATE_COMMENT_START 524
+#define STATE_LAST_CHAR 523 // ! or ?
+#define STATE_COMMENT_START 524 // '=begin'
 #define STATE_INSIDE_BLOCK_COMMENT 525
-#define STATE_COMMENT_END 526
-#define STATE_STRING_LITERAL 527
-
-#define LEXER_OK 0
-#define LEXER_ERROR 1
-
+#define STATE_COMMENT_END 526 // '=end'
+#define STATE_STRING_LITERAL 527 // "xxxxxx"
+#define STATE_BACKSLASH_LITERAL 528 // backslash
+#define STATE_HEX_NUM 529 // xx
 
 typedef enum
 {

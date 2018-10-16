@@ -2,12 +2,12 @@
 print "Zadejte cislo pro vypocet faktorialu: "
 a = inputi
 if a < 0 then
-    print("\nFaktorial nelze spocitat\n")
+    print("Faktorial nelze spocitat")
 else
     vysl = 1
     while a > 0
         vysl = vysl * a
         a = a - 1
     end
-    print "\nVysledek je: ", vysk, "\n"
+    print "Vysledek je: ", vysk, "\n"
 end

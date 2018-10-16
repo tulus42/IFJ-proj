@@ -47,7 +47,7 @@ void free_string(struct string_t* string_ptr){
 
 bool check_empty_bites(struct string_t *string_ptr){
     if(string_ptr->current_size == (string_ptr->buffer_size - 2)){
-        string_ptr->s = realloc(string_ptr->s, NEW_ALLOCATION);
+        string_ptr->s = realloc(string_ptr->s, string_ptr->buffer_size + NEW_ALLOCATION);
         if(string_ptr->s == NULL){
             printf("Failed to reallocate memory\n");
             free_string(string_ptr);
@@ -131,4 +131,10 @@ void clear_string_content(struct string_t* string_ptr){
         string_ptr->s[i] = '\0';
     }
     string_ptr->current_size = 0;
+}
+
+char convert_from_hex(char hex[]){
+    long n = strtol(hex, NULL, 16);
+    int tmp = (int) n;
+    return tmp;
 }

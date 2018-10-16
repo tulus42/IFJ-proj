@@ -15,4 +15,3 @@ Adrián Tulušák, xtulus00
 #define ER_SEM_OTHER 6
 #define ER_ZERO_DIV 9
 #define ER_INTERNAL 99
-#define SYNTAX_OK 0

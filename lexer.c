@@ -16,13 +16,14 @@ Adrián Tulušák, xtulus00
 #include "error.h"
 #include "lexer.h"
 #include "dynamic_string.c"
+#include "testing.h"
 
 FILE* source;
+#define LEXER_OK 0
+
 
 /**
  * Sets the source file
- * 
- * 
  */
 void get_source(FILE *f)
 {
@@ -31,8 +32,6 @@ void get_source(FILE *f)
 
 /**
  * Changes current state to the next state by hard copy
- * 
- * 
  */
 void change_state(int * current_state, int next_state){
 	*current_state = next_state;
@@ -41,7 +40,6 @@ void change_state(int * current_state, int next_state){
 /**
  * Compares the entered string and checkes, wheter it's keyword or not
  * If not keyword, it is automatically an identifier
- *
  */
 void keywords(struct string_t *string_ptr, Token_t* token){
 	if(compare_strings(string_ptr, "def")){
@@ -85,28 +83,29 @@ void keywords(struct string_t *string_ptr, Token_t* token){
 		token->attr.string = string_ptr->s;
 		/// MA TO IST DO ATTR STRING????? ALEBO NE??????
 	}
-	printf("Token pre %s je: %d\n", string_ptr->s, token->token);
+	
+	if(token->token == TYPE_KEYWORD){
+		printf("%s : %s : %s\n", tokens[token->token], string_ptr->s, keyword[token->attr.keyword]);
+	}
+	else{
+		printf("%s : %s\n", tokens[token->token], string_ptr->s);
+	}
 }
 
 /*
 TODO: 
 kde je malloc, treba tam return type bool;
 return v každom case?
-co mam robit ked identifier zacina s velkym pismenom?
 =begin if not match
 skontrolovať rozsah int a double?
 check how ungetc work when pushing more chars to the buffer
+REMOVE ALL THE DEBUG PRINTS!!!!
 */
-
-int free_my_dynamic_string(int lexer_state, struct string_t* string_ptr){
-	free_string(string_ptr);
-	return 0;
-}
 
 int lexer_error(struct string_t* string_ptr){
 	free_string(string_ptr);
 	printf("Lexer ERROR\n");
-	return LEXER_ERROR;
+	return ER_LEX;
 }
 
 int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
@@ -117,6 +116,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 	// variable for string struct
 	struct string_t string;
 	struct string_t *string_ptr = &string;
+	char hex_num[2] = {'\0', '\0'};
 
 	if(!allocate_string(string_ptr)){
 		fprintf(stderr, "ERROR: Allocation of string failed\n");
@@ -134,28 +134,36 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			// all possible first states
 			case(STATE_START):
 				if(isspace(c) || c == '\n' || c == '\t'){
-					break;
+					token->token = TYPE_EOF;
+					//printf("I am whitespace\n");
 				}
 				else if(c == '*'){ // *
 					token->token = TYPE_MUL;
+					printf("%s\n", tokens[token->token]);
 				}
 				else if(c == '+'){ // +
 					token->token = TYPE_PLUS;
+					printf("%s\n", tokens[token->token]);
 				}
 				else if(c == '/'){ // /
 					token->token = TYPE_DIV;
+					printf("%s\n", tokens[token->token]);
 				}
 				else if(c == '-'){ // -
 					token->token = TYPE_MINUS;
+					printf("%s\n", tokens[token->token]);
 				}
 				else if(c == '('){ // (
 					token->token = TYPE_LEFT_BRACKET;
+					printf("%s\n", tokens[token->token]);
 				}
 				else if(c == ')'){ // )
 					token->token = TYPE_RIGHT_BRACKET;
+					printf("%s\n", tokens[token->token]);
 				}
 				else if(c == ','){ // ,
 					token->token = TYPE_COMMA;
+					printf("%s\n", tokens[token->token]);
 				}
 				else if(c == '<'){ // <
 					change_state(&current_status, STATE_LESS_THAN);
@@ -178,10 +186,10 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				else if(isdigit(c)){ // [0-9]
 					if(c == '0'){
-						change_state(&current_status, STATE_FIRST_ZERO);
+						;//change_state(&current_status, STATE_FIRST_ZERO);
 					}
 					else{
-						change_state(&current_status, STATE_FIRST_NONZERO);
+						;//change_state(&current_status, STATE_FIRST_NONZERO);
 					}
 				}
 				else if(isalpha(c) || c == '_'){ // [a-zA-Z_]
@@ -207,11 +215,13 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			case(STATE_LESS_THAN):
 				if(c == '='){ // <=
 					token->token = TYPE_LEQ;
+					printf("%s\n", tokens[token->token]);
 					change_state(&current_status, STATE_START);
 				
 				}
 				else{ // <
 					token->token = TYPE_LTN;
+					printf("%s\n", tokens[token->token]);
 					ungetc(c, source); // puts c back to buffer
 					change_state(&current_status, STATE_START); // go to start state
 				}
@@ -221,11 +231,13 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			case(STATE_GREATER_THAN):
 				if(c == '='){ // >=
 					token->token = TYPE_MEQ;
+					printf("%s\n", tokens[token->token]);
 					change_state(&current_status, STATE_START);
 
 				}
 				else{ // >
 					token->token = TYPE_MTN;
+					printf("%s\n", tokens[token->token]);
 					ungetc(c, source); // puts c back to buffer
 					change_state(&current_status, STATE_START); // go to start state
 				}
@@ -235,6 +247,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			case(STATE_ASSIGN):
 				if(c == '='){ // ==
 					token->token = TYPE_EQ;
+					printf("%s\n", tokens[token->token]);
 					change_state(&current_status, STATE_START);
 				}
 				else if(isalpha(c) && c == 'b'){ // =b; expesting it to be '=begin'
@@ -244,6 +257,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				else{ // =
 					token->token = TYPE_ASSIGN;
+					printf("%s\n", tokens[token->token]);
 					ungetc(c, source); // puts c back to buffer
 					change_state(&current_status, STATE_START);
 				}
@@ -253,6 +267,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			case(STATE_LINE_COMMENTARY):
 				token->token = TYPE_COMMENT; // the entire line is comment
 				if(c == '\n'){ // waits for the end of line char
+					printf("LINE COMMENT\n");
 					change_state(&current_status, STATE_START);
 				}
 				break;
@@ -264,6 +279,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 
 				if(check_comment_begin(registered_input, string_ptr)){
 					if(registered_input == strlen("=begin")){ // it is '=begin'
+						printf("STRING: %s : %s\n", string_ptr->s, tokens[token->token]);
 						clear_string_content(string_ptr);
 						change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
 					}
@@ -271,7 +287,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				else{
 					// Not matching - has to remove the first '=' and save the string ?? TODO
 					for(int i = 1; i < registered_input; i++){
-						ungtec(string_ptr->s[i], source); // does this work????? I DUNNO
+						ungetc(string_ptr->s[i], source); // does this work????? I DUNNO
 					}
 					token->token = TYPE_ASSIGN;
 					clear_string_content(string_ptr);
@@ -297,6 +313,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				registered_input = strlen(string_ptr->s);
 				if(check_comment_end(registered_input, string_ptr)){ // it is '=end'
 					if(registered_input == strlen("=end")){
+						printf("STRING: %s : %s\n", string_ptr->s, tokens[token->token]);
 						clear_string_content(string_ptr);
 						change_state(&current_status, STATE_START);
 					}
@@ -329,6 +346,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				else{ // string is complete
 					ungetc(c, source);
+					//printf("I am %s and my token type is %s\n", string_ptr->s, tokens[token->token]);
 					keywords(string_ptr, token);
 					clear_string_content(string_ptr);
 					change_state(&current_status, STATE_START);
@@ -348,32 +366,88 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				break;
 
-			// 
+			// "xxxxx"
 			case(STATE_STRING_LITERAL):
 				if(c == '"'){
 					token->token = TYPE_STRING_LITERAL;
 					token->attr.string = string_ptr->s;
+					printf("STRING: %s : %s\n", string_ptr->s, tokens[token->token]);
 					clear_string_content(string_ptr);
 					change_state(&current_status, STATE_START);
 				}
 				else{
-					add_char(string_ptr, c);
+					if(c == '\\'){
+						change_state(&current_status, STATE_BACKSLASH_LITERAL);
+					}
+					else{
+						add_char(string_ptr, c);
+					}
 				}
+				break;
+
+			// backslash in literal string
+			case(STATE_BACKSLASH_LITERAL):
+				if(c == 'n'){
+					add_char(string_ptr, '\n');
+				}
+				else if(c == 's'){
+					add_char(string_ptr, ' ');
+				}
+				else if(c == '\\'){
+					add_char(string_ptr, '\\');
+				}
+				else if(c == '"'){
+					add_char(string_ptr, '"');
+				}
+				else if(c == 't'){
+					add_char(string_ptr, '\t');
+				}
+				else if(c == 'x'){
+					change_state(&current_status, STATE_HEX_NUM);
+					break;
+				}
+				change_state(&current_status, STATE_STRING_LITERAL);
+				break;
+
+			case(STATE_HEX_NUM):
+				hex_num[0] = c;
+				c = getc(source);
+				hex_num[1] = c;
+
+				char converted = convert_from_hex(hex_num);
+				add_char(string_ptr, converted);
+
+				change_state(&current_status, STATE_STRING_LITERAL);
 				break;
 
 			// this should work like a string
 			case(STATE_FIRST_ZERO):
-				token->token = TYPE_INT;
-				token->attr.integer = 0;
+				//token->token = TYPE_INT;
+				//token->attr.integer = 0;
 				change_state(&current_status, STATE_START);
 				break;
 
 			
 			case(STATE_FIRST_NONZERO):
+				change_state(&current_status, STATE_START);
 				break;
 			
-			case(STATE_EOF):
-				free_string(string_ptr);
+			
+		}
+		
+		/*
+		if(string_ptr->s[0] != '\0'){
+			printf("I am %s and my token type is %s\n", string_ptr->s, tokens[token->token]);
+		}
+		else{
+			printf("I am %c token type is %s\n", c, tokens[token->token]);
+		}
+		*/
+		
+
+		if(c == EOF){
+			free_string(string_ptr);
+			break;
 		}
 	}
 	return LEXER_OK;

@@ -28,6 +28,7 @@ Adrián Tulušák, xtulus00
 #define STATE_STRING_LITERAL 527 // "xxxxxx"
 #define STATE_BACKSLASH_LITERAL 528 // backslash
 #define STATE_HEX_NUM 529 // xx
+#define STATE_DECIMAL 530 // 5.42
 
 typedef enum
 {
@@ -82,7 +83,7 @@ typedef enum
 
 	TYPE_INT, 
 	TYPE_FLOAT, 
-	TYPE_STRING,
+	TYPE_STRING, /// STRING A STRING LITERAL - ROZDIEL?????
 } Token_type;
 
 typedef struct

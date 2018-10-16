@@ -19,15 +19,30 @@ Adrián Tulušák, xtulus00
 
 FILE* source;
 
+/**
+ * Sets the source file
+ * 
+ * 
+ */
 void get_source(FILE *f)
 {
 	source = f;
 }
 
+/**
+ * Changes current state to the next state by hard copy
+ * 
+ * 
+ */
 void change_state(int * current_state, int next_state){
 	*current_state = next_state;
 }
 
+/**
+ * Compares the entered string and checkes, wheter it's keyword or not
+ * If not keyword, it is automatically an identifier
+ *
+ */
 void keywords(struct string_t *string_ptr, Token_t* token){
 	if(compare_strings(string_ptr, "def")){
 		token->token = TYPE_KEYWORD;
@@ -74,14 +89,13 @@ void keywords(struct string_t *string_ptr, Token_t* token){
 }
 
 /*
-
 TODO: 
 kde je malloc, treba tam return type bool;
 return v každom case?
 co mam robit ked identifier zacina s velkym pismenom?
 =begin if not match
 skontrolovať rozsah int a double?
-
+check how ungetc work when pushing more chars to the buffer
 */
 
 int free_my_dynamic_string(int lexer_state, struct string_t* string_ptr){
@@ -103,7 +117,11 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 	// variable for string struct
 	struct string_t string;
 	struct string_t *string_ptr = &string;
-	allocate_string(string_ptr);
+
+	if(!allocate_string(string_ptr)){
+		fprintf(stderr, "ERROR: Allocation of string failed\n");
+		return ER_INTERNAL;
+	}
 
 	if (source == NULL)
 	{
@@ -112,57 +130,53 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 
 	while(true){
 		char c = getc(source); // read characters one by one
-		//printf("%c\n", c);
 		switch(current_status){
-
 			// all possible first states
 			case(STATE_START):
-				if(isspace(c) || c == '\n'){
+				if(isspace(c) || c == '\n' || c == '\t'){
 					break;
 				}
-				else if(c == '*'){
+				else if(c == '*'){ // *
 					token->token = TYPE_MUL;
 				}
-				else if(c == '+'){
+				else if(c == '+'){ // +
 					token->token = TYPE_PLUS;
 				}
-				else if(c == '/'){
+				else if(c == '/'){ // /
 					token->token = TYPE_DIV;
 				}
-				else if(c == '-'){
+				else if(c == '-'){ // -
 					token->token = TYPE_MINUS;
 				}
-				else if(c == '('){
+				else if(c == '('){ // (
 					token->token = TYPE_LEFT_BRACKET;
 				}
-				else if(c == ')'){
+				else if(c == ')'){ // )
 					token->token = TYPE_RIGHT_BRACKET;
 				}
-				else if(c == ','){
+				else if(c == ','){ // ,
 					token->token = TYPE_COMMA;
 				}
-				else if(c == '<'){
-					token->token = TYPE_LTN;
+				else if(c == '<'){ // <
 					change_state(&current_status, STATE_LESS_THAN);
 				}
-				else if(c == '>'){
-					token->token = TYPE_MTN;
+				else if(c == '>'){ // >
 					change_state(&current_status, STATE_GREATER_THAN);
 				}
-				else if(c == '='){
+				else if(c == '='){ // =
 					change_state(&current_status, STATE_ASSIGN);
 				}
-				else if(c == '#'){
+				else if(c == '#'){ // #
 					token->token = TYPE_COMMENT;
 					change_state(&current_status, STATE_LINE_COMMENTARY);
 				}
-				else if(c == '!'){
+				else if(c == '!'){ // !
 					change_state(&current_status, STATE_EXCLAMATION_MARK);
 				}
-				else if(c == '"'){
+				else if(c == '"'){ // "
 					change_state(&current_status, STATE_STRING_LITERAL);
 				}
-				else if(isdigit(c)){
+				else if(isdigit(c)){ // [0-9]
 					if(c == '0'){
 						change_state(&current_status, STATE_FIRST_ZERO);
 					}
@@ -170,13 +184,13 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 						change_state(&current_status, STATE_FIRST_NONZERO);
 					}
 				}
-				else if(isalpha(c) || c == '_'){
-					if(islower(c)){
-						// can continue, first char is
+				else if(isalpha(c) || c == '_'){ // [a-zA-Z_]
+					if(islower(c) || c == '_'){ // [a-z_]
+						// can continue, first char is OK
 						add_char(string_ptr, c);
 						change_state(&current_status, STATE_NEXT_CHARS);
 					}
-					else{
+					else{ // can't begin with uppercase letter, [A-Z]
 						return lexer_error(string_ptr);
 					}
 				}
@@ -184,7 +198,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					token->token = TYPE_EOF;
 					change_state(&current_status, STATE_EOF);
 				}
-				else{
+				else{ // non-acceptable char
 					return lexer_error(string_ptr);
 				}
 				break;
@@ -196,48 +210,49 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					change_state(&current_status, STATE_START);
 				
 				}
-				else{ // only <, puts the previous char back to buffer
+				else{ // <
 					token->token = TYPE_LTN;
-					ungetc(c, source);
-					change_state(&current_status, STATE_START);
+					ungetc(c, source); // puts c back to buffer
+					change_state(&current_status, STATE_START); // go to start state
 				}
 				break;
 
 			// previous char was >
 			case(STATE_GREATER_THAN):
-				if(c == '='){
+				if(c == '='){ // >=
 					token->token = TYPE_MEQ;
 					change_state(&current_status, STATE_START);
 
 				}
-				else{
+				else{ // >
 					token->token = TYPE_MTN;
-					ungetc(c, source);
-					change_state(&current_status, STATE_START);
+					ungetc(c, source); // puts c back to buffer
+					change_state(&current_status, STATE_START); // go to start state
 				}
 				break;
 
 			// previous char was =
 			case(STATE_ASSIGN):
-				if(c == '='){
+				if(c == '='){ // ==
 					token->token = TYPE_EQ;
-					change_state(&current_status, STATE_START); // ==
+					change_state(&current_status, STATE_START);
 				}
-				else if(isalpha(c) && c == 'b'){
-					add_char(string_ptr, '=');
-					add_char(string_ptr, c);
-					change_state(&current_status, STATE_COMMENT_START);
+				else if(isalpha(c) && c == 'b'){ // =b; expesting it to be '=begin'
+					add_char(string_ptr, '='); // use dynamic string, store =
+					add_char(string_ptr, c); // use dynamic string, store b
+					change_state(&current_status, STATE_COMMENT_START);	// go to state that checks whether it is start of block comment
 				}
-				else{
-					ungetc(c, source);
-					change_state(&current_status, STATE_START); // =
+				else{ // =
+					token->token = TYPE_ASSIGN;
+					ungetc(c, source); // puts c back to buffer
+					change_state(&current_status, STATE_START);
 				}
 				break;
 
-			// line commentary
+			// line commentary # I am a comment
 			case(STATE_LINE_COMMENTARY):
-				token->token = TYPE_COMMENT;
-				if(c == '\n'){
+				token->token = TYPE_COMMENT; // the entire line is comment
+				if(c == '\n'){ // waits for the end of line char
 					change_state(&current_status, STATE_START);
 				}
 				break;
@@ -248,14 +263,19 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				registered_input = strlen(string_ptr->s);
 
 				if(check_comment_begin(registered_input, string_ptr)){
-					if(registered_input == strlen("=begin")){
-						free_string(string_ptr);
-						allocate_string(string_ptr);
+					if(registered_input == strlen("=begin")){ // it is '=begin'
+						clear_string_content(string_ptr);
 						change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
 					}
 				}
 				else{
 					// Not matching - has to remove the first '=' and save the string ?? TODO
+					for(int i = 1; i < registered_input; i++){
+						ungtec(string_ptr->s[i], source); // does this work????? I DUNNO
+					}
+					token->token = TYPE_ASSIGN;
+					clear_string_content(string_ptr);
+					change_state(&current_status, STATE_START);
 				}
 				break;
 
@@ -275,11 +295,10 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			case(STATE_COMMENT_END):
 				add_char(string_ptr, c);
 				registered_input = strlen(string_ptr->s);
-				if(check_comment_end(registered_input, string_ptr)){
+				if(check_comment_end(registered_input, string_ptr)){ // it is '=end'
 					if(registered_input == strlen("=end")){
+						clear_string_content(string_ptr);
 						change_state(&current_status, STATE_START);
-						free_string(string_ptr);
-						allocate_string(string_ptr);
 					}
 				}
 				else{
@@ -302,46 +321,40 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			// array of chars
 			case(STATE_NEXT_CHARS):
 				if(isalpha(c) || isdigit(c) || c == '_'){
-					add_char(string_ptr, c); // ADDING NEW CHARS TO THE STRING
+					add_char(string_ptr, c); // adding new chars to the string
 				}
-				else if(c == '?' || c == '!'){
-					;//add_char(string_ptr, c);
+				else if(c == '?' || c == '!'){ // this has to be the end of string
 					add_char(string_ptr, c);
 					change_state(&current_status, STATE_LAST_CHAR);
-					// this has to be the end of string
 				}
-				else{
-					// TUTO JE KONIEC
+				else{ // string is complete
 					ungetc(c, source);
 					keywords(string_ptr, token);
-					/// HAVE TO COMPARE IT WITH ALL THE KEYWORDS!!!! TODO
-					//printf("%s\n", string_ptr->s);
-					free_string(string_ptr);
-					allocate_string(string_ptr);
+					clear_string_content(string_ptr);
 					change_state(&current_status, STATE_START);
 				}
 				break;
 
 			// last char can be ! or ?, but it cannot be followed by anything else
 			case(STATE_LAST_CHAR):
-				if(isalpha(c) || isdigit(c) || c == '_'){
+				if(isalpha(c) || isdigit(c) || c == '_'){ // not allowed
 					lexer_error(string_ptr);
 				}
 				else{ // ALL IS WELL, CAN BE IDENTIFIER
 					ungetc(c, source);
-					change_state(&current_status, STATE_START);
 					keywords(string_ptr, token);
-					free_string(string_ptr);
-					allocate_string(string_ptr);
+					clear_string_content(string_ptr);
+					change_state(&current_status, STATE_START);
 				}
 				break;
+
+			// 
 			case(STATE_STRING_LITERAL):
 				if(c == '"'){
 					token->token = TYPE_STRING_LITERAL;
 					token->attr.string = string_ptr->s;
-					free_string(string_ptr);
+					clear_string_content(string_ptr);
 					change_state(&current_status, STATE_START);
-					allocate_string(string_ptr);
 				}
 				else{
 					add_char(string_ptr, c);
@@ -358,16 +371,10 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			
 			case(STATE_FIRST_NONZERO):
 				break;
-
-		}
-		//printf("Toto je token %d\n", token->token);
-		if(c == EOF){
 			
-			break;
+			case(STATE_EOF):
+				free_string(string_ptr);
 		}
 	}
-	// toto bude musieť byť inde
-	//free_string(string_ptr);
-
 	return LEXER_OK;
 }

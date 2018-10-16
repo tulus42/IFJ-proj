@@ -15,45 +15,65 @@ Adrián Tulušák, xtulus00
 
 #include "dynamic_string.h"
 
-void allocate_string(struct string_t* string_ptr){
+
+/**
+ * 
+ * Allocates string with starting size of 10 
+ * 
+ */
+bool allocate_string(struct string_t* string_ptr){
     string_ptr->s = (char *) malloc(STARTING_SIZE);
     if(string_ptr->s == NULL){
         printf("Failed to reallocate memory\n");
-        exit(1); /// PATRI TOTO SEM???????????
+        return false;
     }
     else{
         string_ptr->buffer_size = STARTING_SIZE;
         string_ptr->current_size = 0;
         string_ptr->s[string_ptr->current_size] = '\0';
+        return true;
     }
 }
 
+/**
+ * 
+ * Frees string 
+ * 
+ */
 void free_string(struct string_t* string_ptr){
     free(string_ptr->s);
 }
 
-void check_empty_bites(struct string_t *string_ptr){
+
+bool check_empty_bites(struct string_t *string_ptr){
     if(string_ptr->current_size == (string_ptr->buffer_size - 2)){
         string_ptr->s = realloc(string_ptr->s, NEW_ALLOCATION);
         if(string_ptr->s == NULL){
             printf("Failed to reallocate memory\n");
             free_string(string_ptr);
-            exit(1); /// PATRI TOTO SEM??????
+            return false; /// PATRI TOTO SEM??????
         }
         else{
-            string_ptr->buffer_size += NEW_ALLOCATION; 
+            string_ptr->buffer_size += NEW_ALLOCATION;
+            return true; 
         }
     }
     else{
-        return;
+        return true;
     }
 }
 
 void add_char(struct string_t* string_ptr, char to_add){
-    check_empty_bites(string_ptr);
-    string_ptr->s[string_ptr->current_size] = to_add;
-    string_ptr->current_size++;
-    string_ptr->s[string_ptr->current_size] = '\0';
+    if(!check_empty_bites(string_ptr)){
+        // return false
+        ;
+    }
+    else{
+        string_ptr->s[string_ptr->current_size] = to_add;
+        string_ptr->current_size++;
+        string_ptr->s[string_ptr->current_size] = '\0';
+        // return true
+    }
 }
 
 // true if they are the same, false if not the same
@@ -100,6 +120,12 @@ bool check_comment_end(int match_count, struct string_t* string_ptr){
     return true;
 }
 
+/**
+ * 
+ * Clears string content and inserts '\0'
+ * Size is set to 0
+ * 
+ */
 void clear_string_content(struct string_t* string_ptr){
     for(int i = 0; i < string_ptr->current_size; i++){
         string_ptr->s[i] = '\0';

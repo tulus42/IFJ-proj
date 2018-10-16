@@ -61,6 +61,7 @@ typedef enum
 	TYPE_KEYWORD,
 	TYPE_STRING_LITERAL, 
 
+	TYPE_ASSIGN, // =
 	TYPE_NEQ, // !=
 	TYPE_LEQ, // <=
 	TYPE_LTN, // <

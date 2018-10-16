@@ -18,8 +18,8 @@ struct string_t {
 };
 
 
-void check_empty_bites(struct string_t *string_ptr);
-void allocate_string(struct string_t *string_ptr);
+bool check_empty_bites(struct string_t *string_ptr);
+bool allocate_string(struct string_t *string_ptr);
 void free_string(struct string_t *string_ptr);
 void add_char(struct string_t *string_ptr, char to_add);
 bool compare_strings(struct string_t *string_ptr, char word[]);

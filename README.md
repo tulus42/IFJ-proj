@@ -7,7 +7,7 @@ Dominik Peza, xpezad00<br />
 Adrián Tulušák, xtulus00
 
 TODO:
-lexer (testing)<br /> - Sabína
-parser<br /> - Aďo, Sabína
-hash-table<br /> - Adam
+lexer (testing) - Sabína <br />
+parser - Aďo, Sabína <br />
+hash-table - Adam <br />
 instruction generator - Dominik

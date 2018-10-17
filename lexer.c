@@ -21,6 +21,15 @@ Adrián Tulušák, xtulus00
 FILE* source;
 #define LEXER_OK 0
 
+/*
+TODO: 
+hex_number error
+return v každom case?
+=begin if not match
+skontrolovať rozsah int a double?
+check how ungetc work when pushing more chars to the buffer
+REMOVE ALL THE DEBUG PRINTS!!!!
+*/
 
 /**
  * Sets the source file
@@ -92,50 +101,50 @@ void keywords(struct string_t *string_ptr, Token_t* token){
 	}
 }
 
-/*
-TODO: 
-kde je malloc, treba tam return type bool;
-return v každom case?
-=begin if not match
-skontrolovať rozsah int a double?
-check how ungetc work when pushing more chars to the buffer
-REMOVE ALL THE DEBUG PRINTS!!!!
-*/
-
-int lexer_error(struct string_t* string_ptr){
+/**
+ * Writes error to stderr, returns error type
+ */
+int lexer_error(struct string_t* string_ptr, int error_type){
 	free_string(string_ptr);
-	printf("Lexer ERROR\n");
-	return ER_LEX;
+	fprintf(stderr, "Lexer ERROR\n");
+	return error_type;
 }
 
+/**
+ * 
+ * Finite state machine, it either return a correct token or EL_LEX if there is lexical error
+ * 
+ */
 int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
 {
-	// current state is start
-	int current_status = STATE_START;
-	int registered_input;
+	/* Used variables */
+	int current_status = STATE_START; // current state is start
+	int registered_input; // counts how many chars have been entered for '=begin' and '=end'
+
 	// variable for string struct
 	struct string_t string;
 	struct string_t *string_ptr = &string;
-	char hex_num[2] = {'\0', '\0'};
 
-	if(!allocate_string(string_ptr)){
-		fprintf(stderr, "ERROR: Allocation of string failed\n");
-		return ER_INTERNAL;
+
+	char hex_num[2] = {'\0', '\0'}; // help variable for hexadecimal '\xhh' input 
+ 
+	if(!allocate_string(string_ptr)){ // check whether allocation of string was succesfull
+		return lexer_error(string_ptr, ER_INTERNAL);
 	}
 
-	if (source == NULL)
+	if (source == NULL) // check whether source file was set
 	{
-		return ER_INTERNAL;
+		return lexer_error(string_ptr, ER_INTERNAL);
 	}
 
 	while(true){
 		char c = getc(source); // read characters one by one
 		switch(current_status){
+
 			// all possible first states
 			case(STATE_START):
 				if(isspace(c) || c == '\n' || c == '\t'){
 					token->token = TYPE_EOF;
-					//printf("I am whitespace\n");
 				}
 				else if(c == '*'){ // *
 					token->token = TYPE_MUL;
@@ -185,31 +194,36 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					change_state(&current_status, STATE_STRING_LITERAL);
 				}
 				else if(isdigit(c)){ // [0-9]
-					if(c == '0'){
-						add_char(string_ptr, c);
+					if(c == '0'){ // number starts with 0, therefore it can be 0 or 0.XXXX, but not 0XXX, X is [1-9]
+						if(!add_char(string_ptr, c)){
+							return lexer_error(string_ptr, ER_INTERNAL);
+						}
 						change_state(&current_status, STATE_FIRST_ZERO);
 					}
-					else{
-						add_char(string_ptr, c);
+					else{ // first digit is not zero, therefore it can be followed by any other digit including zero
+						if(!add_char(string_ptr, c)){
+							return lexer_error(string_ptr, ER_INTERNAL);
+						}
 						change_state(&current_status, STATE_FIRST_NONZERO);
 					}
 				}
 				else if(isalpha(c) || c == '_'){ // [a-zA-Z_]
-					if(islower(c) || c == '_'){ // [a-z_]
-						// can continue, first char is OK
-						add_char(string_ptr, c);
+					if(islower(c) || c == '_'){ // first char is [a-z_], so it can be an identifier
+						if(!add_char(string_ptr, c)){
+							return lexer_error(string_ptr, ER_INTERNAL);
+						}
 						change_state(&current_status, STATE_NEXT_CHARS);
 					}
-					else{ // can't begin with uppercase letter, [A-Z]
-						return lexer_error(string_ptr);
+					else{ // can't begin with [A-Z], lexical error
+						return lexer_error(string_ptr, ER_LEX);
 					}
 				}
-				else if(c == EOF){
+				else if(c == EOF){ // should this be here???
 					token->token = TYPE_EOF;
 					change_state(&current_status, STATE_EOF);
 				}
 				else{ // non-acceptable char
-					return lexer_error(string_ptr);
+					return lexer_error(string_ptr, ER_LEX);
 				}
 				break;
 
@@ -253,8 +267,12 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					change_state(&current_status, STATE_START);
 				}
 				else if(isalpha(c) && c == 'b'){ // =b; expesting it to be '=begin'
-					add_char(string_ptr, '='); // use dynamic string, store =
-					add_char(string_ptr, c); // use dynamic string, store b
+					if(!add_char(string_ptr, '=')){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					} // use dynamic string, store b
 					change_state(&current_status, STATE_COMMENT_START);	// go to state that checks whether it is start of block comment
 				}
 				else{ // =
@@ -276,7 +294,9 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 
 			// check whether input is '=begin'
 			case(STATE_COMMENT_START):	
-				add_char(string_ptr, c);
+				if(!add_char(string_ptr, c)){
+					return lexer_error(string_ptr, ER_INTERNAL);
+				}
 				registered_input = strlen(string_ptr->s);
 
 				if(check_comment_begin(registered_input, string_ptr)){
@@ -300,18 +320,21 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			// waits for =, everything inside the block comment is ignored
 			case(STATE_INSIDE_BLOCK_COMMENT):
 				if(c == '='){
-					add_char(string_ptr, c);
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 					change_state(&current_status, STATE_COMMENT_END);
 				}
 				else{
 					token->token = TYPE_COMMENT;
-					 // Inside of a block comment gets ignored
 				}
 				break;
 
 			// check whether input is '=end'
 			case(STATE_COMMENT_END):
-				add_char(string_ptr, c);
+				if(!add_char(string_ptr, c)){
+					return lexer_error(string_ptr, ER_INTERNAL);
+				}
 				registered_input = strlen(string_ptr->s);
 				if(check_comment_end(registered_input, string_ptr)){ // it is '=end'
 					if(registered_input == strlen("=end")){
@@ -333,23 +356,26 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					change_state(&current_status, STATE_START);
 				}
 				else{
-					return lexer_error(string_ptr);
+					return lexer_error(string_ptr, ER_LEX);
 				}
 				break;
 			
 			// array of chars
 			case(STATE_NEXT_CHARS):
 				if(isalpha(c) || isdigit(c) || c == '_'){
-					add_char(string_ptr, c); // adding new chars to the string
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					} // adding new chars to the string
 				}
 				else if(c == '?' || c == '!'){ // this has to be the end of string
-					add_char(string_ptr, c);
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 					change_state(&current_status, STATE_LAST_CHAR);
 				}
 				else{ // string is complete
-					ungetc(c, source);
-					//printf("I am %s and my token type is %s\n", string_ptr->s, tokens[token->token]);
-					keywords(string_ptr, token);
+					ungetc(c, source); // puts c back to buffer
+					keywords(string_ptr, token); // compares it with all keywords
 					clear_string_content(string_ptr);
 					change_state(&current_status, STATE_START);
 				}
@@ -357,20 +383,20 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 
 			// last char can be ! or ?, but it cannot be followed by anything else
 			case(STATE_LAST_CHAR):
-				if(isalpha(c) || isdigit(c) || c == '_'){ // not allowed
-					lexer_error(string_ptr);
+				if(isalpha(c) || isdigit(c) || c == '_'){ // it cannot by followd by anything else
+					return lexer_error(string_ptr, ER_LEX);
 				}
-				else{ // ALL IS WELL, CAN BE IDENTIFIER
+				else{ // this can be identifier
 					ungetc(c, source);
-					keywords(string_ptr, token);
+					keywords(string_ptr, token); // not needed, no keywords ends with ? or !
 					clear_string_content(string_ptr);
 					change_state(&current_status, STATE_START);
 				}
 				break;
 
-			// "xxxxx"
+			// string literal enclosed in two double quotation marks
 			case(STATE_STRING_LITERAL):
-				if(c == '"'){
+				if(c == '"'){ // this is the end of string literal
 					token->token = TYPE_STRING_LITERAL;
 					token->attr.string = string_ptr->s;
 					printf("STRING: %s : %s\n", string_ptr->s, tokens[token->token]);
@@ -378,57 +404,92 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					change_state(&current_status, STATE_START);
 				}
 				else{
-					if(c == '\\'){
+					if(c == '\\'){ // special escape sequences
 						change_state(&current_status, STATE_BACKSLASH_LITERAL);
 					}
-					else{
-						add_char(string_ptr, c);
+					else{ // adds it to the literal string
+						if(!add_char(string_ptr, c)){
+							return lexer_error(string_ptr, ER_INTERNAL);
+						}
 					}
 				}
 				break;
 
-			// backslash in literal string
+			// backslash in literal string, indicates escape sequence
 			case(STATE_BACKSLASH_LITERAL):
-				if(c == 'n'){
-					add_char(string_ptr, '\n');
+				if(c == 'n'){ // end of line
+					if(!add_char(string_ptr, '\n')){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 				}
-				else if(c == 's'){
-					add_char(string_ptr, ' ');
+				else if(c == 's'){ // space
+					if(!add_char(string_ptr, ' ')){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 				}
-				else if(c == '\\'){
-					add_char(string_ptr, '\\');
+				else if(c == '\\'){ // backslash
+					if(!add_char(string_ptr, '\\')){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 				}
-				else if(c == '"'){
-					add_char(string_ptr, '"');
+				else if(c == '"'){ // quotation mark
+					if(!add_char(string_ptr, '"')){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 				}
-				else if(c == 't'){
-					add_char(string_ptr, '\t');
+				else if(c == 't'){ // tab
+					if(!add_char(string_ptr, '\t')){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 				}
-				else if(c == 'x'){
+				else if(c == 'x'){ // hexadecimal number
 					change_state(&current_status, STATE_HEX_NUM);
 					break;
 				}
 				change_state(&current_status, STATE_STRING_LITERAL);
 				break;
 
+			// converts hex number to int, \xhh
 			case(STATE_HEX_NUM):
-				hex_num[0] = c;
-				c = getc(source);
-				hex_num[1] = c;
+				if(isdigit(c)){ // checks first h
+					hex_num[0] = c;
+				}
+				else if(c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'E' || c =='F'){
+					hex_num[0] = c;
+				}
 
-				char converted = convert_from_hex(hex_num);
-				add_char(string_ptr, converted);
+				c = getc(source); // gets next char
 
-				change_state(&current_status, STATE_STRING_LITERAL);
-				break;
-
-			// this should work like a string
-			case(STATE_FIRST_ZERO):
-				if(c == '.'){ // 0.xxx
-					add_char(string_ptr, c);
-					change_state(&current_status, STATE_DECIMAL);
+				if(isdigit(c)){ // checks whether it is a hexadecimal digit or not
+					hex_num[1] = c;
+				}
+				else if(c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'E' || c =='F'){
+					hex_num[1] = c;
 				}
 				else{
+					ungtec(c, source); // it was only a one digit hexadecimal number, returns c to buffer
+				}
+
+				char converted = convert_from_hex(hex_num); // converts hexadecimal to int that is displayed as ASCII character
+				if(!add_char(string_ptr, converted)){ // adds it to string literal
+					return lexer_error(string_ptr, ER_INTERNAL);
+				}
+				change_state(&current_status, STATE_STRING_LITERAL); // go back to string literal state
+				break;
+
+			// first char was 0
+			case(STATE_FIRST_ZERO):
+				if(c == '.'){ // 0.xxx
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
+					change_state(&current_status, STATE_DECIMAL);
+				}
+				else if(isdigit(c)){ // cannot be 0X, X is [1-9]
+					return lexer_error(string_ptr, ER_LEX);
+				}
+				else{ // it is only 0
+					ungetc(c, source);
 					token->token = TYPE_INT;
 					token->attr.integer = 0;
 					printf("%s : %d\n", tokens[token->token], token->attr.integer);
@@ -436,20 +497,26 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				break;
 
-			
+			// first character was a non-zero digit
 			case(STATE_FIRST_NONZERO):
-				if(isdigit(c)){
-					add_char(string_ptr, c);
+				if(isdigit(c)){ // saves all digits ans stays in this state
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 				}
-				else if(c == '.'){
-					add_char(string_ptr, c);
+				else if(c == '.'){ // it will be a decimal number
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 					change_state(&current_status, STATE_DECIMAL);
 				}
-				else if(c == 'e' || c == 'E'){
-					add_char(string_ptr, c);
+				else if(c == 'e' || c == 'E'){ // it will be written with exponent
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 					change_state(&current_status, STATE_EXPONENTIAL_SIGN);
 				}
-				else{
+				else{ // it is int, put c back to buffer and save it as an int
 					ungetc(c, source);
 					token->token = TYPE_INT;
 					token->attr.integer = (int) strtol(string_ptr->s, NULL, 10);
@@ -459,15 +526,20 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				break;
 			
+			// previous chars were digits followed by dot
 			case(STATE_DECIMAL):
 				if(isdigit(c)){
-					add_char(string_ptr, c);
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 				}
 				else if(c == 'e' || c == 'E'){
-					add_char(string_ptr, c);
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 					change_state(&current_status, STATE_EXPONENTIAL_SIGN);
 				}
-				else{
+				else{ // it is decimal float, put c back to buffer and save it as float
 					ungetc(c, source);
 					token->token = TYPE_FLOAT;
 					token->attr.flt = strtof(string_ptr->s, NULL);
@@ -477,22 +549,30 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				break;
 
+			// chooses the sign of exponential
 			case(STATE_EXPONENTIAL_SIGN):
-				if(c == '+' || c == '-'){
-					add_char(string_ptr, c);
+				if(c == '+' || c == '-'){ // non-mandatory sign
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 				}
-				else if(isdigit(c)){
-					ungetc(c, source);
-					add_char(string_ptr, '+');
+				else if(isdigit(c)){ // if no sign, default sign is '+'
+					ungetc(c, source); // put c back to buffer
+					if(!add_char(string_ptr, '+')){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 				}
-				change_state(&current_status, STATE_EXPONENTIAL);
+				change_state(&current_status, STATE_EXPONENTIAL); // go to exponential state
 				break;
 
+			// number with mantisa and exponent
 			case(STATE_EXPONENTIAL):
-				if(isdigit(c)){
-					add_char(string_ptr, c);
+				if(isdigit(c)){ // adds c 
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
 				}
-				else{
+				else{ // input is done, put c back to buffer, convert it and save it as float
 					ungetc(c, source);
 					token->token = TYPE_FLOAT;
 					token->attr.flt = strtof(string_ptr->s, NULL);
@@ -502,7 +582,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				break;
 		}
-				
+		// should this be here? I dunno	
 		if(c == EOF){
 			free_string(string_ptr);
 			break;

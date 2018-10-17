@@ -22,7 +22,7 @@ Adrián Tulušák, xtulus00
 bool allocate_string(struct string_t* string_ptr){
     string_ptr->s = (char *) malloc(STARTING_SIZE);
     if(string_ptr->s == NULL){
-        printf("Failed to reallocate memory\n");
+        fprintf(stderr, "Failed to reallocate memory\n");
         return false;
     }
     else{
@@ -40,12 +40,14 @@ void free_string(struct string_t* string_ptr){
     free(string_ptr->s);
 }
 
-
+/**
+ * Check whether there is still enough space, if not, reallocate and add 5 bites
+ */
 bool check_empty_bites(struct string_t *string_ptr){
     if(string_ptr->current_size == (string_ptr->buffer_size - 2)){
         string_ptr->s = realloc(string_ptr->s, string_ptr->buffer_size + NEW_ALLOCATION);
         if(string_ptr->s == NULL){
-            printf("Failed to reallocate memory\n");
+            fprintf(stderr, "Failed to reallocate memory\n");
             free_string(string_ptr);
             return false; /// PATRI TOTO SEM??????
         }
@@ -59,6 +61,9 @@ bool check_empty_bites(struct string_t *string_ptr){
     }
 }
 
+/**
+ * Adds char to first empty space in string
+ */
 bool add_char(struct string_t* string_ptr, char to_add){
     if(!check_empty_bites(string_ptr)){
         return false;
@@ -71,7 +76,9 @@ bool add_char(struct string_t* string_ptr, char to_add){
     }
 }
 
-// true if they are the same, false if not the same
+/**
+ * Compares each char one by one and decides, whether it is a keyword or not
+ */
 bool compare_strings(struct string_t* string_ptr, char word[]){
     bool tmp_result;
     if(string_ptr->current_size == strlen(word)){
@@ -91,6 +98,9 @@ bool compare_strings(struct string_t* string_ptr, char word[]){
     }
 }
 
+/**
+ * Compares input with '=begin'
+ */
 bool check_comment_begin(int match_count, struct string_t* string_ptr){
     char* expected_input = "=begin";
     for(int i = 0; i < match_count; i++){
@@ -103,6 +113,9 @@ bool check_comment_begin(int match_count, struct string_t* string_ptr){
     return true;
 }
 
+/**
+ * Compares input with '=end'
+ */
 bool check_comment_end(int match_count, struct string_t* string_ptr){
     char* expected_input = "=end";
     for(int i = 0; i < match_count; i++){
@@ -126,6 +139,9 @@ void clear_string_content(struct string_t* string_ptr){
     string_ptr->current_size = 0;
 }
 
+/**
+ * Converts hexadecinal number to decimal number
+ */
 char convert_from_hex(char hex[]){
     long n = strtol(hex, NULL, 16);
     int tmp = (int) n;

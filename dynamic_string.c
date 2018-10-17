@@ -17,9 +17,7 @@ Adrián Tulušák, xtulus00
 
 
 /**
- * 
  * Allocates string with starting size of 10 
- * 
  */
 bool allocate_string(struct string_t* string_ptr){
     string_ptr->s = (char *) malloc(STARTING_SIZE);
@@ -36,9 +34,7 @@ bool allocate_string(struct string_t* string_ptr){
 }
 
 /**
- * 
  * Frees string 
- * 
  */
 void free_string(struct string_t* string_ptr){
     free(string_ptr->s);
@@ -63,16 +59,15 @@ bool check_empty_bites(struct string_t *string_ptr){
     }
 }
 
-void add_char(struct string_t* string_ptr, char to_add){
+bool add_char(struct string_t* string_ptr, char to_add){
     if(!check_empty_bites(string_ptr)){
-        // return false
-        ;
+        return false;
     }
     else{
         string_ptr->s[string_ptr->current_size] = to_add;
         string_ptr->current_size++;
         string_ptr->s[string_ptr->current_size] = '\0';
-        // return true
+        return true;
     }
 }
 
@@ -121,10 +116,8 @@ bool check_comment_end(int match_count, struct string_t* string_ptr){
 }
 
 /**
- * 
  * Clears string content and inserts '\0'
  * Size is set to 0
- * 
  */
 void clear_string_content(struct string_t* string_ptr){
     for(int i = 0; i < string_ptr->current_size; i++){

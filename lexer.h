@@ -94,8 +94,8 @@ typedef struct
     Token_attr attr;
 } Token_t;
 
+//void keywords(struct string_t *string_ptr, Token_t* token);
+//int lexer_error(struct string_t* string_ptr);
 void get_source(FILE *f);
 int get_next_token(Token_t *token);
 void change_state(int * current_state, int next_state);
-void keywords(struct string_t *string_ptr, Token_t* token);
-int lexer_error(struct string_t* string_ptr);

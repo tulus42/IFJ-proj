@@ -29,6 +29,8 @@ return v každom case?
 skontrolovať rozsah int a double?
 check how ungetc work when pushing more chars to the buffer
 REMOVE ALL THE DEBUG PRINTS!!!!
+have to return int in every case
+end of line token!!!
 */
 
 /**
@@ -467,7 +469,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					hex_num[1] = c;
 				}
 				else{
-					ungtec(c, source); // it was only a one digit hexadecimal number, returns c to buffer
+					ungetc(c, source); // it was only a one digit hexadecimal number, returns c to buffer
 				}
 
 				char converted = convert_from_hex(hex_num); // converts hexadecimal to int that is displayed as ASCII character

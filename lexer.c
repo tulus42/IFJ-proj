@@ -14,11 +14,11 @@ Adrián Tulušák, xtulus00
 #include <stdbool.h>
 
 #include "error.h"
-#include "lexer.h"
 #include "dynamic_string.c"
 #include "testing.h"
 
 FILE* source;
+char* string_content;
 #define LEXER_OK 0
 
 /*
@@ -52,7 +52,7 @@ void change_state(int * current_state, int next_state){
  * Compares the entered string and checkes, wheter it's keyword or not
  * If not keyword, it is automatically an identifier
  */
-void keywords(struct string_t *string_ptr, Token_t* token){
+void keywords(struct string_t *string_ptr, Token_t* token, struct string_t* identif_ptr){
 	if(compare_strings(string_ptr, "def")){
 		token->token = TYPE_KEYWORD;
 		token->attr.keyword = KEYWORD_DEF;
@@ -91,15 +91,7 @@ void keywords(struct string_t *string_ptr, Token_t* token){
 	}
 	else{
 		token->token = TYPE_IDENTIFIER;
-		token->attr.string = string_ptr->s;
-		/// MA TO IST DO ATTR STRING????? ALEBO NE??????
-	}
-	
-	if(token->token == TYPE_KEYWORD){
-		printf("%s : %s : %s\n", tokens[token->token], string_ptr->s, keyword[token->attr.keyword]);
-	}
-	else{
-		printf("%s : %s\n", tokens[token->token], string_ptr->s);
+		copy_string(string_ptr, identif_ptr);
 	}
 }
 
@@ -113,11 +105,19 @@ int lexer_error(struct string_t* string_ptr, int error_type){
 }
 
 /**
+ * Frees string when succesful
+ */
+int lexer_succesful(struct string_t* string_ptr){
+	free_string(string_ptr);
+	return LEXER_OK;
+}
+
+/**
  * 
  * Finite state machine, it either return a correct token or EL_LEX if there is lexical error
  * 
  */
-int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
+int get_next_token(Token_t *token, struct string_t* identif_ptr) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
 {
 	/* Used variables */
 	int current_status = STATE_START; // current state is start
@@ -127,15 +127,14 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 	struct string_t string;
 	struct string_t *string_ptr = &string;
 
-
 	char hex_num[2] = {'\0', '\0'}; // help variable for hexadecimal '\xhh' input 
  
-	if(!allocate_string(string_ptr)){ // check whether allocation of string was succesfull
+	if (source == NULL) // check whether source file was set
+	{
 		return lexer_error(string_ptr, ER_INTERNAL);
 	}
 
-	if (source == NULL) // check whether source file was set
-	{
+	if(!allocate_string(string_ptr)){ // check whether allocation of string was succesfull
 		return lexer_error(string_ptr, ER_INTERNAL);
 	}
 
@@ -145,36 +144,36 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 
 			// all possible first states
 			case(STATE_START):
-				if(isspace(c) || c == '\n' || c == '\t'){
-					token->token = TYPE_EOF;
+				if(c == ' ' || c == '\t'){
+					break; // doesn't return any token
 				}
 				else if(c == '*'){ // *
 					token->token = TYPE_MUL;
-					printf("%s\n", tokens[token->token]);
+					return lexer_succesful(string_ptr);
 				}
 				else if(c == '+'){ // +
 					token->token = TYPE_PLUS;
-					printf("%s\n", tokens[token->token]);
+					return lexer_succesful(string_ptr);
 				}
 				else if(c == '/'){ // /
 					token->token = TYPE_DIV;
-					printf("%s\n", tokens[token->token]);
+					return lexer_succesful(string_ptr);
 				}
 				else if(c == '-'){ // -
 					token->token = TYPE_MINUS;
-					printf("%s\n", tokens[token->token]);
+					return lexer_succesful(string_ptr);
 				}
 				else if(c == '('){ // (
 					token->token = TYPE_LEFT_BRACKET;
-					printf("%s\n", tokens[token->token]);
+					return lexer_succesful(string_ptr);
 				}
 				else if(c == ')'){ // )
 					token->token = TYPE_RIGHT_BRACKET;
-					printf("%s\n", tokens[token->token]);
+					return lexer_succesful(string_ptr);
 				}
 				else if(c == ','){ // ,
 					token->token = TYPE_COMMA;
-					printf("%s\n", tokens[token->token]);
+					return lexer_succesful(string_ptr);
 				}
 				else if(c == '<'){ // <
 					change_state(&current_status, STATE_LESS_THAN);
@@ -186,7 +185,6 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					change_state(&current_status, STATE_ASSIGN);
 				}
 				else if(c == '#'){ // #
-					token->token = TYPE_COMMENT;
 					change_state(&current_status, STATE_LINE_COMMENTARY);
 				}
 				else if(c == '!'){ // !
@@ -194,6 +192,10 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				else if(c == '"'){ // "
 					change_state(&current_status, STATE_STRING_LITERAL);
+				}
+				else if(c == '\n'){ // end of line token
+					token->token = TYPE_EOL;
+					return lexer_succesful(string_ptr);
 				}
 				else if(isdigit(c)){ // [0-9]
 					if(c == '0'){ // number starts with 0, therefore it can be 0 or 0.XXXX, but not 0XXX, X is [1-9]
@@ -222,7 +224,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				else if(c == EOF){ // should this be here???
 					token->token = TYPE_EOF;
-					change_state(&current_status, STATE_EOF);
+					return lexer_succesful(string_ptr);
 				}
 				else{ // non-acceptable char
 					return lexer_error(string_ptr, ER_LEX);
@@ -233,15 +235,12 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			case(STATE_LESS_THAN):
 				if(c == '='){ // <=
 					token->token = TYPE_LEQ;
-					printf("%s\n", tokens[token->token]);
-					change_state(&current_status, STATE_START);
-				
+					return lexer_succesful(string_ptr);
 				}
 				else{ // <
 					token->token = TYPE_LTN;
-					printf("%s\n", tokens[token->token]);
 					ungetc(c, source); // puts c back to buffer
-					change_state(&current_status, STATE_START); // go to start state
+					return lexer_succesful(string_ptr);
 				}
 				break;
 
@@ -249,15 +248,13 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			case(STATE_GREATER_THAN):
 				if(c == '='){ // >=
 					token->token = TYPE_MEQ;
-					printf("%s\n", tokens[token->token]);
-					change_state(&current_status, STATE_START);
+					return lexer_succesful(string_ptr);
 
 				}
 				else{ // >
 					token->token = TYPE_MTN;
-					printf("%s\n", tokens[token->token]);
 					ungetc(c, source); // puts c back to buffer
-					change_state(&current_status, STATE_START); // go to start state
+					return lexer_succesful(string_ptr);
 				}
 				break;
 
@@ -265,8 +262,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			case(STATE_ASSIGN):
 				if(c == '='){ // ==
 					token->token = TYPE_EQ;
-					printf("%s\n", tokens[token->token]);
-					change_state(&current_status, STATE_START);
+					return lexer_succesful(string_ptr);
 				}
 				else if(isalpha(c) && c == 'b'){ // =b; expesting it to be '=begin'
 					if(!add_char(string_ptr, '=')){
@@ -279,18 +275,16 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				else{ // =
 					token->token = TYPE_ASSIGN;
-					printf("%s\n", tokens[token->token]);
 					ungetc(c, source); // puts c back to buffer
-					change_state(&current_status, STATE_START);
+					return lexer_succesful(string_ptr);
 				}
 				break;
 
 			// line commentary # I am a comment
 			case(STATE_LINE_COMMENTARY):
-				token->token = TYPE_COMMENT; // the entire line is comment
 				if(c == '\n'){ // waits for the end of line char
-					printf("LINE COMMENT\n");
-					change_state(&current_status, STATE_START);
+					token->token = TYPE_COMMENT; // the entire line is comment
+					return lexer_succesful(string_ptr);
 				}
 				break;
 
@@ -303,7 +297,6 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 
 				if(check_comment_begin(registered_input, string_ptr)){
 					if(registered_input == strlen("=begin")){ // it is '=begin'
-						printf("STRING: %s : %s\n", string_ptr->s, tokens[token->token]);
 						clear_string_content(string_ptr);
 						change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
 					}
@@ -327,9 +320,6 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					}
 					change_state(&current_status, STATE_COMMENT_END);
 				}
-				else{
-					token->token = TYPE_COMMENT;
-				}
 				break;
 
 			// check whether input is '=end'
@@ -340,9 +330,8 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				registered_input = strlen(string_ptr->s);
 				if(check_comment_end(registered_input, string_ptr)){ // it is '=end'
 					if(registered_input == strlen("=end")){
-						printf("STRING: %s : %s\n", string_ptr->s, tokens[token->token]);
-						clear_string_content(string_ptr);
-						change_state(&current_status, STATE_START);
+						token->token = TYPE_COMMENT;
+						return lexer_succesful(string_ptr);
 					}
 				}
 				else{
@@ -355,7 +344,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			case(STATE_EXCLAMATION_MARK):
 				if(c == '='){
 					token->token = TYPE_NEQ;
-					change_state(&current_status, STATE_START);
+					return lexer_succesful(string_ptr);
 				}
 				else{
 					return lexer_error(string_ptr, ER_LEX);
@@ -377,9 +366,8 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				else{ // string is complete
 					ungetc(c, source); // puts c back to buffer
-					keywords(string_ptr, token); // compares it with all keywords
-					clear_string_content(string_ptr);
-					change_state(&current_status, STATE_START);
+					keywords(string_ptr, token, identif_ptr); // compares it with all keywords
+					return lexer_succesful(string_ptr);
 				}
 				break;
 
@@ -390,9 +378,8 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				else{ // this can be identifier
 					ungetc(c, source);
-					keywords(string_ptr, token); // not needed, no keywords ends with ? or !
-					clear_string_content(string_ptr);
-					change_state(&current_status, STATE_START);
+					keywords(string_ptr, token, identif_ptr); // not needed, no keywords ends with ? or !
+					return lexer_succesful(string_ptr);
 				}
 				break;
 
@@ -400,10 +387,8 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 			case(STATE_STRING_LITERAL):
 				if(c == '"'){ // this is the end of string literal
 					token->token = TYPE_STRING_LITERAL;
-					token->attr.string = string_ptr->s;
-					printf("STRING: %s : %s\n", string_ptr->s, tokens[token->token]);
-					clear_string_content(string_ptr);
-					change_state(&current_status, STATE_START);
+					//token->attr.string = string_ptr->s;
+					return lexer_succesful(string_ptr);
 				}
 				else{
 					if(c == '\\'){ // special escape sequences
@@ -494,8 +479,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					ungetc(c, source);
 					token->token = TYPE_INT;
 					token->attr.integer = 0;
-					printf("%s : %d\n", tokens[token->token], token->attr.integer);
-					change_state(&current_status, STATE_START);
+					return lexer_succesful(string_ptr);
 				}
 				break;
 
@@ -522,9 +506,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					ungetc(c, source);
 					token->token = TYPE_INT;
 					token->attr.integer = (int) strtol(string_ptr->s, NULL, 10);
-					printf("%s : %d\n", tokens[token->token], token->attr.integer);
-					clear_string_content(string_ptr);
-					change_state(&current_status, STATE_START);
+					return lexer_succesful(string_ptr);
 				}
 				break;
 			
@@ -545,9 +527,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					ungetc(c, source);
 					token->token = TYPE_FLOAT;
 					token->attr.flt = strtof(string_ptr->s, NULL);
-					printf("%s : %f\n", tokens[token->token], token->attr.flt);
-					clear_string_content(string_ptr);
-					change_state(&current_status, STATE_START);
+					return lexer_succesful(string_ptr);
 				}
 				break;
 
@@ -578,17 +558,9 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					ungetc(c, source);
 					token->token = TYPE_FLOAT;
 					token->attr.flt = strtof(string_ptr->s, NULL);
-					printf("%s : %f\n", tokens[token->token], token->attr.flt);	
-					clear_string_content(string_ptr);
-					change_state(&current_status, STATE_START);
+					return lexer_succesful(string_ptr);
 				}
 				break;
 		}
-		// should this be here? I dunno	
-		if(c == EOF){
-			free_string(string_ptr);
-			break;
-		}
 	}
-	return LEXER_OK;
 }

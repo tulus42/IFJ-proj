@@ -6,14 +6,11 @@ Dominik Peza, xpezad00
 Adrián Tulušák, xtulus00
 */
 
-#include "lexer.c"
+#include "parser.c"
 
 int main(){
-    Token_t* z;
     FILE* input_file = stdin;
     get_source(input_file);
 
-    z = malloc(sizeof(Token_t));
-    get_next_token(z);
-    free(z);
+    start_parser();
 }

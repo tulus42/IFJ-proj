@@ -147,3 +147,18 @@ char convert_from_hex(char hex[]){
     int tmp = (int) n;
     return tmp;
 }
+
+void copy_string(struct string_t* string_ptr, struct string_t* idendif_ptr){
+    int counter = 0;
+    while(string_ptr->s[counter] != '\0'){
+        idendif_ptr->s[counter] = string_ptr->s[counter];
+        counter++;
+    }
+    idendif_ptr->s[counter] = '\0';
+}
+
+void clear_content(char tmp[]){
+    for(int j = 0; j < 100; j++){
+        tmp[j] = '\0';
+    }
+}

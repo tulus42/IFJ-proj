@@ -89,6 +89,38 @@ void keywords(struct string_t *string_ptr, Token_t* token, struct string_t* iden
 		token->token = TYPE_KEYWORD;
 		token->attr.keyword = KEYWORD_WHILE;
 	}
+	else if(compare_strings(string_ptr, "print")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_PRINT;
+	}
+	else if(compare_strings(string_ptr, "inputs")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_INPUTS;
+	}
+	else if(compare_strings(string_ptr, "inputi")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_INPUTI;
+	}
+	else if(compare_strings(string_ptr, "inputf")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_INPUTF;
+	}
+	else if(compare_strings(string_ptr, "length")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_LENGTH;
+	}
+	else if(compare_strings(string_ptr, "substr")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_SUBSTR;
+	}
+	else if(compare_strings(string_ptr, "ord")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_ORD;
+	}
+	else if(compare_strings(string_ptr, "chr")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_CHR;
+	}
 	else{
 		token->token = TYPE_IDENTIFIER;
 		copy_string(string_ptr, identif_ptr);
@@ -386,7 +418,7 @@ int get_next_token(Token_t *token, struct string_t* identif_ptr) // konecny auto
 			// string literal enclosed in two double quotation marks
 			case(STATE_STRING_LITERAL):
 				if(c == '"'){ // this is the end of string literal
-					token->token = TYPE_STRING_LITERAL;
+					token->token = TYPE_STRING;
 					//token->attr.string = string_ptr->s;
 					return lexer_succesful(string_ptr);
 				}

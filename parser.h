@@ -6,9 +6,5 @@ Dominik Peza, xpezad00
 Adrián Tulušák, xtulus00
 */
 
-#include "symtable.h"
-#include "lexer.h"
-
-
 int parse();
 

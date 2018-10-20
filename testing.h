@@ -3,7 +3,6 @@ const char* tokens[] = {
 	"TYPE_EOL", 
 	"TYPE_IDENTIFIER", 
 	"TYPE_KEYWORD",
-	"TYPE_STRING_LITERAL", 
 
 	"TYPE_ASSIGN", // =
 	"TYPE_NEQ", // !=
@@ -41,5 +40,12 @@ const char* keyword[] = {
 	"KEYWORD_NIL",
 	"KEYWORD_THEN",
 	"KEYWORD_WHILE",
-
+	"KEYWORD_PRINT",
+	"KEYWORD_INPUTS",
+	"KEYWORD_INPUTI",
+	"KEYWORD_INPUTF",
+	"KEYWORD_LENGTH",
+	"KEYWORD_SUBSTR",
+	"KEYWORD_ORD",
+	"KEYWORD_CHR",
 };

@@ -8,6 +8,7 @@ Adrián Tulušák, xtulus00
 
 #include <stdio.h>
 
+// add keywords
 // TODO - Finish the state list, give it proper numbers
 #define STATE_START 500 // start
 #define STATE_ASSIGN 501 // =
@@ -43,6 +44,14 @@ typedef enum
 	KEYWORD_NIL,
 	KEYWORD_THEN,
 	KEYWORD_WHILE,
+	KEYWORD_PRINT,
+	KEYWORD_INPUTS,
+	KEYWORD_INPUTI,
+	KEYWORD_INPUTF,
+	KEYWORD_LENGTH,
+	KEYWORD_SUBSTR,
+	KEYWORD_ORD,
+	KEYWORD_CHR,
 
 } Keyword;
 
@@ -60,7 +69,6 @@ typedef enum
 	TYPE_EOL, 
 	TYPE_IDENTIFIER, 
 	TYPE_KEYWORD,
-	TYPE_STRING_LITERAL, 
 
 	TYPE_ASSIGN, // =
 	TYPE_NEQ, // !=
@@ -94,9 +102,9 @@ typedef struct
     Token_attr attr;
 } Token_t;
 
-//void keywords(struct string_t *string_ptr, Token_t* token);
+//void keywords(struct string_t *string_ptr, Token_t* token, struct string_t* identif_ptr);
 //int lexer_error(struct string_t* string_ptr);
-void get_source(FILE *f);
-int get_next_token(Token_t *token);
-void change_state(int * current_state, int next_state);
+//void get_source(FILE *f);
+//int get_next_token(Token_t *token, struct string_t* identif_ptr);
+//void change_state(int * current_state, int next_state);
 

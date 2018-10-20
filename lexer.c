@@ -24,13 +24,8 @@ char* string_content;
 /*
 TODO: 
 hex_number error
-return v každom case?
-=begin if not match
+=begin if not match, beginning???
 skontrolovať rozsah int a double?
-check how ungetc work when pushing more chars to the buffer
-REMOVE ALL THE DEBUG PRINTS!!!!
-have to return int in every case
-end of line token!!!
 */
 
 /**
@@ -335,12 +330,11 @@ int get_next_token(Token_t *token, struct string_t* identif_ptr) // konecny auto
 				}
 				else{
 					// Not matching - has to remove the first '=' and save the string ?? TODO
-					for(int i = 1; i < registered_input; i++){
-						ungetc(string_ptr->s[i], source); // does this work????? I DUNNO
-					}
 					token->token = TYPE_ASSIGN;
-					clear_string_content(string_ptr);
-					change_state(&current_status, STATE_START);
+					remove_first_char(string_ptr);
+					printf("%s\n", string_ptr->s);
+					change_state(&current_status, STATE_NEXT_CHARS);
+					break;
 				}
 				break;
 

@@ -162,3 +162,15 @@ void clear_content(char tmp[]){
         tmp[j] = '\0';
     }
 }
+
+void remove_first_char(struct string_t* string_ptr){
+    char one_char;
+    int counter = 1;
+    while(string_ptr->s[counter] != '\0'){
+        one_char = string_ptr->s[counter];
+        string_ptr->s[counter-1] = one_char;
+        string_ptr->current_size = counter;
+        counter++;
+    }
+    string_ptr->s[counter-1] = '\0';
+}

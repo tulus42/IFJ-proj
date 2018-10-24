@@ -13,6 +13,7 @@ Adrián Tulušák, xtulus00
 #include <limits.h>
 #include <stdbool.h>
 
+#include "lexer.h"
 #include "error.h"
 #include "dynamic_string.c"
 #include "testing.h"

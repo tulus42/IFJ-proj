@@ -37,7 +37,18 @@ typedef struct tData{
     struct tData *rptr;
 } *tDataptr;
 
-void start_parser(){
+
+// Frees all the memory
+int parser_error(struct tData* list_of_tokens, struct string_t* identif_ptr){
+    // frees the memory
+    free_string(identif_ptr);
+    free(list_of_tokens->token);
+    free(list_of_tokens);
+
+    return ER_SYN;
+}
+
+int start_parser(){
 
     tDataptr list_of_tokens = malloc(sizeof(struct tData));
     list_of_tokens->token = malloc(sizeof(Token_t));
@@ -46,45 +57,27 @@ void start_parser(){
 
     struct string_t identif_name;
     struct string_t *identif_ptr = &identif_name;
-
     allocate_string(identif_ptr);
     
-    while(list_of_tokens->token->token != TYPE_EOF){
-        int lex_result = get_next_token(list_of_tokens->token, identif_ptr);
 
-        if(lex_result == 0){
-
-            // debug prints from lexer
-            if(list_of_tokens->token->token == TYPE_KEYWORD){
-		        printf("%s : %s\n", tokens[list_of_tokens->token->token], keyword[list_of_tokens->token->attr.keyword]);
-	        }
-            else if(list_of_tokens->token->token == TYPE_IDENTIFIER){
-                printf("%s : ", tokens[list_of_tokens->token->token]);
-                printf("%s\n", identif_ptr->s);
-            }
-	        else if(list_of_tokens->token->token == TYPE_INT){
-		        printf("%s : %d\n", tokens[list_of_tokens->token->token], list_of_tokens->token->attr.integer);
-	        }
-            else if(list_of_tokens->token->token == TYPE_FLOAT){
-		        printf("%s : %f\n", tokens[list_of_tokens->token->token], list_of_tokens->token->attr.flt);
-	        }
-            else{
-                printf("%s\n", tokens[list_of_tokens->token->token]);
-            }
-            clear_string_content(identif_ptr);
-        }
-        else{
-            ; // lexer error
-        }
+    int lex_result = get_next_token(list_of_tokens->token, identif_ptr);
+    if(lex_result == 0){
+        ; // Parsing
+    }
+    else{
+        return parser_error(list_of_tokens);
+        ; // ERROR
     }
     
 
     free_string(identif_ptr);
-    
     free(list_of_tokens->token);
     free(list_of_tokens);
 
+    return 0;
 }
+
+
 
 
 

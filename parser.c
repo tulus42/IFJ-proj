@@ -18,6 +18,7 @@ Adrián Tulušák, xtulus00
 #include "instructions.h"
 
 #include "lexer.c"
+#include "LL-grammar.c"
 #include "parser.h"
 
 /**
@@ -65,7 +66,7 @@ int start_parser(){
         ; // Parsing
     }
     else{
-        return parser_error(list_of_tokens);
+        return parser_error(list_of_tokens, identif_ptr);
         ; // ERROR
     }
     

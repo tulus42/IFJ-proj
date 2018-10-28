@@ -50,6 +50,28 @@ Adrián Tulušák  & xtulus00  & \quad25\,\%\\
 
 
 \section{Úvod}
-Cieľom je.....
+Naším cieľom je implementovať prekladač imperatívneho jazyka IFJ18 do predmetov IFJ a IAL. Hlavnou náplňou práce bola implementácia: lexikálneho analyzátora, parsera (syntaktická a sématická analýza) a generátora inštrukcií.
+
+\section{Lexikálna analýza}
+Na začiatku sme implementovali lexikálny analyzátor v súbore \texttt{lexer.c}, ktorého základom je deterministický konečný automat (ďalej iba DKA).  Hlavnou funkciou v tomto súbore je \texttt{get\_next\_token}, ktorá číta jednotlivé znaky a pomocou príkazu \texttt{switch} prechádza do nasledujúcich stavov podľa DKA až kým nevyhodnotí  lexikálne správny token, inak vracia \texttt{ER\_LEX}.
+Pre jednoduchšiu prácu s tokenmi sme použili štruktúru \texttt{Token\_t}, ktorá obsahovala:
+\begin{itemize}
+\item union Token\_attr
+\item struct Token\_type
+\end{itemize}
+
+\subsection{Spracovanie reťazcov}
+Pre jednoduchšie spracovanie reťazcov sme sa rozhodli implementovať súbor \texttt{dynamic\_string.c}. Jeho súčasťou je aj štruktúra \texttt{string\_t}, ktorá obsahuje samotný ukazateľ na dynamický reťazec, súčastnú veľkosť reťazca a celkovú veľkosť bufferu. Na začiatku je alokovaný reťazec s veľkosťou 10 a pri každom pridaní znaku sa kontroluje, či je ešte v reťazci miesto. Keď sa blížime k zaplneniu reťazca, funkcia \texttt{check\_empty\_bites} zväčší veľkosť buffera o 5, čím zaistí adekvátnu veľkosť pre reťazec. Všetky alokácie pamäte sú kontrolované a ich zlyhanie je adekvátne ošetrené vrátením internej chyby \texttt{ER\_INTERNAL}.
+
+\section{Práca v tíme}
+Náš tím sme si zostavili pomerne skoro.
+
+\subsection{Komunikácia}
+Už na začiatku sme sa dohodli na pravidelných týždenných stretnutiach, kde sme diskutovali o našej ďaľšej práci na nadchádzajúci týždeň. 
+
+\subsection{Verzovanie}
+
+\subsection{Hodnotenie}
+
 
 \end{document}

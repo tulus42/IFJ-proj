@@ -18,11 +18,6 @@ Adrián Tulušák, xtulus00
 #include "lexer.c"
 #include "parser.h"
 
-#define SYN_OK 0
-
-struct Data_t{
-    Token_t* token;
-} *Dataptr;
 
 /**
  * TODO: 

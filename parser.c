@@ -29,6 +29,16 @@ Adrián Tulušák, xtulus00
  * LL-gramatika
  */
 
+// forward declarations
+static int statement(struct Data_t* data);
+static int declare(struct Data_t* data);
+static int params(struct Data_t* data);
+static int param(struct Data_t* data);
+static int argvs(struct Data_t* data);
+static int arg(struct Data_t* data);
+static int value(struct Data_t* data);
+
+
 // Frees all the memory
 int parser_error(Token_t* token, struct Data_t* Dataptr){
     // frees the memory
@@ -39,6 +49,15 @@ int parser_error(Token_t* token, struct Data_t* Dataptr){
     return ER_SYN;
 }
 
+// Kontrola uspesnosti lexikalnej analyzy
+int get_token(struct Data_t* data) {
+    if (get_next_token(data->token) == LEXER_OK)
+        return(1);
+    else
+        return(0);
+}
+
+
 static int prog(struct Data_t* data){
     int result;
 
@@ -47,8 +66,7 @@ static int prog(struct Data_t* data){
 
     } // <prog> -> EOL <prog>
     else if(data->token->token == TYPE_EOL){
-        result = get_next_token(data->token);
-        if(result == LEXER_OK)
+        if(get_token)
             return(prog(data));
         else{
             return ER_LEX;
@@ -58,16 +76,138 @@ static int prog(struct Data_t* data){
         return SYN_OK;
     } // <prog> -> <statements> <prog> ???? toto treba ešte domyslieť
     else if(data->token->token == TYPE_KEYWORD || data->token->token == TYPE_IDENTIFIER){
-
+        if(get_token) {
+            return(statement(data));
+        }
+        else{
+            return ER_LEX;
+        }
     }
-    else{ // nothing good was entered
-        return ER_SYN;
-    }
 
-    return 0;
+    return ER_SYN;
 }
 
+static int statement(struct Data_t* data) {
+    // <statement> -> IF <expression> THEN EOL <statements> ELSE EOL <statements> END EOL
+    if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_IF) {
+        // ... <expression> ...
+        if (get_token(data)) {
+            if (1/*__expression__*/) {      // TODO expression
+                ;
+            } else 
+                return(ER_SYN);
+        } else
+            return(ER_LEX); 
+
+        // ... THEN ...
+        if (get_token(data)) {
+            if (data->token->token != TYPE_KEYWORD || data->token->attr.keyword != KEYWORD_THEN) {
+                return(ER_SYN);
+            }
+        } else
+            return(ER_LEX);
+
+        // ... EOL ...
+        if (get_token(data)) {
+            if (data->token->token != TYPE_EOL) {
+                return(ER_SYN);
+            }
+        } else 
+            return(ER_LEX);
+
+        // ... <statements> ...
+        if (get_token(data)) {
+            if (!statement(data))
+                return(ER_SYN);
+        } else 
+            return(ER_LEX);
+
+        // ... ELSE ... || ... END ... - rozsirenie - volitelna cast ELSE
+        if (get_token(data)) {
+            // ELSE
+            if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_ELSE) {
+                // ... EOL ...
+                if (get_token(data)) {
+                    if (data->token->token != TYPE_EOL) {
+                        return(ER_SYN);
+                    }
+                } else 
+                    return(ER_LEX);
+                
+                // ... <statements> ...
+                if (get_token(data)) {
+                    if (!statement(data))
+                        return(ER_SYN);
+                } else 
+                    return(ER_LEX);
+                
+                if (!get_token(data))
+                    return(ER_LEX);
+            }
+            // END
+            if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_END) {
+                // ... EOL ...
+                if (get_token(data)) {
+                    if (data->token->token != TYPE_EOL) {
+                        return(ER_SYN);
+                    }
+                } else 
+                    return(ER_LEX);
+            }
+
+        } else 
+            return(ER_LEX);
+
+        if (get_token(data))
+            return(prog(data));
+        else
+            return(ER_LEX);
+    }
+    
+    // <statement> -> WHILE <expression> DO EOL <statement> END EOL
+    // <statement> -> PRINT ( <argvs> ) EOL
+    // <statement> -> LENGTH ( <argvs> ) EOL
+    // <statement> -> SUBSTR ( <argvs> ) EOL
+    // <statement> -> ORD ( <argvs> ) EOL
+    // <statement> -> CHR ( <argvs> ) EOL
+    // <statement> -> INPUTS EOL
+    // <statement> -> INPUTI EOL
+    // <statement> -> INPUTF EOL
+    // <statement> -> ID <declare> EOL
+}
+
+static int declare(struct Data_t* data) {
+
+}
+
+static int params(struct Data_t* data) {
+
+}
+
+static int param(struct Data_t* data) {
+
+}
+
+static int argvs(struct Data_t* data) {
+
+}
+
+static int arg(struct Data_t* data) {
+
+}
+
+static int value(struct Data_t* data) {
+
+}
+
+
+
 static bool init_struct(struct Data_t* data){
+    
+    data->in_function = false;
+    data->in_while_or_if = false;
+
+
     return true;
 }
 

@@ -148,21 +148,6 @@ char convert_from_hex(char hex[]){
     return tmp;
 }
 
-void copy_string(struct string_t* string_ptr, struct string_t* idendif_ptr){
-    int counter = 0;
-    while(string_ptr->s[counter] != '\0'){
-        idendif_ptr->s[counter] = string_ptr->s[counter];
-        counter++;
-    }
-    idendif_ptr->s[counter] = '\0';
-}
-
-void clear_content(char tmp[]){
-    for(int j = 0; j < 100; j++){
-        tmp[j] = '\0';
-    }
-}
-
 void remove_first_char(struct string_t* string_ptr){
     char one_char;
     int counter = 1;
@@ -173,4 +158,10 @@ void remove_first_char(struct string_t* string_ptr){
         counter++;
     }
     string_ptr->s[counter-1] = '\0';
+}
+
+void copy_string_content(struct string_t* dest, struct string_t* source){
+    for(int i = 0; i < source->current_size; i++){
+        add_char(dest, source->s[i]);
+    }
 }

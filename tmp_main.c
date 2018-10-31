@@ -10,7 +10,12 @@ Adrián Tulušák, xtulus00
 
 int main(){
     FILE* input_file = stdin;
+    int parser_result;
     get_source(input_file);
 
-    start_parser();
+    parser_result = start_parser();
+    if(parser_result == ER_SYN){
+        return 1;
+    }
+    return 0;
 }

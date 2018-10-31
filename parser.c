@@ -18,9 +18,7 @@ Adrián Tulušák, xtulus00
 #include "lexer.c"
 #include "parser.h"
 
-struct Data_t{
-    Token_t* token;
-} *Dataptr;
+
 
 /**
  * TODO: 

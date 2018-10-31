@@ -7,3 +7,6 @@ Adrián Tulušák, xtulus00
 */
 
 
+struct Data_t{
+    Token_t* token;
+} *Dataptr;

@@ -1,36 +1,39 @@
-1. <prog> -> DEF ID ( <params> ) EOL <statement> END <prog>
-2. <prog> -> EOL <prog>
-3. <prog> -> <declare> <prog>
-4. <prog> -> EOF
-5. <prog> -> <statement> <prog>
+1.  <prog> -> DEF ID_FUNC ( <params> ) EOL <statement> END <prog>
+2.  <prog> -> EOL <prog>
+3.  <prog> -> EOF
+4.  <prog> -> <statement> <prog>
 
-6. <value> -> INT_VALUE
-7. <value> -> FLOAT_VALUE
-8. <value> -> STRING_VALUE
+5.  <statement> -> IF <expression> THEN EOL <statements> ELSE EOL <statements> END EOL
+6.  <statement> -> WHILE <expression> DO EOL <statement> END EOL
+7.  <statement> -> PRINT ( <argvs> ) EOL
+8.  <statement> -> LENGTH ( <argvs> ) EOL
+9.  <statement> -> SUBSTR ( <argvs> ) EOL
+10. <statement> -> ORD ( <argvs> ) EOL
+11. <statement> -> CHR ( <argvs> ) EOL
+12. <statement> -> INPUTS EOL
+13. <statement> -> INPUTI EOL
+14. <statement> -> INPUTF EOL
+15. <statement> -> ID <declare> EOL
 
-9. <declare> -> ID <variable> EOL
+16. <declare> -> = ID
+17. <declare> -> = <value>
+18. <declare> -> = <expression>
+19. <declare> -> = ID_FUNC ( <argvs> )
+20. <declare> -> ε
 
-10. <statement> -> IF <expression> THEN EOL <statement> ELSE EOL <statement> END EOL
-11. <statement> -> WHILE <expression> DO EOL <statement> END EOL
-12. <statement> -> PRINT ( <params> ) EOL
-13. <statement> -> LENGTH ( STRING_VALUE ) EOL
-14. <statement> -> SUBSTR ( STRING_VALUE, INT_VALUE, INT_VALUE ) EOL
-15. <statement> -> ORD ( STRING_VALUE, INT_VALUE ) EOL
-16. <statement> -> CHR ( INT_VALUE ) EOL
-17. <statement> -> <declare> EOL
-18. <statement> -> ε
+21. <params> -> ID <param>
+22. <params> -> ε
 
-X. <def_value> -> <expression>
+23. <param> , ID <param>
+24. <param> -> ε
 
-19. <variable> -> = ID
-20. <variable> -> = <value>
-21. <variable> -> = <func> ( <argvs> )
-22. <variable> -> ε
+25. <argvs> -> <value> <arg>
+26. <argvs> -> ε
 
-23. <params> -> ε
-24. <params> -> <variable> <next_param>
+27. <arg> -> , <value> <arg>
+28. <arg> -> ε
 
-X. <next_param> ->  ε
-X. <next_param> -> , <variable>
+29. <value> -> INT_VALUE
+30. <value> -> FLOAT_VALUE
+31. <value> -> STRING_VALUE
 
-X. <argvs> -> 

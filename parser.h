@@ -6,5 +6,4 @@ Dominik Peza, xpezad00
 Adrián Tulušák, xtulus00
 */
 
-int parse();
 

@@ -50,18 +50,30 @@ Adrián Tulušák  & xtulus00  & \quad25\,\%\\
 
 
 \section{Úvod}
-Naším cieľom je implementovať prekladač imperatívneho jazyka IFJ18 do predmetov IFJ a IAL. Hlavnou náplňou práce bola implementácia: lexikálneho analyzátora, parsera (syntaktická a sématická analýza) a generátora inštrukcií.
+Naším cieľom je implementovať prekladač imperatívneho jazyka IFJ18 do predmetov IFJ a IAL v jazyku C. Hlavnou náplňou práce bola implementácia: lexikálneho analyzátora, parsera (syntaktická a sématická analýza) a generátora inštrukcií.
 
 \section{Lexikálna analýza}
-Na začiatku sme implementovali lexikálny analyzátor v súbore \texttt{lexer.c}, ktorého základom je deterministický konečný automat (ďalej iba DKA).  Hlavnou funkciou v tomto súbore je \texttt{get\_next\_token}, ktorá číta jednotlivé znaky a pomocou príkazu \texttt{switch} prechádza do nasledujúcich stavov podľa DKA až kým nevyhodnotí  lexikálne správny token, inak vracia \texttt{ER\_LEX}.
+Na začiatku sme implementovali lexikálny analyzátor v súbore \texttt{lexer.c}, ktorého základom je deterministický konečný automat (ďalej iba DKA).  Hlavnou funkciou v tomto súbore je \texttt{get\_next\_token}, ktorá číta jednotlivé znaky a pomocou príkazu \texttt{switch} prechádza do nasledujúcich stavov podľa DKA až kým nevyhodnotí  lexikálne správny token, inak vracia \texttt{ER\_LEX}. Lexikálny analyzátor musí mať nadstavený vstupný súbor, ktorý obsahuje program napísaný v jazyku IFJ18. Pri úspešnom vyhodnotení tokenu sa správne uvoľní všetká alokovaná pamäť. Matematické a relačné operátory sú vyhodnotené vcelku rýchlo a jednoducho, identifikátory, reťazce a čísla vyžadujú viacej prechodov a používajú dynamický reťazec, o ktorom ďalej pojednáva sekcia Spracovanie reťazcov. Pri identifikátore sa kontrolujú povolené znaky na základe pozície v reťazci a na záver sa identifikátor porovná so všetkými kľúčovými slovami, ak sa nájde zhoda, je to kľúčové slovo, inak je to identifikátor. Reťazce sú ohraničené dvojitými úvodzovkami (") a môžu obsahovať escape sequence. Pre tento prípad existuje špeciálny stav \texttt{STATE\_BACKSLASH\_LITERAL}, do ktorého sa prechádza pri  prečítaní znaku \textbackslash \quad a čaká sa na skratku escape sequence, ako napríklad t, s alebo n. 
+
+\subsection{Štruktúra Token\_t}
 Pre jednoduchšiu prácu s tokenmi sme použili štruktúru \texttt{Token\_t}, ktorá obsahovala:
+
 \begin{itemize}
-\item union Token\_attr
-\item struct Token\_type
+\item \textbf{union Token\_attr}
+\item \textbf{struct Token\_type}
 \end{itemize}
+\textbf{Union Token\_attr} obsahuje možné atribúty tokenu, konkrétne to sú: string, integer, flt a keyword. \\
+\textbf{Struct Token\_type} obsahuje typy tokenov, konkrétne to sú: \texttt{EOF}, \texttt{EOL}, identifikátor, kľúčové slovo, relačné a matematické operátory, ľava a pravá zátvorka, čiarka, komentár, int, float a string.
+
 
 \subsection{Spracovanie reťazcov}
 Pre jednoduchšie spracovanie reťazcov sme sa rozhodli implementovať súbor \texttt{dynamic\_string.c}. Jeho súčasťou je aj štruktúra \texttt{string\_t}, ktorá obsahuje samotný ukazateľ na dynamický reťazec, súčastnú veľkosť reťazca a celkovú veľkosť bufferu. Na začiatku je alokovaný reťazec s veľkosťou 10 a pri každom pridaní znaku sa kontroluje, či je ešte v reťazci miesto. Keď sa blížime k zaplneniu reťazca, funkcia \texttt{check\_empty\_bites} zväčší veľkosť buffera o 5, čím zaistí adekvátnu veľkosť pre reťazec. Všetky alokácie pamäte sú kontrolované a ich zlyhanie je adekvátne ošetrené vrátením internej chyby \texttt{ER\_INTERNAL}.
+
+\section{Syntaktická analýza}
+
+\subsection{Tabuľka symbolov}
+
+\section{Generátor inštrukcií}
 
 \section{Práca v tíme}
 Náš tím sme si zostavili pomerne skoro.

@@ -57,7 +57,7 @@ typedef enum
 
 typedef union
 {
-	char *string; 
+	struct string_t* string; 
 	int integer; 
 	Keyword keyword; 
 	double flt; // float
@@ -93,7 +93,7 @@ typedef enum
 
 	TYPE_INT, 
 	TYPE_FLOAT, 
-	TYPE_STRING, /// STRING A STRING LITERAL - ROZDIEL?????
+	TYPE_STRING, /// STRING LITERAL
 } Token_type;
 
 typedef struct
@@ -102,9 +102,9 @@ typedef struct
     Token_attr attr;
 } Token_t;
 
-void keywords(struct string_t *string_ptr, Token_t* token, struct string_t* identif_ptr);
+//void keywords(struct string_t *string_ptr, Token_t* token, struct string_t* identif_ptr);
 //int lexer_error(struct string_t* string_ptr);
-void get_source(FILE *f);
-int get_next_token(Token_t *token, struct string_t* identif_ptr);
-void change_state(int * current_state, int next_state);
+//void get_source(FILE *f);
+//int get_next_token(Token_t *token, struct string_t* identif_ptr);
+//void change_state(int * current_state, int next_state);
 

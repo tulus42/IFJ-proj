@@ -1,1 +1,4 @@
-position = initial + rate*60 
+abc = 1
+def factorial (n)
+    print "Hello World!"
+end

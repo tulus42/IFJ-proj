@@ -14,11 +14,13 @@ Adrián Tulušák, xtulus00
 
 #include "error.h"
 #include "symtable.h"
-#include "parser.h"
-#include "instructions.h"
 
 #include "lexer.c"
 #include "parser.h"
+
+struct Data_t{
+    Token_t* token;
+} *Dataptr;
 
 /**
  * TODO: 
@@ -26,65 +28,74 @@ Adrián Tulušák, xtulus00
  * kontrola 0 alebo 1 LEX. analýzy
  * allocation of tokens
  * structures for parser.h
- * viazaný zoznam
  * procedenční tabuľka
  * LL-gramatika
  */
 
-typedef struct tData{
-    Token_t* token;
-    struct tData *lptr;
-    struct tData *rptr;
-} *tDataptr;
+// Frees all the memory
+int parser_error(Token_t* token, struct Data_t* Dataptr){
+    // frees the memory
+    free_string(token->attr.string);
+    free(token);
+    free(Dataptr);
 
-void start_parser(){
-
-    tDataptr list_of_tokens = malloc(sizeof(struct tData));
-    list_of_tokens->token = malloc(sizeof(Token_t));
-    list_of_tokens->token->token = TYPE_EOL;
-    
-
-    struct string_t identif_name;
-    struct string_t *identif_ptr = &identif_name;
-
-    allocate_string(identif_ptr);
-    
-    while(list_of_tokens->token->token != TYPE_EOF){
-        int lex_result = get_next_token(list_of_tokens->token, identif_ptr);
-
-        if(lex_result == 0){
-
-            // debug prints from lexer
-            if(list_of_tokens->token->token == TYPE_KEYWORD){
-		        printf("%s : %s\n", tokens[list_of_tokens->token->token], keyword[list_of_tokens->token->attr.keyword]);
-	        }
-            else if(list_of_tokens->token->token == TYPE_IDENTIFIER){
-                printf("%s : ", tokens[list_of_tokens->token->token]);
-                printf("%s\n", identif_ptr->s);
-            }
-	        else if(list_of_tokens->token->token == TYPE_INT){
-		        printf("%s : %d\n", tokens[list_of_tokens->token->token], list_of_tokens->token->attr.integer);
-	        }
-            else if(list_of_tokens->token->token == TYPE_FLOAT){
-		        printf("%s : %f\n", tokens[list_of_tokens->token->token], list_of_tokens->token->attr.flt);
-	        }
-            else{
-                printf("%s\n", tokens[list_of_tokens->token->token]);
-            }
-            clear_string_content(identif_ptr);
-        }
-        else{
-            ; // lexer error
-        }
-    }
-    
-
-    free_string(identif_ptr);
-    
-    free(list_of_tokens->token);
-    free(list_of_tokens);
-
+    return ER_SYN;
 }
+
+static int prog(struct Data_t* data){
+
+    // <prog> -> DEF ID_FUNC ( <params> ) EOL <statement> END <prog>
+    if(data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_DEF){
+
+    } // <prog> -> EOL <prog>
+    else if(data->token->token == TYPE_EOL){
+
+    } // <prog> -> EOF
+    else if(data->token->token == TYPE_EOF){
+
+    } // <prog> -> <statements> <prog> ???? toto treba ešte domyslieť
+    else if(data->token->token == TYPE_KEYWORD || data->token->token == TYPE_IDENTIFIER){
+
+    }
+    else{ // nothing good was entered
+        return ER_SYN;
+    }
+
+    return 0;
+}
+
+static bool init_struct(struct Data_t* data){
+    return true;
+}
+
+int start_parser(){
+
+    struct Data_t* Dataptr = malloc(sizeof(struct Data_t));
+
+    Token_t* one_token = Dataptr->token;
+    one_token = malloc(sizeof(Token_t));
+    struct string_t content;
+    one_token->attr.string = &content;
+    allocate_string(one_token->attr.string);
+
+    int lex_result = get_next_token(one_token);
+    if(lex_result == 0){
+        // parse
+        }
+    else{
+        return parser_error(one_token, Dataptr);
+        // parse error
+    }
+
+    free_string(one_token->attr.string);
+    free(one_token);
+    free(Dataptr);
+    return 0;
+}
+
+
+
+
 
 
 

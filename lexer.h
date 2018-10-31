@@ -57,7 +57,7 @@ typedef enum
 
 typedef union
 {
-	char *string; 
+	struct string_t* string; 
 	int integer; 
 	Keyword keyword; 
 	double flt; // float
@@ -93,7 +93,7 @@ typedef enum
 
 	TYPE_INT, 
 	TYPE_FLOAT, 
-	TYPE_STRING, /// STRING A STRING LITERAL - ROZDIEL?????
+	TYPE_STRING, /// STRING LITERAL
 } Token_type;
 
 typedef struct

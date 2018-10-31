@@ -13,6 +13,7 @@ Adrián Tulušák, xtulus00
 #include <limits.h>
 #include <stdbool.h>
 
+#include "lexer.h"
 #include "error.h"
 #include "dynamic_string.c"
 #include "testing.h"
@@ -47,7 +48,7 @@ void change_state(int * current_state, int next_state){
  * Compares the entered string and checkes, wheter it's keyword or not
  * If not keyword, it is automatically an identifier
  */
-void keywords(struct string_t *string_ptr, Token_t* token, struct string_t* identif_ptr){
+void keywords(struct string_t *string_ptr, Token_t* token){
 	if(compare_strings(string_ptr, "def")){
 		token->token = TYPE_KEYWORD;
 		token->attr.keyword = KEYWORD_DEF;
@@ -118,7 +119,7 @@ void keywords(struct string_t *string_ptr, Token_t* token, struct string_t* iden
 	}
 	else{
 		token->token = TYPE_IDENTIFIER;
-		copy_string(string_ptr, identif_ptr);
+		copy_string_content(token->attr.string, string_ptr);
 	}
 }
 
@@ -144,7 +145,7 @@ int lexer_succesful(struct string_t* string_ptr){
  * Finite state machine, it either return a correct token or EL_LEX if there is lexical error
  * 
  */
-int get_next_token(Token_t *token, struct string_t* identif_ptr) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
+int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
 {
 	/* Used variables */
 	int current_status = STATE_START; // current state is start
@@ -392,7 +393,7 @@ int get_next_token(Token_t *token, struct string_t* identif_ptr) // konecny auto
 				}
 				else{ // string is complete
 					ungetc(c, source); // puts c back to buffer
-					keywords(string_ptr, token, identif_ptr); // compares it with all keywords
+					keywords(string_ptr, token); // compares it with all keywords
 					return lexer_succesful(string_ptr);
 				}
 				break;
@@ -404,7 +405,7 @@ int get_next_token(Token_t *token, struct string_t* identif_ptr) // konecny auto
 				}
 				else{ // this can be identifier
 					ungetc(c, source);
-					keywords(string_ptr, token, identif_ptr); // not needed, no keywords ends with ? or !
+					keywords(string_ptr, token); // not needed, no keywords ends with ? or !
 					return lexer_succesful(string_ptr);
 				}
 				break;

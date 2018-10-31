@@ -18,6 +18,8 @@ Adrián Tulušák, xtulus00
 #include "lexer.c"
 #include "parser.h"
 
+#define SYN_OK 0
+
 struct Data_t{
     Token_t* token;
 } *Dataptr;
@@ -43,16 +45,22 @@ int parser_error(Token_t* token, struct Data_t* Dataptr){
 }
 
 static int prog(struct Data_t* data){
+    int result;
 
     // <prog> -> DEF ID_FUNC ( <params> ) EOL <statement> END <prog>
     if(data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_DEF){
 
     } // <prog> -> EOL <prog>
     else if(data->token->token == TYPE_EOL){
-
+        result = get_next_token(data->token);
+        if(result == LEXER_OK)
+            return(prog(data));
+        else{
+            return ER_LEX;
+        }
     } // <prog> -> EOF
     else if(data->token->token == TYPE_EOF){
-
+        return SYN_OK;
     } // <prog> -> <statements> <prog> ???? toto treba ešte domyslieť
     else if(data->token->token == TYPE_KEYWORD || data->token->token == TYPE_IDENTIFIER){
 
@@ -80,7 +88,9 @@ int start_parser(){
 
     int lex_result = get_next_token(one_token);
     if(lex_result == 0){
-        // parse
+        if(init_struct(Dataptr)){
+                prog(Dataptr);
+            }
         }
     else{
         return parser_error(one_token, Dataptr);

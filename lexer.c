@@ -15,11 +15,13 @@ Adrián Tulušák, xtulus00
 
 #include "lexer.h"
 #include "error.h"
-#include "dynamic_string.c"
+
 #include "testing.h"
 
 FILE* source;
 char* string_content;
+string_t* dynamic_string;
+
 #define LEXER_OK 0
 
 /*
@@ -48,7 +50,7 @@ void change_state(int * current_state, int next_state){
  * Compares the entered string and checkes, wheter it's keyword or not
  * If not keyword, it is automatically an identifier
  */
-void keywords(struct string_t *string_ptr, Token_t* token){
+void keywords(string_t *string_ptr, Token_t* token){
 	if(compare_strings(string_ptr, "def")){
 		token->token = TYPE_KEYWORD;
 		token->attr.keyword = KEYWORD_DEF;
@@ -126,7 +128,7 @@ void keywords(struct string_t *string_ptr, Token_t* token){
 /**
  * Writes error to stderr, returns error type
  */
-int lexer_error(struct string_t* string_ptr, int error_type){
+int lexer_error(string_t* string_ptr, int error_type){
 	free_string(string_ptr);
 	fprintf(stderr, "Lexer ERROR\n");
 	return error_type;
@@ -135,9 +137,13 @@ int lexer_error(struct string_t* string_ptr, int error_type){
 /**
  * Frees string when succesful
  */
-int lexer_succesful(struct string_t* string_ptr){
+int lexer_succesful(string_t* string_ptr){
 	free_string(string_ptr);
 	return LEXER_OK;
+}
+
+void set_string(string_t* string){
+	dynamic_string = string;
 }
 
 /**
@@ -151,9 +157,16 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 	int current_status = STATE_START; // current state is start
 	int registered_input; // counts how many chars have been entered for '=begin' and '=end'
 
+	
+	token->attr.string = dynamic_string;
+	
+
 	// variable for string struct
-	struct string_t string;
-	struct string_t *string_ptr = &string;
+	string_t string;
+	string_t *string_ptr = &string;
+	if(!allocate_string(string_ptr)){ // check whether allocation of string was succesfull
+		return lexer_error(string_ptr, ER_INTERNAL);
+	}
 
 	char hex_num[2] = {'\0', '\0'}; // help variable for hexadecimal '\xhh' input 
  
@@ -162,9 +175,6 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 		return lexer_error(string_ptr, ER_INTERNAL);
 	}
 
-	if(!allocate_string(string_ptr)){ // check whether allocation of string was succesfull
-		return lexer_error(string_ptr, ER_INTERNAL);
-	}
 
 	while(true){
 		char c = getc(source); // read characters one by one

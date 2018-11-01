@@ -30,27 +30,28 @@ Adrián Tulušák, xtulus00
  */
 
 // forward declarations
-static int statement(struct Data_t* data);
-static int declare(struct Data_t* data);
-static int params(struct Data_t* data);
-static int param(struct Data_t* data);
-static int argvs(struct Data_t* data);
-static int arg(struct Data_t* data);
-static int value(struct Data_t* data);
+static int statement(Data_t* data);
+static int declare(Data_t* data);
+static int params(Data_t* data);
+static int param(Data_t* data);
+static int argvs(Data_t* data);
+static int arg(Data_t* data);
+static int value(Data_t* data);
 
 
 // Frees all the memory
-int parser_error(Token_t* token, struct Data_t* Dataptr){
+int parser_error(Data_t* Data, string_t* string ){
     // frees the memory
-    free_string(token->attr.string);
-    free(token);
-    free(Dataptr);
+    free_string(string);
+    free(Data->token);
 
     return ER_SYN;
 }
 
+
+
 // Kontrola uspesnosti lexikalnej analyzy
-int get_token(struct Data_t* data) {
+int get_token(Data_t* data) {
     if (get_next_token(data->token) == LEXER_OK)
         return(1);
     else
@@ -58,12 +59,11 @@ int get_token(struct Data_t* data) {
 }
 
 
-static int prog(struct Data_t* data){
+static int prog(Data_t* data){
     int result;
 
     // <prog> -> DEF ID_FUNC ( <params> ) EOL <statement> END <prog>
     if(data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_DEF){
-
     } // <prog> -> EOL <prog>
     else if(data->token->token == TYPE_EOL){
         if(get_token)
@@ -83,11 +83,11 @@ static int prog(struct Data_t* data){
             return ER_LEX;
         }
     }
-
+    
     return ER_SYN;
 }
 
-static int statement(struct Data_t* data) {
+static int statement(Data_t* data) {
     // <statement> -> IF <expression> THEN EOL <statements> ELSE EOL <statements> END EOL
     if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_IF) {
         // ... <expression> ...
@@ -176,65 +176,64 @@ static int statement(struct Data_t* data) {
     // <statement> -> ID <declare> EOL
 }
 
-static int declare(struct Data_t* data) {
+static int declare(Data_t* data) {
 
 }
 
-static int params(struct Data_t* data) {
+static int params(Data_t* data) {
 
 }
 
-static int param(struct Data_t* data) {
+static int param(Data_t* data) {
 
 }
 
-static int argvs(struct Data_t* data) {
+static int argvs(Data_t* data) {
 
 }
 
-static int arg(struct Data_t* data) {
+static int arg(Data_t* data) {
 
 }
 
-static int value(struct Data_t* data) {
+static int value(Data_t* data) {
 
 }
 
 
 
-static bool init_struct(struct Data_t* data){
-    
+static bool init_struct(Data_t* data){
+    data->token = malloc(sizeof(Token_t));
     data->in_function = false;
     data->in_while_or_if = false;
-
 
     return true;
 }
 
 int start_parser(){
 
-    struct Data_t* Dataptr = malloc(sizeof(struct Data_t));
+    Data_t our_data;
+    string_t string;
 
-    Token_t* one_token = Dataptr->token;
-    one_token = malloc(sizeof(Token_t));
-    struct string_t content;
-    one_token->attr.string = &content;
-    allocate_string(one_token->attr.string);
+    allocate_string(&string);
+    set_string(&string);
 
-    int lex_result = get_next_token(one_token);
-    if(lex_result == 0){
-        if(init_struct(Dataptr)){
-                prog(Dataptr);
-            }
-        }
-    else{
-        return parser_error(one_token, Dataptr);
-        // parse error
+    if(!init_struct(&our_data)){
+        free_string(&string);
     }
-
-    free_string(one_token->attr.string);
-    free(one_token);
-    free(Dataptr);
+    
+    
+    
+    int lex_result = get_next_token(our_data.token);
+    if(lex_result == 0){
+        prog(&our_data);
+    }
+    else{
+        return parser_error(&our_data, &string);
+    }
+    
+    free_string(&string);
+    free(our_data.token);
     return 0;
 }
 

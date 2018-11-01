@@ -10,11 +10,11 @@ Adrián Tulušák, xtulus00
 
 #define SYN_OK 0
 
-struct Data_t{
+typedef struct {
     Token_t* token;
 
     
     bool in_function;
     bool in_while_or_if;
 
-} *Dataptr;
+} Data_t;

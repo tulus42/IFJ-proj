@@ -11,19 +11,19 @@ Adrián Tulušák, xtulus00
 #define NEW_ALLOCATION 5
 
 // struct for dynamic string
-struct string_t {
+typedef struct {
 	char *s;
 	int current_size;
 	int buffer_size;
-};
+} string_t;
 
 
-bool check_empty_bites(struct string_t *string_ptr);
-bool allocate_string(struct string_t *string_ptr);
-void free_string(struct string_t *string_ptr);
-bool add_char(struct string_t *string_ptr, char to_add);
-bool compare_strings(struct string_t *string_ptr, char word[]);
-bool check_comment_end(int match_count, struct string_t* string_ptr);
-bool check_comment_begin(int match_count, struct string_t* string_ptr);
+//bool check_empty_bites(string_t *string_ptr);
+//bool allocate_string(string_t *string_ptr);
+//void free_string(string_t *string_ptr);
+//bool add_char(string_t *string_ptr, char to_add);
+//bool compare_strings(string_t *string_ptr, char word[]);
+//bool check_comment_end(int match_count, string_t* string_ptr);
+//bool check_comment_begin(int match_count, string_t* string_ptr);
 //void clear_string_content(struct string_t* string_ptr);
-char convert_from_hex(char hex[]);
+//char convert_from_hex(char hex[]);

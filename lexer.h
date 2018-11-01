@@ -7,6 +7,7 @@ Adrián Tulušák, xtulus00
 */
 
 #include <stdio.h>
+#include "dynamic_string.c"
 
 // add keywords
 // TODO - Finish the state list, give it proper numbers
@@ -57,7 +58,7 @@ typedef enum
 
 typedef union
 {
-	struct string_t* string; 
+	string_t* string; 
 	int integer; 
 	Keyword keyword; 
 	double flt; // float

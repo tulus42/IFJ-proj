@@ -14,5 +14,4 @@ Adrián Tulušák, xtulus00
 #define ER_SEM_PARAMETERS 5
 #define ER_SEM_OTHER 6
 #define ER_ZERO_DIV 9
-#define ER_FRAME 55
 #define ER_INTERNAL 99

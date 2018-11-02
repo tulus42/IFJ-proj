@@ -14,6 +14,7 @@ int main(){
     get_source(input_file);
 
     parser_result = start_parser();
+    printf("Main ended with exit code: %d\n", parser_result);
     if(parser_result == ER_SYN){
         return 1;
     }

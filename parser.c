@@ -106,11 +106,11 @@ static int statement(Data_t* data) {
     // <statement> -> IF <expression> THEN EOL <statements> ELSE EOL <statements> END EOL
     // ... IF ...
     if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_IF) {
-        data->in_while_or_if = true;
+        data->in_while_or_if++;
         // ... <expression> ...
         if (get_token(data)) {
             printf("Check expression\n");
-            if (1/*__expression__*/) {      // TODO expression
+            if (1/*__expression__*/) {                                   // TODO expression
                 ;
             } else 
                 return(ER_SYN);
@@ -149,39 +149,36 @@ static int statement(Data_t* data) {
 
         // ... ELSE ... || ... END ... - rozsirenie - volitelna cast ELSE
         
-            // ELSE
-            printf("Check ELSE\nToken: %d\n",data->token->token);
-            if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_ELSE) {
-                // ... EOL ...
-                if (get_token(data)) {
-                    printf("Check EOL\n");
-                    if (data->token->token != TYPE_EOL) {
-                        printf("ERR4\n");
-                        return(ER_SYN);
-                    }
-                } else 
-                    return(ER_LEX);
-                
-                // ... <statements> ...
-                if (get_token(data)) {
-                    printf("Check next statement\n");
-                    if (!statement(data)){
-                        printf("ERR5\n");
-                        return(ER_SYN);
-                    }
-                } else 
-                    return(ER_LEX); 
-            }
+        // ELSE
+        printf("Check ELSE\nToken: %d\n",data->token->token);
+        if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_ELSE) {
+            // ... EOL ...
+            if (get_token(data)) {
+                printf("Check EOL\n");
+                if (data->token->token != TYPE_EOL) {
+                    printf("ERR4\n");
+                    return(ER_SYN);
+                }
+            } else 
+                return(ER_LEX);
             
-            // END
-            printf("Check END\n");
-            if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_END) 
-                // ... EOL ...
-                return(prog(data));
-            
-
+            // ... <statements> ...
+            if (get_token(data)) {
+                printf("Check next statement\n");
+                if (!statement(data)){
+                    printf("ERR5\n");
+                    return(ER_SYN);
+                }
+            } else 
+                return(ER_LEX); 
+        }
         
+        // END
+        printf("Check END\n");
+        if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_END) 
+            return(prog(data));
 
+        // if nothing good after IF, return ERROR  
         printf("ERR7\n");
         return(ER_SYN);
     }
@@ -189,6 +186,7 @@ static int statement(Data_t* data) {
     // <statement> -> WHILE <expression> DO EOL <statement> END EOL
     // ... WHILE ...
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_WHILE) {
+        data->in_while_or_if++;
         // ... <expression> ...
         if (get_token(data)) {
             if (1/*__expression__*/) {      // TODO expression
@@ -222,40 +220,13 @@ static int statement(Data_t* data) {
 
         // ... END ...
         if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_END) {
-            // ... EOL ...
-            if (get_token(data)) {
-                printf("Check EOL\n");
-                if (data->token->token == TYPE_EOL) 
-                    return(prog(data));
-                else{
-                    printf("ERR\n");
-                    return(ER_SYN);
-                }
-            } else 
-                return(ER_LEX);
+            return(prog(data));
         }
 
         return(ER_SYN);
     }
 
-    if (data->token->token == TYPE_EOL)
-        return(prog(data));
-
-    if (data->token->token == TYPE_KEYWORD && (data->token->attr.keyword == KEYWORD_END || data->token->attr.keyword == KEYWORD_ELSE)) {
-        if (data->in_while_or_if == true) {
-            printf("Check in_while_or_if\n");
-            if (data->token->attr.keyword == KEYWORD_END) {
-
-                data->in_while_or_if = false;
-                printf("Return <statement>2\n");
-                return 1;
-            }
-            if (data->token->attr.keyword == KEYWORD_ELSE) {
-                printf("Return <statement>1\n");
-                return 1;
-            }
-        }
-    }
+    
     // <statement> -> PRINT ( <argvs> ) EOL
     // <statement> -> LENGTH ( <argvs> ) EOL
     // <statement> -> SUBSTR ( <argvs> ) EOL
@@ -265,6 +236,30 @@ static int statement(Data_t* data) {
     // <statement> -> INPUTI EOL
     // <statement> -> INPUTF EOL
     // <statement> -> ID <declare> EOL
+
+
+    // <statement> -> EOL <prog>
+    if (data->token->token == TYPE_EOL)
+        return(prog(data));
+
+
+    // make <statement> return when END or ELSE
+    if (data->token->token == TYPE_KEYWORD && (data->token->attr.keyword == KEYWORD_END || data->token->attr.keyword == KEYWORD_ELSE)) {
+        if (data->in_while_or_if != 0) {
+            printf("Check in_while_or_if\n");
+            if (data->token->attr.keyword == KEYWORD_END) {
+
+                data->in_while_or_if--;
+                printf("Return <statement>2\n");
+                return 1;
+            }
+            if (data->token->attr.keyword == KEYWORD_ELSE) {
+                printf("Return <statement>1\n");
+                return 1;
+            }
+        }
+    }
+
 
     printf("End <statemtnt>\n");
 }
@@ -297,8 +292,8 @@ static int value(Data_t* data) {
 
 static bool init_struct(Data_t* data){
     data->token = malloc(sizeof(Token_t));
-    data->in_function = false;
-    data->in_while_or_if = false;
+    data->in_function = 0;
+    data->in_while_or_if = 0;
 
     return true;
 }
@@ -316,22 +311,17 @@ int start_parser(){
     }
     
     
-    
-    //int lex_result = get_next_token(our_data.token);
     int res;
-    //if(lex_result == 0){
-        
-        res = prog(&our_data);
-        //prog(&our_data);
-    //}
-    //else{
-    //    res = ER_LEX;
-        //return parser_error(&our_data, &string);
-    //}
+    res = prog(&our_data);
+
     
     free_string(&string);
     free(our_data.token);
-    return res;
+
+    if (our_data.in_while_or_if != 0)
+        return(ER_SYN);
+    else
+        return res;
     //return 0;
 }
 

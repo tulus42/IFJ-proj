@@ -1,6 +1,15 @@
 if ( then
-print (
+    print (
+        if ( then
+            print(
+            ord(
+        end
 
+    chr (
 else
-print(
+    ord (
+    while ( do
+        length(
+        substr (
+    end
 end

@@ -14,7 +14,7 @@
 13. <statement> -> INPUTI EOL
 14. <statement> -> INPUTF EOL
 15. <statement> -> ID <declare> EOL
-15. <statement> -> EOL <prog>               // TODO skontrolovať s dominikom
+99. <statement> -> EOL <prog>               // TODO skontrolovať s dominikom
 
 16. <declare> -> = ID
 17. <declare> -> = <value>

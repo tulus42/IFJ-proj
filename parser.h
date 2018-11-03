@@ -16,5 +16,6 @@ typedef struct {
     
     bool in_function;
     int in_while_or_if;
+    bool in_definition;
 
 } Data_t;

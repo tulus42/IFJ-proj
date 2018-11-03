@@ -1,3 +1,6 @@
-while ( do
+if ( then
+print (
 
+else
+print(
 end

@@ -3,7 +3,7 @@
 3.  <prog> -> EOF
 4.  <prog> -> <statement> <prog>
 
-5.  <statement> -> IF <expression> THEN EOL <statements> ELSE EOL <statements> END EOL
+5.  <statement> -> IF <expression> THEN EOL <statements> ELSE EOL <statements> END EOL/EOF          // TODO - ... END, EOF
 6.  <statement> -> WHILE <expression> DO EOL <statement> END EOL
 7.  <statement> -> PRINT ( <argvs> ) EOL
 8.  <statement> -> LENGTH ( <argvs> ) EOL

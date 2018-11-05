@@ -175,7 +175,6 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 		return lexer_error(string_ptr, ER_INTERNAL);
 	}
 
-
 	while(true){
 		char c = getc(source); // read characters one by one
 		switch(current_status){
@@ -231,6 +230,9 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				else if(c == '"'){ // "
 					change_state(&current_status, STATE_STRING_LITERAL);
 				}
+				else if(c == '\\'){ // backslash
+					change_state(&current_status, STATE_HEXADECIMAL_SEQUENCE);
+				}
 				else if(c == '\n'){ // end of line token
 					token->token = TYPE_EOL;
 					return lexer_succesful(string_ptr);
@@ -265,6 +267,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					return lexer_succesful(string_ptr);
 				}
 				else{ // non-acceptable char
+					printf("Som tu v chare\n");
 					return lexer_error(string_ptr, ER_LEX);
 				}
 				break;
@@ -292,6 +295,40 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				else{ // >
 					token->token = TYPE_MTN;
 					ungetc(c, source); // puts c back to buffer
+					return lexer_succesful(string_ptr);
+				}
+				break;
+
+			case(STATE_HEXADECIMAL_SEQUENCE):
+				if(c == 'x'){
+					change_state(&current_status, STATE_HEXADECIMAL_NUM);
+				}
+				else{
+					return lexer_error(string_ptr, ER_LEX);
+				}
+				break;
+
+			case(STATE_HEXADECIMAL_NUM):
+				if(isdigit(c)){
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
+				}
+				else if(c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'E' || c == 'F'){
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
+				}
+				else if(c == 'a' || c == 'b' || c == 'c' || c == 'd' || c == 'e' || c == 'f'){
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
+				}
+				else{
+					ungetc(c, source);
+					int hexadecimal_number = (int) strtol(string_ptr->s, NULL, 16);
+					token->token = TYPE_INT;
+					token->attr.integer = hexadecimal_number;
 					return lexer_succesful(string_ptr);
 				}
 				break;
@@ -509,13 +546,49 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					}
 					change_state(&current_status, STATE_DECIMAL);
 				}
+				else if(c == 'b'){
+					change_state(&current_status, STATE_BINARY_NUM);
+					clear_string_content(string_ptr);
+				}
 				else if(isdigit(c)){ // cannot be 0X, X is [1-9]
-					return lexer_error(string_ptr, ER_LEX);
+					ungetc(c, source);
+					change_state(&current_status, STATE_OCTAL_NUM);
+					clear_string_content(string_ptr);
 				}
 				else{ // it is only 0
 					ungetc(c, source);
 					token->token = TYPE_INT;
 					token->attr.integer = 0;
+					return lexer_succesful(string_ptr);
+				}
+				break;
+
+			case(STATE_BINARY_NUM):
+				if(c == '1' || c == '0'){
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
+				}
+				else{
+					ungetc(c, source);
+					int binary = (int) strtol(string_ptr->s, NULL, 2);
+					token->token = TYPE_INT;
+					token->attr.integer = binary;
+					return lexer_succesful(string_ptr);
+				}
+				break;
+
+			case(STATE_OCTAL_NUM):
+				if(c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7'){
+					if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+					}
+				}
+				else{
+					ungetc(c, source);
+					int hex = (int) strtol(string_ptr->s, NULL, 8);
+					token->token = TYPE_INT;
+					token->attr.integer = hex;
 					return lexer_succesful(string_ptr);
 				}
 				break;

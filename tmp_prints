@@ -1,0 +1,25 @@
+while(our_data.token->token != TYPE_EOF){
+        int result = get_next_token(our_data.token);
+        if(result == LEXER_OK){
+            if(our_data.token->token == TYPE_IDENTIFIER)
+                printf("%s : %s\n", tokens[our_data.token->token], our_data.token->attr.string->s);
+            else if(our_data.token->token == TYPE_KEYWORD) {
+                printf("%s : %s\n", tokens[our_data.token->token], keyword[our_data.token->attr.keyword]);
+                
+            }
+            else if(our_data.token->token == TYPE_INT){
+                printf("%s : %d\n", tokens[our_data.token->token], our_data.token->attr.integer);
+            }
+            else if(our_data.token->token == TYPE_FLOAT){
+                printf("%s : %f\n", tokens[our_data.token->token], our_data.token->attr.flt);
+            }
+            else{
+                printf("%s\n", tokens[our_data.token->token]);
+            }
+            clear_string_content(&string);
+        }
+        else{
+            return parser_error(&our_data, &string);
+        }
+        
+    }

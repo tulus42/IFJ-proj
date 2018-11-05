@@ -299,8 +299,9 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				break;
 
+			// it expects x to start the hexadecimal number
 			case(STATE_HEXADECIMAL_SEQUENCE):
-				if(c == 'x'){
+				if(c == 'x'){ // x was entered
 					change_state(&current_status, STATE_HEXADECIMAL_NUM);
 				}
 				else{
@@ -309,11 +310,11 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				break;
 
 			case(STATE_HEXADECIMAL_NUM):
-				if(isdigit(c)){
+				if(isdigit(c)){	// hexadecimal number can contain digit
 					if(!add_char(string_ptr, c)){
 						return lexer_error(string_ptr, ER_INTERNAL);
 					}
-				}
+				} // and these uppercase and lowercase letters
 				else if(c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'E' || c == 'F'){
 					if(!add_char(string_ptr, c)){
 						return lexer_error(string_ptr, ER_INTERNAL);
@@ -563,6 +564,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				break;
 
+			// it is binary number
 			case(STATE_BINARY_NUM):
 				if(c == '1' || c == '0'){
 					if(!add_char(string_ptr, c)){
@@ -578,6 +580,7 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				break;
 
+			// it is octal number
 			case(STATE_OCTAL_NUM):
 				if(c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7'){
 					if(!add_char(string_ptr, c)){

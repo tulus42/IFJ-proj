@@ -70,7 +70,7 @@ static int prog(Data_t* data){
 
     GET_TOKEN();
 
-    printf("In <prog>\nToken: %d\n",data->token->token);
+    printf("In <prog>\nToken: %s\n", tokens[data->token->token]);
 
     // <prog> -> DEF ID_FUNC ( <params> ) EOL <statement> END <prog>
     if(data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_DEF){
@@ -131,7 +131,7 @@ static int prog(Data_t* data){
 
     // <prog> -> <statements> <prog> ???? toto treba ešte domyslieť
     else if(data->token->token == TYPE_KEYWORD || data->token->token == TYPE_IDENTIFIER){
-        printf("INTO <statement> Token: %d\n",data->token->token);
+        printf("INTO <statement> Token: %s\n", tokens[data->token->token]);
         int res=statement(data);
         printf("Return value of <statement> is: %d\n", res);
         return res;
@@ -186,7 +186,7 @@ static int statement(Data_t* data) {
     
         // ... ELSE ... || ... EN rozsirenie - volitelna cast ELSE
         // ELSE
-        printf("Check ELSE\nToken: %d\n",data->token->token);
+        printf("Check ELSE\nToken: %s\n", tokens[data->token->token]);
         if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_ELSE) {
             // ... EOL ...
             GET_TOKEN();

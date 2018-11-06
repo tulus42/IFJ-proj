@@ -6,6 +6,8 @@ Dominik Peza, xpezad00
 Adrián Tulušák, xtulus00
 */
 
+
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <errno.h>

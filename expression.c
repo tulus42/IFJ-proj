@@ -15,11 +15,11 @@
 Symbol_stack_t stack;
 
 int handle_expression(Data_t* data){
-    init_stack(&stack);
+    //init_stack(&stack);
 
-    push_stack(&stack);
+    //push_stack(&stack);
 
-    free_stack(&stack);
+    //free_stack(&stack);
     return EXPRESSION_OK;
 }
 

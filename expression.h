@@ -51,13 +51,19 @@ typedef enum{
     NIL // nil
 } Data_type;
 
-typedef struct{
+typedef struct one_item{
     int symbol;
     Data_type type;
-    struct Symbol_item_t* next;
+    struct one_item* next;
 } Symbol_item_t;
 
 
 typedef struct {
     Symbol_item_t *top;
 } Symbol_stack_t;
+
+void init_stack(Symbol_stack_t* stack);
+bool push_stack(Symbol_stack_t* stack);
+void free_stack(Symbol_stack_t* stack);
+Symbol_item_t* get_stack_top(Symbol_stack_t* stack);
+bool pop_stack(Symbol_item_t* item);

@@ -18,11 +18,11 @@ int handle_expression(Data_t* data){
     init_stack(&stack);
 
     push_stack(&stack);
+    pop_stack(&stack);
 
     free_stack(&stack);
     return EXPRESSION_OK;
 }
-
 
 
 
@@ -64,8 +64,20 @@ bool push_stack(Symbol_stack_t* stack){
     
 }
 
-bool pop_stack(Symbol_item_t* item){
-    ;
+bool pop_stack(Symbol_stack_t* stack){
+    if(stack->top != NULL){
+        if(stack->top->next == NULL){
+            free(stack->top);
+        }
+        else{
+            Symbol_item_t* tmp = stack->top;
+            stack->top = stack->top->next;
+            free(tmp);
+        }
+    }
+    else{
+        return true;
+    }
 }
 
 void free_stack(Symbol_stack_t* stack){

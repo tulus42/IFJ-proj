@@ -1,3 +1,12 @@
+#include <stdbool.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <limits.h>
+#include <stdbool.h>
+
+
 #define table_size 9
 #define EXPRESSION_OK 0
 #define ERR_EXPRESION 1

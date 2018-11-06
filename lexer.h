@@ -86,7 +86,9 @@ typedef enum
 	TYPE_PLUS, // +
 	TYPE_MINUS, //  -
 	TYPE_MUL, // *
-	TYPE_DIV, // / 
+	TYPE_DIV, // /
+	TYPE_QUESTION_MARK, // ?
+	TYPE_COLON, // :
 
 	TYPE_LEFT_BRACKET, // (
 	TYPE_RIGHT_BRACKET, // )

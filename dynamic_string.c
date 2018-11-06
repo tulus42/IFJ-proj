@@ -77,20 +77,6 @@ bool add_char(string_t* string_ptr, char to_add){
 }
 
 /**
- * Clears the string so we can overwrite it with completely new one
- */
-bool add_string(string_t* string_ptr, char to_add[]){
-    clear_string_content(string_ptr);
-    for(int i = 0; i < strlen(to_add); i++){
-        if(add_char(string_ptr, to_add[i]))
-            continue;
-        else
-            return false;
-    }
-    return true;
-}
-
-/**
  * Compares each char one by one and decides, whether it is a keyword or not
  */
 bool compare_strings(string_t* string_ptr, char word[]){
@@ -151,6 +137,20 @@ void clear_string_content(string_t* string_ptr){
         string_ptr->s[i] = '\0';
     }
     string_ptr->current_size = 0;
+}
+
+/**
+ * Clears the string so we can overwrite it with completely new one
+ */
+bool add_string(string_t* string_ptr, char to_add[]){
+    clear_string_content(string_ptr);
+    for(int i = 0; i < strlen(to_add); i++){
+        if(add_char(string_ptr, to_add[i]))
+            continue;
+        else
+            return false;
+    }
+    return true;
 }
 
 /**

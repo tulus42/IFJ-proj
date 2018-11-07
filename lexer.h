@@ -101,6 +101,8 @@ typedef enum
 	TYPE_INT, 
 	TYPE_FLOAT, 
 	TYPE_STRING, /// STRING LITERAL
+
+	TYPE_EOL_OR_EOF // tmp expression helper
 } Token_type;
 
 typedef struct

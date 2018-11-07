@@ -66,8 +66,10 @@ typedef enum{
     LTN,    // >
     MEQ,    // <=
     MTN,    // <
-    DOLLAR  // $
-
+    DOLLAR,  // $
+    NON_TERMINAL,
+    START,
+    END
 } Precedential_table_symbol;
 
 typedef enum{
@@ -77,12 +79,6 @@ typedef enum{
     NIL, // nil
     OTR  // other
 } Data_type;
-
-typedef enum{
-    EOL_OR_EOF,
-    THEN,
-    DO
-} next_expected_token;
 
 typedef struct one_item{
     int symbol;
@@ -95,16 +91,26 @@ typedef struct {
     Symbol_item_t *top;
 } Symbol_stack_t;
 
+
+void print_current_stack(Symbol_stack_t* stack);
+void print_token(Data_t* data);
 void init_stack(Symbol_stack_t* stack);
-bool push_stack(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
 void free_stack(Symbol_stack_t* stack);
-Symbol_item_t* get_stack_top(Symbol_stack_t* stack);
+
+bool push_stack(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
 bool pop_stack(Symbol_stack_t* stack);
 bool check_expected_token(Data_t* data, Token_type next_token);
-Precedential_table_symbol get_symbol_from_token(Data_t* data);
-void print_current_stack(Symbol_stack_t* stack);
+
 int expression_error(Symbol_stack_t* stack);
-void print_token(Data_t* data);
+
+Symbol_item_t* get_stack_top(Symbol_stack_t* stack);
+
+Precedential_table_symbol get_symbol_from_token(Data_t* data);
+
 Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Data_t* data);
+
 Precedential_table_index get_index(Precedential_table_symbol symbol);
+
+Data_type get_data_type(Data_t* data);
+
 Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_table_symbol columns);

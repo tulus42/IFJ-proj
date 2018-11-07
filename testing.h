@@ -66,7 +66,10 @@ const char* symbols[] = {
     "LTN",    // >
     "MEQ",    // <=
     "MTN",    // <
-    "DOLLAR"  // $
+    "DOLLAR",  // $
+	"NON_TERMINAL",
+    "START",
+    "END"
 };
 
 const char* rules[] = {

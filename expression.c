@@ -31,6 +31,7 @@ int handle_expression(Data_t* data, Token_type next_token){
     Data_type to_push_type;
     Precedential_table_symbol to_push_symbol;
     Precedential_table_rule current_rule;
+    Symbol_item_t* tmp;
 
     init_stack(&stack); // initialize stack
 
@@ -43,43 +44,94 @@ int handle_expression(Data_t* data, Token_type next_token){
     
     if(!push_stack(&stack, OTR, DOLLAR)){ // push dollar
         return expression_error(&stack);
-    } 
+    }
+    
     
     while(!check_expected_token(data, next_token)){
         GET_TOKEN();
         print_token(data);
         current_rule = get_indexes_and_rule(&stack, data);
         
+    
         
         switch(current_rule){
             case(S):
                 to_push_type = get_data_type(data);
                 to_push_symbol = get_symbol_from_token(data);
                 
-                if(!push_stack(&stack, OTR, START)){ // push start symbol
+
+                if(!add_after_first_nonterminal(&stack, OTR, START)){ // push start symbol after first nonterminal
                     return expression_error(&stack);
                 }
                 if(!push_stack(&stack, to_push_type, to_push_symbol)){ // push token symbol
                     return expression_error(&stack);
                 }
-                //break;
+                break;
             case(R):
-                //break;
+                break;
             case(E):
-                //break;
+                break;
             case(U):
-                return expression_error(&stack);
-                //break;
+                //return expression_error(&stack);
+                break;
         }
-        //print_current_stack(&stack);
-        
     }
-    
-    
-    
 
+    print_current_stack(&stack);
     free_stack(&stack);
     return EXPRESSION_OK;
+}
+
+/**
+ * 
+ */
+bool add_after_first_nonterminal(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol){
+    bool found = false;
+    Symbol_item_t* tmp = stack->top;
+    Symbol_item_t* add_after;
+    Symbol_item_t* non_terminal;
+    Symbol_item_t* new_item = malloc(sizeof(Symbol_item_t));
+    if(new_item == NULL){
+        return false;
+    }
+
+    new_item->next = NULL;
+    new_item->symbol = symbol;
+    new_item->type = type;
+
+
+    while(!found){
+        if(tmp->next == NULL){
+            new_item->next = tmp;
+            found = true;
+            return true;
+        }
+        else if(is_nonterm(tmp->next->symbol)){
+            add_after = tmp;
+            non_terminal = tmp->next;
+
+            add_after->next = new_item;
+            new_item->next = non_terminal;
+
+            found = true;
+            return true;
+        }
+        tmp = tmp->next;
+    }    
+}
+
+/**
+ * 
+ */
+bool is_nonterm(Precedential_table_symbol symbol){
+    switch(symbol){
+        case NON_TERMINAL:
+        case START:
+        case END:
+            return false;
+        default:
+            return true;
+    }
 }
 
 /**
@@ -215,7 +267,6 @@ Precedential_table_index get_index(Precedential_table_symbol symbol){
             return INDEX_DOLLAR;
     }
 }
-
 
 
 /**

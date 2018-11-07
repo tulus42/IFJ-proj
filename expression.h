@@ -100,6 +100,8 @@ void free_stack(Symbol_stack_t* stack);
 bool push_stack(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
 bool pop_stack(Symbol_stack_t* stack);
 bool check_expected_token(Data_t* data, Token_type next_token);
+bool is_nonterm(Precedential_table_symbol symbol);
+bool add_after_first_nonterminal(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
 
 int expression_error(Symbol_stack_t* stack);
 

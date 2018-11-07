@@ -4,3 +4,7 @@ questions
 .vscode/
 tmp_file_code
 lexer_zaloha/
+
+tmp_main\.o
+
+tmp_main

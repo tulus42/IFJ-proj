@@ -25,9 +25,8 @@ Symbol_stack_t stack;
 /**
  * Handles the epxression, get the first token an token that symbolizes end of expression 
  */
-
 int handle_expression(Data_t* data, Token_type next_token){
-    bool go_back = false;
+    bool error = false;
     Data_type to_push_type;
     Precedential_table_symbol to_push_symbol;
     Precedential_table_rule current_rule;
@@ -41,11 +40,10 @@ int handle_expression(Data_t* data, Token_type next_token){
         print_token(data);
     }
     */
-    
+
     if(!push_stack(&stack, OTR, DOLLAR)){ // push dollar
         return expression_error(&stack);
     }
-    
     
     while(!check_expected_token(data, next_token)){
         GET_TOKEN();
@@ -76,14 +74,18 @@ int handle_expression(Data_t* data, Token_type next_token){
                 break;
         }
     }
-
     print_current_stack(&stack);
+
+    if(error){
+        return expression_error(&stack);
+    }
+
     free_stack(&stack);
     return EXPRESSION_OK;
 }
 
 /**
- * 
+ * Adds symbol after first non-terminal symbol
  */
 bool add_after_first_nonterminal(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol){
     bool found = false;
@@ -95,33 +97,29 @@ bool add_after_first_nonterminal(Symbol_stack_t* stack, Data_type type, Preceden
         return false;
     }
 
-    new_item->next = NULL;
     new_item->symbol = symbol;
-    new_item->type = type;
-
-
-    while(!found){
-        if(tmp->next == NULL){
-            new_item->next = tmp;
-            found = true;
-            return true;
-        }
-        else if(is_nonterm(tmp->next->symbol)){
-            add_after = tmp;
-            non_terminal = tmp->next;
-
-            add_after->next = new_item;
-            new_item->next = non_terminal;
-
-            found = true;
-            return true;
-        }
-        tmp = tmp->next;
-    }    
+    new_item->type = type;    
+    
+    if(is_nonterm(stack->top->symbol)){ // non-terminal is on top
+        push_stack(stack, type, symbol);
+        return true;
+    }
+    else{
+        while(!found){
+            if(is_nonterm(tmp->next->symbol)){
+                add_after = tmp;
+                non_terminal = tmp->next;
+                add_after->next = new_item;
+                new_item->next = non_terminal;
+                return true;
+            }
+            tmp = tmp->next;
+        }    
+    }
 }
 
 /**
- * 
+ * Evaluates, whether symbol is non-terminal or not
  */
 bool is_nonterm(Precedential_table_symbol symbol){
     switch(symbol){
@@ -135,10 +133,25 @@ bool is_nonterm(Precedential_table_symbol symbol){
 }
 
 /**
+ * Gets first nonterminal from the table
+ */
+Precedential_table_symbol get_first_nonterm(Symbol_stack_t* stack){
+    bool found = false;
+    Symbol_item_t* tmp = stack->top;
+
+    while(!found){
+        if(is_nonterm(tmp->symbol)){
+            return tmp->symbol;
+        }
+        tmp = tmp->next;
+    }
+}
+
+/**
  * 
  */
 Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Data_t* data){
-    int rows = get_index(stack->top->symbol);
+    int rows = get_index(get_first_nonterm(stack));
     int columns = get_index(get_symbol_from_token(data));
     return get_rule(rows, columns);
 }
@@ -161,6 +174,7 @@ Data_type get_data_type(Data_t* data){
  * Get rule according to columns and rows
  */
 Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_table_symbol columns){
+    //printf("Rows: %d\tColumns: %d\tRule: %s\n", rows, columns, rules[precedential_table[rows][columns]]);
     return precedential_table[rows][columns];
 }
 
@@ -173,7 +187,7 @@ int expression_error(Symbol_stack_t* stack){
 }
 
 /**
- * 
+ * Debug functions
  */
 void print_token(Data_t* data){
     if(data->token->token)
@@ -181,7 +195,7 @@ void print_token(Data_t* data){
 }
 
 /**
- * 
+ * Debug functions
  */
 void print_current_stack(Symbol_stack_t* stack){ // 
     if(stack->top == NULL)

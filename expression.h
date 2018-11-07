@@ -108,6 +108,7 @@ int expression_error(Symbol_stack_t* stack);
 Symbol_item_t* get_stack_top(Symbol_stack_t* stack);
 
 Precedential_table_symbol get_symbol_from_token(Data_t* data);
+Precedential_table_symbol get_first_nonterm(Symbol_stack_t* stack);
 
 Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Data_t* data);
 

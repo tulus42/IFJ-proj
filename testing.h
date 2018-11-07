@@ -15,7 +15,9 @@ const char* tokens[] = {
 	"TYPE_PLUS", // +
 	"TYPE_MINUS", //  -
 	"TYPE_MUL", // *
-	"TYPE_DIV", // / 
+	"TYPE_DIV", // /
+	"TYPE_QUESTION_MARK", // ?
+	"TYPE_COLON", // :
 
 	"TYPE_LEFT_BRACKET", // (
 	"TYPE_RIGHT_BRACKET", // )
@@ -48,4 +50,28 @@ const char* keyword[] = {
 	"KEYWORD_SUBSTR",
 	"KEYWORD_ORD",
 	"KEYWORD_CHR",
+};
+
+const char* symbols[] = {
+	"PLUS",   // +
+    "MINUS",  // -
+    "MUL",    // *
+    "DIV",    // /
+    "LEFT_B", // (
+    "RIGHT_B", // )
+    "ID",     // i
+    "EQL",    // ==
+    "NEQ",   // !=
+    "LEQ",    // >=
+    "LTN",    // >
+    "MEQ",    // <=
+    "MTN",    // <
+    "DOLLAR"  // $
+};
+
+const char* rules[] = {
+	"S",  // shift <
+    "R",  // reduce >
+    "E",  // equal =
+    "U" 
 };

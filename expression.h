@@ -1,3 +1,11 @@
+/*
+IFJ 2018
+Adam Hostin, xhosti02
+Sabína Gregušová, xgregu02
+Dominik Peza, xpezad00
+Adrián Tulušák, xtulus00
+*/
+
 #include <stdbool.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -33,14 +41,32 @@ int precedential_table[table_size][table_size] = {
 };
 
 typedef enum{
+    INDEX_PLUS,                 // +
+    INDEX_MINUS,                // -
+    INDEX_MUL,                  // *
+    INDEX_DIV,                  // /
+    INDEX_LEFT_BRACKET,         // (
+    INDEX_RIGHT_BRACKET,        // )
+    INDEX_IDENTIFIER,           // ID
+    INDEX_RELATIONAL_OPERATION, // Relational operators
+    INDEX_DOLLAR                // $
+} Precedential_table_index;
+
+typedef enum{
     PLUS,   // +
     MINUS,  // -
     MUL,    // *
     DIV,    // /
-    EQL,    // ==
-    NEQL,   // !=
     LEFT_B, // (
     RIGHT_B, // )
+    ID,     // i
+    EQL,    // ==
+    NEQ,   // !=
+    LEQ,    // >=
+    LTN,    // >
+    MEQ,    // <=
+    MTN,    // <
+    DOLLAR  // $
 
 } Precedential_table_symbol;
 
@@ -48,8 +74,15 @@ typedef enum{
     INT, // integer
     FLT, // float
     STR, // string
-    NIL // nil
+    NIL, // nil
+    OTR  // other
 } Data_type;
+
+typedef enum{
+    EOL_OR_EOF,
+    THEN,
+    DO
+} next_expected_token;
 
 typedef struct one_item{
     int symbol;
@@ -63,7 +96,15 @@ typedef struct {
 } Symbol_stack_t;
 
 void init_stack(Symbol_stack_t* stack);
-bool push_stack(Symbol_stack_t* stack);
+bool push_stack(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
 void free_stack(Symbol_stack_t* stack);
 Symbol_item_t* get_stack_top(Symbol_stack_t* stack);
-bool pop_stack(Symbol_item_t* item);
+bool pop_stack(Symbol_stack_t* stack);
+bool check_expected_token(Data_t* data, Token_type next_token);
+Precedential_table_symbol get_symbol_from_token(Data_t* data);
+void print_current_stack(Symbol_stack_t* stack);
+int expression_error(Symbol_stack_t* stack);
+void print_token(Data_t* data);
+Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Data_t* data);
+Precedential_table_index get_index(Precedential_table_symbol symbol);
+Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_table_symbol columns);

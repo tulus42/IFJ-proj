@@ -28,8 +28,19 @@ Symbol_stack_t stack;
 
 int handle_expression(Data_t* data, Token_type next_token){
     bool go_back = false;
+    Data_type to_push_type;
+    Precedential_table_symbol to_push_symbol;
+    Precedential_table_rule current_rule;
+
     init_stack(&stack); // initialize stack
 
+    /*
+    while(!check_expected_token(data, next_token)){
+        GET_TOKEN();
+        print_token(data);
+    }
+    */
+    
     if(!push_stack(&stack, OTR, DOLLAR)){ // push dollar
         return expression_error(&stack);
     } 
@@ -37,11 +48,35 @@ int handle_expression(Data_t* data, Token_type next_token){
     while(!check_expected_token(data, next_token)){
         GET_TOKEN();
         print_token(data);
-        Precedential_table_rule current_rule = get_indexes_and_rule(&stack, data);
-        printf("My rule is %s\n", rules[current_rule]);
+        current_rule = get_indexes_and_rule(&stack, data);
+        
+        
+        switch(current_rule){
+            case(S):
+                to_push_type = get_data_type(data);
+                to_push_symbol = get_symbol_from_token(data);
+                
+                if(!push_stack(&stack, OTR, START)){ // push start symbol
+                    return expression_error(&stack);
+                }
+                if(!push_stack(&stack, to_push_type, to_push_symbol)){ // push token symbol
+                    return expression_error(&stack);
+                }
+                //break;
+            case(R):
+                //break;
+            case(E):
+                //break;
+            case(U):
+                return expression_error(&stack);
+                //break;
+        }
+        //print_current_stack(&stack);
+        
     }
     
-    print_current_stack(&stack);
+    
+    
 
     free_stack(&stack);
     return EXPRESSION_OK;
@@ -54,6 +89,20 @@ Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Data_t* data
     int rows = get_index(stack->top->symbol);
     int columns = get_index(get_symbol_from_token(data));
     return get_rule(rows, columns);
+}
+
+/**
+ * 
+ */
+Data_type get_data_type(Data_t* data){
+    if(data->token->token == TYPE_INT)
+        return INT;
+    else if(data->token->token == TYPE_FLOAT)
+        return FLT;
+    else if(data->token->token == TYPE_STRING)
+        return STR;
+    else
+        return OTR;
 }
 
 /**
@@ -93,6 +142,7 @@ void print_current_stack(Symbol_stack_t* stack){ //
             i++;
             tmp = tmp->next;
         }
+        printf("\n");
     }
 }
 

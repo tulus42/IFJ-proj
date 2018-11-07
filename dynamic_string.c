@@ -99,6 +99,23 @@ bool compare_strings(string_t* string_ptr, char word[]){
 }
 
 /**
+ * Compares two dynamic string structures
+ */
+bool compare_dynamic_strings(string_t* string_ptr, string_t* another_ptr){
+    if(string_ptr->current_size == another_ptr->current_size){
+        for(int i = 0; i < string_ptr->current_size; i++){
+            if(string_ptr->s[i] != another_ptr->s[i]){
+                return false;
+            }
+        }
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
+/**
  * Compares input with '=begin'
  */
 bool check_comment_begin(int match_count, string_t* string_ptr){

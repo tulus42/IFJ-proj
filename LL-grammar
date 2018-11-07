@@ -3,23 +3,16 @@
 3.  <prog> -> EOF
 4.  <prog> -> <statement> <prog>
 
-5.  <statement> -> IF <expression> THEN EOL <statements> ELSE EOL <statements> END EOL/EOF          // TODO - ... END, EOF
+5.  <statement> -> IF <expression> THEN EOL <statements> ELSE EOL <statements> END <prog>
 6.  <statement> -> WHILE <expression> DO EOL <statement> END EOL
-7.  <statement> -> PRINT ( <argvs> ) EOL
-8.  <statement> -> LENGTH ( <argvs> ) EOL
-9.  <statement> -> SUBSTR ( <argvs> ) EOL
-10. <statement> -> ORD ( <argvs> ) EOL
-11. <statement> -> CHR ( <argvs> ) EOL
-12. <statement> -> INPUTS EOL
-13. <statement> -> INPUTI EOL
-14. <statement> -> INPUTF EOL
+7.  <statement> -> <function> EOL
+00. <statement> -> ID EOL
 15. <statement> -> ID <declare> EOL
-99. <statement> -> EOL <prog>               // TODO skontrolovať s dominikom
+99. <statement> -> EOL <prog>
 
-16. <declare> -> = ID
-17. <declare> -> = <value>
+16. <declare> -> = <value>
 18. <declare> -> = <expression>
-19. <declare> -> = ID_FUNC ( <argvs> )
+19. <declare> -> = <function>
 20. <declare> -> ε
 
 21. <params> -> ID <param>
@@ -37,4 +30,75 @@
 29. <value> -> INT_VALUE
 30. <value> -> FLOAT_VALUE
 31. <value> -> STRING_VALUE
+32. <value> -> ID
 
+    <function> -> PRINT ( <argvs> ) EOL
+8.  <function> -> LENGTH ( <argvs> ) EOL
+9.  <function> -> SUBSTR ( <argvs> ) EOL
+10. <function> -> ORD ( <argvs> ) EOL
+11. <function> -> CHR ( <argvs> ) EOL
+12. <function> -> INPUTS EOL
+13. <function> -> INPUTI EOL
+14. <function> -> INPUTF EOL
+99. <function> -> ID_FUNC ( <argvs> )
+
+
+
+/********************
+ *HARMIM            *
+ ********************/
+1. <prog> -> DECLARE FUNCTION ID ( <params> ) AS <type> <prog>
+2. <prog> -> FUNCTION ID ( <params> ) AS <type> EOL <statement> END
+FUNCTION <prog>
+3. <prog> -> EOL <prog>
+4. <prog> -> <scope>
+
+5. <scope> -> SCOPE EOL <statement> END SCOPE <end>
+
+6. <end> -> EOL <end>
+7. <end> -> EOF
+
+8. <params> -> ID AS <type> <param_n>
+9. <params> -> ε
+
+10. <param_n> -> , ID AS <type> <param_n>
+11. <param_n> -> ε
+
+12. <statement> -> DIM ID AS <data_type> <def_var> EOL <statement>
+13. <statement> -> IF <expression> THEN EOL <statement> ELSE EOL
+<statement> END IF EOL <statement>
+14. <statement> -> DO WHILE <expression> EOL <statement> LOOP EOL
+<statement>
+15. <statement> -> ID = <def_value> EOL <statement>
+16. <statement> -> INPUT ID EOL <statement>
+17. <statement> -> PRINT <expression> ; <print> EOL <statement>
+18. <statement> -> RETURN <expression> EOL <statement>
+19. <statement> -> ε
+
+20. <def_var> -> = <expression>
+21. <def_var> -> ε
+
+22. <def_value> -> ID ( <arg> )
+23. <def_value> -> ASC ( <arg> )
+24. <def_value> -> CHR ( <arg> )
+25. <def_value> -> LENGTH ( <arg> )
+26. <def_value> -> SUBSTR ( <arg> )
+27. <def_value> -> <expression>
+
+28. <arg> -> <value> <arg_n>
+29. <arg> -> ε
+
+30. <arg_n> -> , <value> <arg_n>
+31. <arg_n> -> ε
+
+32. <value> -> INT_VALUE
+33. <value> -> DOUBLE_VALUE
+34. <value> -> STRING_VALUE
+35. <value> -> ID
+
+36. <print> -> <expression> ; <print>
+37. <print> -> ε
+
+38. <type> -> INTEGER
+39. <type> -> DOUBLE
+40. <type> -> STRING

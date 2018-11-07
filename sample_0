@@ -1,15 +1,3 @@
-if ( then
+def volaco (param1, param2)
     print (
-        if ( then
-            print(
-            ord(
-        end
-
-    chr (
-else
-    ord (
-    while ( do
-        length(
-        substr (
-    end
 end

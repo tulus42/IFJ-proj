@@ -8,7 +8,6 @@ Adrián Tulušák, xtulus00
 */
 
 
-#ifndef _HASHTABLE_H_
 #define _HASHTABLE_H_
 
 #include <stdlib.h>
@@ -55,7 +54,7 @@ typedef struct tHfunction{
 /*Datová položka TRP s explicitně řetězenými synonymy*/
  typedef struct tHTItem{
   tKey key[];       /* klíč  */
-  ttype typ;    //najdlhí typ function má 8 znako
+  ttyp typ;    //najdlhí typ function má 8 znako
   tHfunction function;
   tHvar var;
   struct tHTItem* ptrnext;

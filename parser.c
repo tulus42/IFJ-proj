@@ -13,15 +13,17 @@ Adrián Tulušák, xtulus00
 #endif
 
 #include "error.h"
-#include "symtable.h"
-
 #include "lexer.c"
+
+
 #include "parser.h"
 
 
-#define GET_TOKEN()                                     \
-    if (get_next_token(data->token) != LEXER_OK)        \
+#define GET_TOKEN()                                                          \
+    if (get_next_token(data->token) != LEXER_OK)                             \
         return(ER_LEX)
+
+
 
 /**
  * TODO: 
@@ -33,6 +35,9 @@ Adrián Tulušák, xtulus00
  * LL-gramatika
  */
 
+// premenna pre uchovanie ID z tokenu pre neskorsie ulozenie do TS
+string_t identifier;
+
 // forward declarations
 static int statement(Data_t* data);
 static int declare(Data_t* data);
@@ -41,6 +46,7 @@ static int param(Data_t* data);
 static int argvs(Data_t* data);
 static int arg(Data_t* data);
 static int value(Data_t* data);
+static int function(Data_t* data);
 
 
 // Frees all the memory
@@ -52,7 +58,9 @@ int parser_error(Data_t* Data, string_t* string ){
     return ER_SYN;
 }
 
-
+void save_id(string_t* identifier, Data_t* data) {
+    add_string(identifier, data->token->attr.string->s);
+}
 
 // Kontrola uspesnosti lexikalnej analyzy
 int get_token(Data_t* data) {
@@ -70,14 +78,19 @@ static int prog(Data_t* data){
 
     GET_TOKEN();
 
-    printf("In <prog>\nToken: %s\n", tokens[data->token->token]);
+    printf("In <prog>, Token: %s\n", tokens[data->token->token]);
 
     // <prog> -> DEF ID_FUNC ( <params> ) EOL <statement> END <prog>
     if(data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_DEF){
+        data->in_definition = true;
+        
         // ... ID_FUNC ...
         GET_TOKEN();
-        // somehow check ID_FUNC in table
-        
+        save_id(&identifier, data);
+        printf("ID: %s\n", identifier.s);
+        /*
+         * somehow check ID_FUNC in table
+         */
 
         // ... ( ...
         GET_TOKEN();
@@ -98,15 +111,20 @@ static int prog(Data_t* data){
         if (data->token->token != TYPE_EOL) 
             return(ER_SYN);
         
+        printf("Checkpoint 1\n");
+
         // ... <statement> ...
-        data->in_definition = true;
         GET_TOKEN();
         if (statement(data) != SYN_OK) 
             return(ER_SYN);
         
+        printf("Checkpoint 2\n");
+
         // ... END ...  - nevolame GET_TOKEN, pretoze sem sa vrati zo <statement> len ak uz token == END
         if (!(data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_END))
             return(ER_SYN);
+
+        printf("Checkpoint 3\n");
 
         // ... EOL || EOF ... 
         GET_TOKEN();
@@ -129,7 +147,7 @@ static int prog(Data_t* data){
     } 
 
 
-    // <prog> -> <statements> <prog> ???? toto treba ešte domyslieť
+    // <prog> -> <statements> <prog>
     else if(data->token->token == TYPE_KEYWORD || data->token->token == TYPE_IDENTIFIER){
         printf("INTO <statement> Token: %s\n", tokens[data->token->token]);
         int res=statement(data);
@@ -147,7 +165,8 @@ static int prog(Data_t* data){
  * ***************************/
 static int statement(Data_t* data) {
     printf("In <statement>, in_while_of_if: %d\n", data->in_while_or_if);
-
+    printf("Token: %s\n", tokens[data->token->token]);
+    // printf("%s\n", data->token->attr.string->s);
     // <statement> -> IF <expression> THEN EOL <statements> ELSE EOL <statements> END EOL
     // ... IF ...
     if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_IF) {
@@ -262,137 +281,55 @@ static int statement(Data_t* data) {
         return(ER_SYN);
     }
 
-    
-    // <statement> -> PRINT ( <argvs> ) EOL
-    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_PRINT) {
-        printf("in <statement> PRINT\n");
-        GET_TOKEN();
-        if (1/*<argvs>*/) {                    // TODO <argvs>
-            ;
-        } else
-            return(ER_SYN);
-        
-         // ... EOL || EOF ... 
-        GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
-            return(prog(data));
-    }
-
-
-    // <statement> -> LENGTH ( <argvs> ) EOL
-    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_LENGTH) {
-        printf("in <statement> LENGTH\n");
-        GET_TOKEN();
-        if (1/*<argvs>*/) {                    // TODO <argvs>
-            ;
-        } else
-            return(ER_SYN);
-    
-         // ... EOL || EOF ... 
-        GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
-            return(prog(data));
-    }
-
-
-    // <statement> -> SUBSTR ( <argvs> ) EOL
-    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_SUBSTR) {
-        printf("in <statement> SUBSTR\n");
-        GET_TOKEN();
-        if (1/*<argvs>*/) {                    // TODO <argvs>
-            ;
-        } else
-            return(ER_SYN);
-        
-         // ... EOL || EOF ... 
-        GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
-            return(prog(data));
-    }
-
-
-    // <statement> -> ORD ( <argvs> ) EOL
-    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_ORD) {
-        printf("in <statement> ORD\n");
-        GET_TOKEN();
-        if (1/*<argvs>*/) {                    // TODO <argvs>
-            ;
-        } else
-            return(ER_SYN);
-        
-         // ... EOL || EOF ... 
-        GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
-            return(prog(data));
-    }
-
-
-    // <statement> -> CHR ( <argvs> ) EOL
-    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_CHR) {
-        printf("in <statement> CHR\n");
-        GET_TOKEN();
-        if (1/*<argvs>*/) {                    // TODO <argvs>
-            ;
-        } else
+    // <statement> -> <function> EOL
+    // pre vstavené funkcie
+    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword > 8 && data->token->attr.keyword < 17) {
+        printf("in <statement> -> <function>\n");
+        // ... <function> ...
+        if (function(data) != SYN_OK)
             return(ER_SYN);
 
-         // ... EOL || EOF ... 
-        GET_TOKEN();
+        // ... EOL || EOF ... - token nepytame, bude vdaka nemu navratena <function>
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
             return(prog(data));
     }
-
-    // <statement> -> INPUTS EOL
-    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_INPUTS) {
-        printf("in <statement> INPUTS\n");
     
-         // ... EOL || EOF ... 
-        GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
-            return(prog(data));
-    }
 
-    
-    // <statement> -> INPUTI EOL
-    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_INPUTI) {
-        printf("in <statement> INPUTI\n");
-    
-         // ... EOL || EOF ... 
-        GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
-            return(prog(data));
-    }
-
-    // <statement> -> INPUTF EOL
-    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_INPUTF) {
-        printf("in <statement> INPUTF\n");
-    
-         // ... EOL || EOF ... 
-        GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
-            return(prog(data));
-    }
-
+    // <statement> -> ID EOL
     // <statement> -> ID <declare> EOL
+    // <statement> -> ID_FUNC ( <argvs> ) EOL
     else if (data->token->token == TYPE_IDENTIFIER) {
-        printf("in <statement> ID <declare>\n");
-        
-        // somehow check ID in table
-        // I have no idea how
 
-        // ... <declare> ...
+        // <statement> -> ID EOL
+        // <statement> -> ID <declare> EOL
+
+
+        // if (ID_var) then:    ************************
+        printf("in <statement> ID <declare>\n");
+        save_id(&identifier, data);
+        //*** somehow check ID in table
+
         GET_TOKEN();
-        if (declare(data) != SYN_OK)
-            return(ER_SYN);
-        
-        //
-        // ... EOL || EOF ... 
-        GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+        // <statement> -> ID <declare> EOL
+        // ... = ...
+        if (data->token->token == TYPE_ASSIGN) {
+            return(declare(data));
+        } else
+
+        // <statement> -> ID EOL || EOF 
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
             return(prog(data));
+        } else
+        
+
+        // else if (ID_func) then :************************
+        // <statement> -> ID_FUNC ( <argvs> )
+        if (data->token->token == TYPE_LEFT_BRACKET) {
+            return(argvs(data));
+        }
     }
 
-
+    
 
     // <statement> -> EOL <prog>
     // povoluje brat prazdne riadky ako statement - napr IF () THEN 2xEOL END
@@ -441,36 +378,78 @@ static int statement(Data_t* data) {
 */
 
 
+/* ****************************
+ * <declare>
+ * ***************************/
 static int declare(Data_t* data) {
-// <declare> -> = ID
-// <declare> -> = <value>
-// <declare> -> = <expression>
-// <declare> -> = ID_FUNC ( <argvs> )
-// <declare> -> ε
-}
 
-static int params(Data_t* data) {
-// <params> -> ID <param>
-
-// somehow check ID in table                             TODO
-if (data->token->token == TYPE_IDENTIFIER) {
     GET_TOKEN();
-    return(param(data));
-} else
-if (data->token->token == TYPE_RIGHT_BRACKET) {
-    return(SYN_OK);
+
+    // <declare> -> = <value>
+    // <declare> -> = <expression>
+    if (data->token->token == TYPE_IDENTIFIER) {
+
+    } else {}
+
+    // <declare> -> = ID_FUNC ( <argvs> )
+    // <declare> -> ε
 }
 
 
-// <params> -> ε
+/* ****************************
+ * <params>
+ * ***************************/
+static int params(Data_t* data) {
+    // <params> -> ID <param>
+    // ... ID ...
+    if (data->token->token == TYPE_IDENTIFIER) {
+        printf("ID: %s\n",data->token->attr.string->s);
+        int res;
+        res = param(data);
+        printf("<params> return: %d\n", res);
+        return(res);
+        //return(param(data));
+    } else
+
+    // <params> -> ε
+    // ... ) ... - nepytame TOKEN - len pripad f()
+    if (data->token->token == TYPE_RIGHT_BRACKET) {
+        return(SYN_OK);
+    }
+
+    return(ER_SYN);
 }
 
 static int param(Data_t* data) {
-// <param> , ID <param>
+    // <param> , ID <param>
+    // ... ID ... - znovu musime kontrolovat ID, kvoli rekurzivnemu volaniu
+    if (data->token->token == TYPE_IDENTIFIER) {
+        printf("<param> ID: %s\n", data->token->attr.string->s);
+    /**
+     * somehow check ID in table
+     **/
+    
+        GET_TOKEN();
+        // ... , ...
+        if (data->token->token == TYPE_COMMA) {
 
-// <param> -> ε
+            GET_TOKEN();
+            return(param(data));
+        
+        } else
+        // ... ) ...
+        if (data->token->token == TYPE_RIGHT_BRACKET) {
+            return(params(data));
+        }
+    }
+
+    // <param> -> ε
 }
 
+
+/* ****************************
+ * <argvs>
+ * ***************************/
 static int argvs(Data_t* data) {
 // <argvs> -> <value> <arg>
 // <argvs> -> ε
@@ -481,6 +460,10 @@ static int arg(Data_t* data) {
 // <arg> -> ε
 }
 
+
+/* ****************************
+ * <value>
+ * ***************************/
 static int value(Data_t* data) {
 // <value> -> INT_VALUE
 // <value> -> FLOAT_VALUE
@@ -488,6 +471,136 @@ static int value(Data_t* data) {
 }
 
 
+static int function(Data_t* data) {
+    printf("in <function>\n");
+    // <function> -> PRINT ( <argvs> ) EOL
+    if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_PRINT) {
+        printf("in <function> PRINT\n");
+        GET_TOKEN();
+        if (1/*<argvs>*/) {                    // TODO <argvs>
+            ;
+        } else
+            return(ER_SYN);
+        
+        // ... EOL || EOF ... 
+        GET_TOKEN();
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {  
+            printf("Checkpoint 4 - successfull PRINT\n");
+            return(SYN_OK);
+        } else {
+            return(ER_SYN);
+        }
+    }
+
+
+    // <function> -> LENGTH ( <argvs> ) EOL
+    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_LENGTH) {
+        printf("in <function> LENGTH\n");
+        GET_TOKEN();
+        if (1/*<argvs>*/) {                    // TODO <argvs>
+            ;
+        } else
+            return(ER_SYN);
+    
+        // ... EOL || EOF ... 
+        GET_TOKEN();
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+            return(SYN_OK);
+        else    
+            return(ER_SYN);
+    }
+
+
+    // <function> -> SUBSTR ( <argvs> ) EOL
+    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_SUBSTR) {
+        printf("in <function> SUBSTR\n");
+        GET_TOKEN();
+        if (1/*<argvs>*/) {                    // TODO <argvs>
+            ;
+        } else
+            return(ER_SYN);
+        
+        // ... EOL || EOF ... 
+        GET_TOKEN();
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+            return(SYN_OK);
+        else    
+            return(ER_SYN);
+    }
+
+
+    // <function> -> ORD ( <argvs> ) EOL
+    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_ORD) {
+        printf("in <function> ORD\n");
+        GET_TOKEN();
+        if (1/*<argvs>*/) {                    // TODO <argvs>
+            ;
+        } else
+            return(ER_SYN);
+        
+        // ... EOL || EOF ... 
+        GET_TOKEN();
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+            return(SYN_OK);
+        else    
+            return(ER_SYN);
+    }
+
+
+    // <function> -> CHR ( <argvs> ) EOL
+    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_CHR) {
+        printf("in <function> CHR\n");
+        GET_TOKEN();
+        if (1/*<argvs>*/) {                    // TODO <argvs>
+            ;
+        } else
+            return(ER_SYN);
+
+        // ... EOL || EOF ... 
+        GET_TOKEN();
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+            return(SYN_OK);
+        else    
+            return(ER_SYN);
+    }
+
+    // <function> -> INPUTS EOL
+    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_INPUTS) {
+        printf("in <function> INPUTS\n");
+    
+         // ... EOL || EOF ... 
+        GET_TOKEN();
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+            return(SYN_OK);
+        else    
+            return(ER_SYN);
+    }
+
+    
+    // <function> -> INPUTI EOL
+    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_INPUTI) {
+        printf("in <function> INPUTI\n");
+    
+         // ... EOL || EOF ... 
+        GET_TOKEN();
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+            return(SYN_OK);
+        else    
+            return(ER_SYN);
+    }
+
+    // <function> -> INPUTF EOL
+    else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_INPUTF) {
+        printf("in <function> INPUTF\n");
+    
+         // ... EOL || EOF ... 
+        GET_TOKEN();
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+            return(SYN_OK);
+        else    
+            return(ER_SYN);
+    }
+}
 
 static bool init_struct(Data_t* data){
     data->token = malloc(sizeof(Token_t));
@@ -499,6 +612,10 @@ static bool init_struct(Data_t* data){
     return true;
 }
 
+
+/**
+ * PARSER
+ **/
 int start_parser(){
 
     Data_t our_data;
@@ -510,14 +627,28 @@ int start_parser(){
     if(!init_struct(&our_data)){
         free_string(&string);
     }
-    
-    
+
+    //identifier = (char *)malloc(sizeof(char));
+    allocate_string(&identifier);
+
+    /*
+    tstackP *s;
+    FrameStackInit(s);
+    */
+
     int res;
     res = prog(&our_data);
 
     
     free_string(&string);
     free(our_data.token);
+
+    //free(identifier);
+    free_string(&identifier);
+
+    /*
+    DeleteStack(s);
+    */
 
     if (our_data.in_while_or_if != 0)
         return(ER_SYN);

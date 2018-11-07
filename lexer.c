@@ -177,6 +177,8 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 		return lexer_error(string_ptr, ER_INTERNAL);
 	}
 
+	clear_string_content(token->attr.string);
+
 	while(true){
 		char c = getc(source); // read characters one by one
 		switch(current_status){

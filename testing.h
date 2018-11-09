@@ -67,7 +67,7 @@ const char* symbols[] = {
     "MEQ",    // <=
     "MTN",    // <
     "DOLLAR",  // $
-	"NON_TERMINAL",
+	"E",
     "START",
     "END"
 };

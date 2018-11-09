@@ -18,63 +18,76 @@ Adrián Tulušák, xtulus00
  * ako prideme na to, že čo vracia func?
  * Jedna sa o rozšírenie FUNEXP
  * 
+ * Konverzia int -> float
+ * Kontrola typov
+ * 
 */
 
 Symbol_stack_t stack;
+bool finished = false;
 
 /**
  * Handles the epxression, get the first token an token that symbolizes end of expression 
  */
 int handle_expression(Data_t* data, Token_type next_token){
     bool error = false;
+    bool can_get_token = true;
+    bool is_reduced = false;
     Data_type to_push_type;
     Precedential_table_symbol to_push_symbol;
     Precedential_table_rule current_rule;
     Symbol_item_t* tmp;
 
+    printf("\n\n");
     init_stack(&stack); // initialize stack
-
-    /*
-    while(!check_expected_token(data, next_token)){
-        GET_TOKEN();
-        print_token(data);
-    }
-    */
 
     if(!push_stack(&stack, OTR, DOLLAR)){ // push dollar
         return expression_error(&stack);
     }
+    printf("Som zásobník a obsahujem zatial snad iba dolár\n");
+    print_current_stack(&stack);
     
-    while(!check_expected_token(data, next_token)){
-        GET_TOKEN();
-        print_token(data);
+
+    GET_TOKEN(); // get first token
+    while(!is_reduced){ // iterate until the expression is reduced
         current_rule = get_indexes_and_rule(&stack, data);
-        
-    
+        if(finished) // if it is already finished, break;
+            break;
         
         switch(current_rule){
             case(S):
+                can_get_token = true;
                 to_push_type = get_data_type(data);
                 to_push_symbol = get_symbol_from_token(data);
-                
+               
 
-                if(!add_after_first_nonterminal(&stack, OTR, START)){ // push start symbol after first nonterminal
+                if(!add_after_first_terminal(&stack, OTR, START)){ // push start symbol after first nonterminal
                     return expression_error(&stack);
                 }
+
                 if(!push_stack(&stack, to_push_type, to_push_symbol)){ // push token symbol
                     return expression_error(&stack);
                 }
                 break;
             case(R):
+                can_get_token = false;
+                reduce_by_rule(&stack);
                 break;
             case(E):
                 break;
             case(U):
-                //return expression_error(&stack);
+                printf("SOM CHYBA!!!\n");    // rule is undefined
+                return expression_error(&stack);
                 break;
         }
+
+        if(can_get_token)
+            GET_TOKEN();
+
+        print_current_stack(&stack);
     }
-    print_current_stack(&stack);
+
+    printf("While has finished succesfully!\n");
 
     if(error){
         return expression_error(&stack);
@@ -85,9 +98,95 @@ int handle_expression(Data_t* data, Token_type next_token){
 }
 
 /**
+ * 
+ */
+void reduce_by_rule(Symbol_stack_t* stack){
+    int count = count_to_reduce(stack);
+    //printf("I should reduce %d symbols\n", count);
+    Symbol_item_t* tmp_first = stack->top;
+    Symbol_item_t* tmp_second;
+    Symbol_item_t* tmp_third;
+
+    if(count == 1){
+        if(tmp_first->symbol == ID){
+            pop_count(count+1);
+        }
+
+        push_stack(stack, OTR, NON_TERMINAL);
+    }
+    else if(count == 3){
+        tmp_second = stack->top->next;
+        tmp_third = stack->top->next->next;
+
+        if(tmp_first->symbol == NON_TERMINAL && tmp_third->symbol == NON_TERMINAL){
+            if(tmp_second->symbol == PLUS){
+                pop_count(count+1);
+                push_stack(stack, OTR, NON_TERMINAL);
+            }
+            else if(tmp_second->symbol == MINUS){
+                pop_count(count+1);
+                push_stack(stack, OTR, NON_TERMINAL);
+            }
+            else if(tmp_second->symbol == MUL){
+                pop_count(count+1);
+                push_stack(stack, OTR, NON_TERMINAL);
+            }
+            else if(tmp_second->symbol == DIV){
+                pop_count(count+1);
+                push_stack(stack, OTR, NON_TERMINAL);
+            }
+            else if(tmp_second->symbol == EQL){
+                pop_count(count+1);
+                push_stack(stack, OTR, NON_TERMINAL);
+            }
+            else if(tmp_second->symbol == NEQ){
+                pop_count(count+1);
+                push_stack(stack, OTR, NON_TERMINAL);
+            }
+            else if(tmp_second->symbol == LEQ){
+                pop_count(count+1);
+                push_stack(stack, OTR, NON_TERMINAL);
+            }
+            else if(tmp_second->symbol == LTN){
+                pop_count(count+1);
+                push_stack(stack, OTR, NON_TERMINAL);
+            }
+            else if(tmp_second->symbol == MEQ){
+                pop_count(count+1);
+                push_stack(stack, OTR, NON_TERMINAL);
+            }
+            else if(tmp_second->symbol == MTN){
+                pop_count(count+1);
+                push_stack(stack, OTR, NON_TERMINAL);
+            }
+            else{
+                printf("RULE ERROR\n");
+            }
+        }
+    }
+    //printf("Zredukoval som to! Teraz je na stacku toto:\n");
+    //print_current_stack(stack);
+}
+
+/*
+Rule_type get_rule_type(Symbol_stack_t* stack, int count){
+    Symbol_item_t* tmp_first;
+    Symbol_item_t* tmp_second;
+    Symbol_item_t* tmp_third;
+
+    if(count == 1){
+
+    }
+    else if(count == 3){
+        ;
+    }
+}
+*/
+
+/**
  * Adds symbol after first non-terminal symbol
  */
-bool add_after_first_nonterminal(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol){
+bool add_after_first_terminal(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol){
     bool found = false;
     Symbol_item_t* tmp = stack->top;
     Symbol_item_t* add_after;
@@ -100,13 +199,13 @@ bool add_after_first_nonterminal(Symbol_stack_t* stack, Data_type type, Preceden
     new_item->symbol = symbol;
     new_item->type = type;    
     
-    if(is_nonterm(stack->top->symbol)){ // non-terminal is on top
+    if(is_term(stack->top->symbol)){ // non-terminal is on top
         push_stack(stack, type, symbol);
         return true;
     }
     else{
         while(!found){
-            if(is_nonterm(tmp->next->symbol)){
+            if(is_term(tmp->next->symbol)){
                 add_after = tmp;
                 non_terminal = tmp->next;
                 add_after->next = new_item;
@@ -121,7 +220,7 @@ bool add_after_first_nonterminal(Symbol_stack_t* stack, Data_type type, Preceden
 /**
  * Evaluates, whether symbol is non-terminal or not
  */
-bool is_nonterm(Precedential_table_symbol symbol){
+bool is_term(Precedential_table_symbol symbol){
     switch(symbol){
         case NON_TERMINAL:
         case START:
@@ -135,12 +234,12 @@ bool is_nonterm(Precedential_table_symbol symbol){
 /**
  * Gets first nonterminal from the table
  */
-Precedential_table_symbol get_first_nonterm(Symbol_stack_t* stack){
+Precedential_table_symbol get_first_term(Symbol_stack_t* stack){
     bool found = false;
     Symbol_item_t* tmp = stack->top;
 
     while(!found){
-        if(is_nonterm(tmp->symbol)){
+        if(is_term(tmp->symbol)){
             return tmp->symbol;
         }
         tmp = tmp->next;
@@ -151,7 +250,7 @@ Precedential_table_symbol get_first_nonterm(Symbol_stack_t* stack){
  * 
  */
 Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Data_t* data){
-    int rows = get_index(get_first_nonterm(stack));
+    int rows = get_index(get_first_term(stack));
     int columns = get_index(get_symbol_from_token(data));
     return get_rule(rows, columns);
 }
@@ -171,10 +270,35 @@ Data_type get_data_type(Data_t* data){
 }
 
 /**
+ * 
+ */
+int count_to_reduce(Symbol_stack_t* stack){
+    int count = 0;
+    Symbol_item_t* tmp = stack->top;
+
+    while(tmp->symbol != START){
+        count++;
+        tmp = tmp->next;
+    }
+    return count;
+}
+
+/**
+ * 
+ */
+void pop_count(int n){
+    for(int i = 0; i < n; i++){
+        pop_stack(&stack);
+    }
+}
+
+/**
  * Get rule according to columns and rows
  */
 Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_table_symbol columns){
     //printf("Rows: %d\tColumns: %d\tRule: %s\n", rows, columns, rules[precedential_table[rows][columns]]);
+    if(rows == (table_size-1) && columns == (table_size-1))
+        finished = true;
     return precedential_table[rows][columns];
 }
 
@@ -183,6 +307,7 @@ Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_ta
  */
 int expression_error(Symbol_stack_t* stack){
     free_stack(stack);
+    printf("EXPRESSION ERROR!\n");
     return ERR_EXPRESION;
 }
 

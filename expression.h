@@ -73,6 +73,22 @@ typedef enum{
 } Precedential_table_symbol;
 
 typedef enum{
+    ID_TO_E,
+    E_PLUS_E,
+    E_MINUS_E,
+    E_MUL_E,
+    E_DIV_E,
+    E_EQL_E,
+    E_NEQ_E,
+    E_LEQ_E,
+    E_LTN_E,
+    E_MEQ_E,
+    E_MTN_E,
+    LEFTB_E_RIGHTB,
+    NOT_A_RULE
+} Rule_type;
+
+typedef enum{
     INT, // integer
     FLT, // float
     STR, // string
@@ -96,14 +112,18 @@ void print_current_stack(Symbol_stack_t* stack);
 void print_token(Data_t* data);
 void init_stack(Symbol_stack_t* stack);
 void free_stack(Symbol_stack_t* stack);
+void pop_count(int n);
+void reduce_by_rule(Symbol_stack_t* stack);
 
+//bool reduce_by_rule(Symbol_stack_t* stack);
 bool push_stack(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
 bool pop_stack(Symbol_stack_t* stack);
 bool check_expected_token(Data_t* data, Token_type next_token);
-bool is_nonterm(Precedential_table_symbol symbol);
-bool add_after_first_nonterminal(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
+bool is_term(Precedential_table_symbol symbol);
+bool add_after_first_terminal(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
 
 int expression_error(Symbol_stack_t* stack);
+int count_to_reduce(Symbol_stack_t* stack);
 
 Symbol_item_t* get_stack_top(Symbol_stack_t* stack);
 
@@ -117,3 +137,5 @@ Precedential_table_index get_index(Precedential_table_symbol symbol);
 Data_type get_data_type(Data_t* data);
 
 Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_table_symbol columns);
+
+Rule_type get_rule_type(Symbol_stack_t* stack, int count);

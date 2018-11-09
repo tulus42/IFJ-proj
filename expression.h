@@ -73,22 +73,6 @@ typedef enum{
 } Precedential_table_symbol;
 
 typedef enum{
-    ID_TO_E,
-    E_PLUS_E,
-    E_MINUS_E,
-    E_MUL_E,
-    E_DIV_E,
-    E_EQL_E,
-    E_NEQ_E,
-    E_LEQ_E,
-    E_LTN_E,
-    E_MEQ_E,
-    E_MTN_E,
-    LEFTB_E_RIGHTB,
-    NOT_A_RULE
-} Rule_type;
-
-typedef enum{
     INT, // integer
     FLT, // float
     STR, // string
@@ -113,9 +97,9 @@ void print_token(Data_t* data);
 void init_stack(Symbol_stack_t* stack);
 void free_stack(Symbol_stack_t* stack);
 void pop_count(int n);
-void reduce_by_rule(Symbol_stack_t* stack);
+//void reduce_by_rule(Symbol_stack_t* stack);
 
-//bool reduce_by_rule(Symbol_stack_t* stack);
+bool reduce_by_rule(Symbol_stack_t* stack);
 bool push_stack(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
 bool pop_stack(Symbol_stack_t* stack);
 bool check_expected_token(Data_t* data, Token_type next_token);

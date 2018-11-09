@@ -71,7 +71,8 @@ int handle_expression(Data_t* data, Token_type next_token){
                 break;
             case(R):
                 can_get_token = false;
-                reduce_by_rule(&stack);
+                if(!reduce_by_rule(&stack))
+                    return expression_error(&stack);
                 break;
             case(E):
                 break;
@@ -100,88 +101,79 @@ int handle_expression(Data_t* data, Token_type next_token){
 /**
  * 
  */
-void reduce_by_rule(Symbol_stack_t* stack){
+bool reduce_by_rule(Symbol_stack_t* stack){
     int count = count_to_reduce(stack);
     //printf("I should reduce %d symbols\n", count);
     Symbol_item_t* tmp_first = stack->top;
     Symbol_item_t* tmp_second;
     Symbol_item_t* tmp_third;
 
-    if(count == 1){
+    if(count == 1){ // i -> E
         if(tmp_first->symbol == ID){
             pop_count(count+1);
+            push_stack(stack, OTR, NON_TERMINAL);
         }
-
-        push_stack(stack, OTR, NON_TERMINAL);
     }
     else if(count == 3){
         tmp_second = stack->top->next;
         tmp_third = stack->top->next->next;
 
-        if(tmp_first->symbol == NON_TERMINAL && tmp_third->symbol == NON_TERMINAL){
-            if(tmp_second->symbol == PLUS){
+        if(tmp_first->symbol == NON_TERMINAL && tmp_third->symbol == NON_TERMINAL){ // E X E
+            if(tmp_second->symbol == PLUS){ // E + E
                 pop_count(count+1);
                 push_stack(stack, OTR, NON_TERMINAL);
             }
-            else if(tmp_second->symbol == MINUS){
+            else if(tmp_second->symbol == MINUS){ // E - E
                 pop_count(count+1);
                 push_stack(stack, OTR, NON_TERMINAL);
             }
-            else if(tmp_second->symbol == MUL){
+            else if(tmp_second->symbol == MUL){ // E * E
                 pop_count(count+1);
                 push_stack(stack, OTR, NON_TERMINAL);
             }
-            else if(tmp_second->symbol == DIV){
+            else if(tmp_second->symbol == DIV){ // E / E
                 pop_count(count+1);
                 push_stack(stack, OTR, NON_TERMINAL);
             }
-            else if(tmp_second->symbol == EQL){
+            else if(tmp_second->symbol == EQL){ // E == E
                 pop_count(count+1);
                 push_stack(stack, OTR, NON_TERMINAL);
             }
-            else if(tmp_second->symbol == NEQ){
+            else if(tmp_second->symbol == NEQ){ // E != E
                 pop_count(count+1);
                 push_stack(stack, OTR, NON_TERMINAL);
             }
-            else if(tmp_second->symbol == LEQ){
+            else if(tmp_second->symbol == LEQ){ // E <= E
                 pop_count(count+1);
                 push_stack(stack, OTR, NON_TERMINAL);
             }
-            else if(tmp_second->symbol == LTN){
+            else if(tmp_second->symbol == LTN){ // E < E
                 pop_count(count+1);
                 push_stack(stack, OTR, NON_TERMINAL);
             }
-            else if(tmp_second->symbol == MEQ){
+            else if(tmp_second->symbol == MEQ){ // E >= E
                 pop_count(count+1);
                 push_stack(stack, OTR, NON_TERMINAL);
             }
-            else if(tmp_second->symbol == MTN){
+            else if(tmp_second->symbol == MTN){ // E > E
                 pop_count(count+1);
                 push_stack(stack, OTR, NON_TERMINAL);
             }
             else{
-                printf("RULE ERROR\n");
+                return false;
             }
+        } // TODO - has to add brackets
+        else{
+            return false;
         }
     }
+    else{
+        return false;
+    }
+    return true;
     //printf("Zredukoval som to! Teraz je na stacku toto:\n");
     //print_current_stack(stack);
 }
-
-/*
-Rule_type get_rule_type(Symbol_stack_t* stack, int count){
-    Symbol_item_t* tmp_first;
-    Symbol_item_t* tmp_second;
-    Symbol_item_t* tmp_third;
-
-    if(count == 1){
-
-    }
-    else if(count == 3){
-        ;
-    }
-}
-*/
 
 /**
  * Adds symbol after first non-terminal symbol

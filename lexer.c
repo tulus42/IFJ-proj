@@ -242,9 +242,6 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				else if(c == '"'){ // "
 					change_state(&current_status, STATE_STRING_LITERAL);
 				}
-				else if(c == '\\'){ // backslash
-					change_state(&current_status, STATE_HEXADECIMAL_SEQUENCE);
-				}
 				else if(c == '\n'){ // end of line token
 					token->token = TYPE_EOL;
 					return lexer_succesful(string_ptr);
@@ -311,15 +308,6 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 				}
 				break;
 
-			// it expects x to start the hexadecimal number
-			case(STATE_HEXADECIMAL_SEQUENCE):
-				if(c == 'x'){ // x was entered
-					change_state(&current_status, STATE_HEXADECIMAL_NUM);
-				}
-				else{
-					return lexer_error(string_ptr, ER_LEX);
-				}
-				break;
 
 			case(STATE_HEXADECIMAL_NUM):
 				if(isdigit(c)){	// hexadecimal number can contain digit
@@ -563,10 +551,12 @@ int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, 
 					change_state(&current_status, STATE_BINARY_NUM);
 					clear_string_content(string_ptr);
 				}
-				else if(isdigit(c)){ // cannot be 0X, X is [1-9]
+				else if(c == 'x'){
+					change_state(&current_status, STATE_HEXADECIMAL_NUM);
+				}
+				else if(isdigit(c)){ // 0X, octal number, X is [1-9]
 					ungetc(c, source);
 					change_state(&current_status, STATE_OCTAL_NUM);
-					clear_string_content(string_ptr);
 				}
 				else{ // it is only 0
 					ungetc(c, source);

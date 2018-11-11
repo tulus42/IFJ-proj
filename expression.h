@@ -97,7 +97,6 @@ void print_token(Data_t* data);
 void init_stack(Symbol_stack_t* stack);
 void free_stack(Symbol_stack_t* stack);
 void pop_count(int n);
-//void reduce_by_rule(Symbol_stack_t* stack);
 
 bool reduce_by_rule(Symbol_stack_t* stack);
 bool push_stack(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
@@ -121,5 +120,3 @@ Precedential_table_index get_index(Precedential_table_symbol symbol);
 Data_type get_data_type(Data_t* data);
 
 Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_table_symbol columns);
-
-Rule_type get_rule_type(Symbol_stack_t* stack, int count);

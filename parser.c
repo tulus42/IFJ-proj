@@ -52,6 +52,7 @@ static int argvs(Data_t* data);
 static int arg(Data_t* data);
 static int value(Data_t* data);
 static int function(Data_t* data);
+static int print(Data_t* data); 
 
 
 // Frees all the memory
@@ -350,7 +351,12 @@ static int statement(Data_t* data) {
              */
            
             GET_TOKEN();
-            return(argvs(data));
+            //return(argvs(data));
+            if (argvs(data) != SYN_OK) {
+                return(ER_SYN);
+            }
+            return(prog(data));
+
         } else {
 
             return(ER_SYN);
@@ -491,11 +497,11 @@ static int argvs(Data_t* data) {
         if (arg(data) != SYN_OK) {
             return(ER_SYN);
         }
-        return(prog(data));
+        return(SYN_OK);
 
     // ... ) ...
     } else {
-        return(prog(data));
+        return(SYN_OK);
     }
     // <argvs> -> ε
 }
@@ -552,11 +558,13 @@ static int value(Data_t* data) {
  * ***************************/
 static int function(Data_t* data) {
     printf("in <function>\n");
+
     // <function> -> PRINT ( <argvs> ) EOL
     if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_PRINT) {
         printf("in <function> PRINT\n");
+        /*
         GET_TOKEN();
-        if (1/*<argvs>*/) {                    // TODO <argvs>
+        if (1//<argvs>/) {                    // TODO <argvs>
             ;
         } else
             return(ER_SYN);
@@ -569,6 +577,27 @@ static int function(Data_t* data) {
         } else {
             return(ER_SYN);
         }
+        */
+
+        GET_TOKEN();
+
+        // ... ( ... - volitelna
+        if (data->token->token == TYPE_LEFT_BRACKET) {
+            data->in_bracket = true;
+            GET_TOKEN();
+        }
+
+        // nenulovy pocet argumentov - ak by nasledovala ")" alebo EOL/EOF -> ER_SYN
+        if (IS_VALUE()) {
+            if (print(data) != SYN_OK) {
+                return(ER_SYN);
+            }
+
+
+            // ... EOL || EOF ...
+            return(SYN_OK);
+        } else
+        return(ER_SYN);
     }
 
 
@@ -681,10 +710,61 @@ static int function(Data_t* data) {
     }
 }
 
+/* ****************************
+ * PRINT 
+ * je rozpisany ako samostatna funkcia kvoli lubovolnemu poctu parametrov
+ * pri kazdom dalsom parametri je rekurzivne volana znovu
+ * ***************************/
+static int print(Data_t* data) {
+    printf("in PRINT\n");
+
+    // ... ID ...
+    if (data->token->token == TYPE_IDENTIFIER) {
+        /* chech in table */
+    } else
+
+    // ... INT/FLT/STR ...
+    if (IS_VALUE()) {
+
+    }
+
+    GET_TOKEN();
+    // ... , ...
+    if (data->token->token == TYPE_COMMA) {
+        // ... ID ...
+        GET_TOKEN();
+        int res;
+        res = print(data);
+        printf("end PRINT: %d\n", res);
+        return(res);
+        //return(print(data));
+    }
+
+    // ... ) ... - volitelna
+    if (data->in_bracket == true) {
+        if (data->token->token != TYPE_RIGHT_BRACKET) {
+            return(ER_SYN);
+            
+        }
+        data->in_bracket = false;
+        GET_TOKEN();
+    }
+
+    // ... EOL || EOF
+    if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+        printf("end PRINT success\n");
+        return(SYN_OK);
+    }
+
+    return(ER_SYN);
+}
+
+
+
 static bool init_struct(Data_t* data){
     data->token = malloc(sizeof(Token_t));
     data->token->token = 100;
-    data->in_function = false;
+    data->in_bracket = false;
     data->in_while_or_if = 0;
     data->in_definition = false;
 

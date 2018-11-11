@@ -14,7 +14,7 @@ typedef struct {
     Token_t* token;
 
     
-    bool in_function;
+    bool in_bracket;
     int in_while_or_if;
     bool in_definition;
 

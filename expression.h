@@ -17,7 +17,9 @@ Adrián Tulušák, xtulus00
 
 #define table_size 9
 #define EXPRESSION_OK 0
-#define ERR_EXPRESION 1
+#define OTHER_SYNTACTICAL_ERRORS 2
+#define OPERATION_TYPE_MISMATCH 4
+
 
 typedef enum{
     S,  // shift <
@@ -69,7 +71,7 @@ typedef enum{
     DOLLAR,  // $
     NON_TERMINAL,
     START,
-    END
+    IDIV
 } Precedential_table_symbol;
 
 typedef enum{
@@ -77,7 +79,6 @@ typedef enum{
     FLT, // float
     STR, // string
     NIL, // nil
-    OTR  // other
 } Data_type;
 
 typedef struct one_item{
@@ -104,14 +105,17 @@ bool pop_stack(Symbol_stack_t* stack);
 bool check_expected_token(Data_t* data, Token_type next_token);
 bool is_term(Precedential_table_symbol symbol);
 bool add_after_first_terminal(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
+bool check_plus(Symbol_stack_t* stack, int to_pop);
+bool check_other_numerical_operations(Symbol_stack_t* stack, int to_pop, Precedential_table_symbol operand);
 
-int expression_error(Symbol_stack_t* stack);
+
+int expression_error(Symbol_stack_t* stack, int error_type);
 int count_to_reduce(Symbol_stack_t* stack);
 
 Symbol_item_t* get_stack_top(Symbol_stack_t* stack);
 
 Precedential_table_symbol get_symbol_from_token(Data_t* data);
-Precedential_table_symbol get_first_nonterm(Symbol_stack_t* stack);
+Precedential_table_symbol get_first_term(Symbol_stack_t* stack);
 
 Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Data_t* data);
 
@@ -120,3 +124,4 @@ Precedential_table_index get_index(Precedential_table_symbol symbol);
 Data_type get_data_type(Data_t* data);
 
 Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_table_symbol columns);
+

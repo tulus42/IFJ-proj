@@ -12,6 +12,20 @@ Adrián Tulušák, xtulus00
     if (get_next_token(data->token) != LEXER_OK)        \
         return(ER_LEX)
 
+
+#define CHECK_PLUS()                                    \
+    if(!check_plus(stack, to_pop)){                     \
+        return_code = OPERATION_TYPE_MISMATCH;          \
+        return(false);                                  \
+    }                                                   \
+
+#define CHECK_NUMERICAL_OPERATIONS()              \
+    if(!check_numerical_operations(stack, to_pop, operand)){             \
+        return_code = OPERATION_TYPE_MISMATCH;                                 \
+        return(false);                                                         \
+    }                                                                          \
+
+
 /**
  * 
  * Keď by bolo že a + 3 - func(argvs), 
@@ -20,17 +34,20 @@ Adrián Tulušák, xtulus00
  * 
  * Konverzia int -> float
  * Kontrola typov
+ * IDIV
+ * Token buffer
  * 
 */
 
+
 Symbol_stack_t stack;
 bool finished = false;
+int return_code = EXPRESSION_OK;
 
 /**
  * Handles the epxression, get the first token an token that symbolizes end of expression 
  */
 int handle_expression(Data_t* data, Token_type next_token){
-    bool error = false;
     bool can_get_token = true;
     bool is_reduced = false;
     Data_type to_push_type;
@@ -41,47 +58,53 @@ int handle_expression(Data_t* data, Token_type next_token){
     printf("\n\n");
     init_stack(&stack); // initialize stack
 
-    if(!push_stack(&stack, OTR, DOLLAR)){ // push dollar
-        return expression_error(&stack);
+    if(!push_stack(&stack, NIL, DOLLAR)){ // push dollar
+        return expression_error(&stack, ER_INTERNAL);
     }
     printf("Som zásobník a obsahujem zatial snad iba dolár\n");
     print_current_stack(&stack);
     
 
     GET_TOKEN(); // get first token
-    while(!is_reduced){ // iterate until the expression is reduced
-        current_rule = get_indexes_and_rule(&stack, data);
-        if(finished) // if it is already finished, break;
-            break;
+
+    while(!is_reduced){ // iterate until the expression is reduced succesfully
+        current_rule = get_indexes_and_rule(&stack, data);  // get current rule
+        to_push_type = get_data_type(data);                 // get type of token
+        to_push_symbol = get_symbol_from_token(data);       // get
         
-        switch(current_rule){
-            case(S):
-                can_get_token = true;
-                to_push_type = get_data_type(data);
-                to_push_symbol = get_symbol_from_token(data);
-               
+        if(current_rule == S){  // SHIFT rule
+            can_get_token = true;
+            
+            if(!add_after_first_terminal(&stack, NIL, START)){      // push start symbol after first terminal
+                return expression_error(&stack, ER_INTERNAL);
+            }
 
-                if(!add_after_first_terminal(&stack, OTR, START)){ // push start symbol after first nonterminal
-                    return expression_error(&stack);
-                }
-
-                if(!push_stack(&stack, to_push_type, to_push_symbol)){ // push token symbol
-                    return expression_error(&stack);
-                }
-                break;
-            case(R):
-                can_get_token = false;
-                if(!reduce_by_rule(&stack))
-                    return expression_error(&stack);
-                break;
-            case(E):
-                break;
-            case(U):
-                printf("SOM CHYBA!!!\n");    // rule is undefined
-                return expression_error(&stack);
-                break;
+            if(!push_stack(&stack, to_push_type, to_push_symbol)){ // push token symbol
+                return expression_error(&stack, ER_INTERNAL);
+            }
         }
-
+        if(current_rule == R){  // REDUCE rule
+            can_get_token = false;                                  // don't get any new token
+            if(!reduce_by_rule(&stack))                             // reduce it
+                return expression_error(&stack, return_code); 
+        }
+        if(current_rule == E){  // EQUAL rule
+            can_get_token = true;
+            if(!push_stack(&stack, to_push_type, to_push_symbol)){ // push token symbol
+                return expression_error(&stack, ER_INTERNAL);
+            }
+        }
+        if(current_rule == U){  // UNDEFINED rule
+            Precedential_table_symbol last_symbol = get_first_term(&stack);
+            to_push_symbol = get_symbol_from_token(data);
+            if(finished && last_symbol == DOLLAR && to_push_symbol == DOLLAR){ // we are at the end
+                break;
+            }
+            else{
+                return expression_error(&stack, OTHER_SYNTACTICAL_ERRORS);
+            }
+            
+        }
         if(can_get_token)
             GET_TOKEN();
 
@@ -90,89 +113,176 @@ int handle_expression(Data_t* data, Token_type next_token){
 
     printf("While has finished succesfully!\n");
 
-    if(error){
-        return expression_error(&stack);
-    }
-
     free_stack(&stack);
     return EXPRESSION_OK;
+}
+
+bool check_arithmetical_operations(Symbol_stack_t* stack, int to_pop){
+    ;
 }
 
 /**
  * 
  */
-bool reduce_by_rule(Symbol_stack_t* stack){
-    int count = count_to_reduce(stack);
-    //printf("I should reduce %d symbols\n", count);
-    Symbol_item_t* tmp_first = stack->top;
-    Symbol_item_t* tmp_second;
-    Symbol_item_t* tmp_third;
+bool check_numerical_operations(Symbol_stack_t* stack, int to_pop, Precedential_table_symbol operand){
+    Data_type current_data;
+    Symbol_item_t* first_symbol = stack->top;
+    Symbol_item_t* third_symbol = stack->top->next->next;
 
-    if(count == 1){ // i -> E
-        if(tmp_first->symbol == ID){
-            pop_count(count+1);
-            push_stack(stack, OTR, NON_TERMINAL);
-        }
-    }
-    else if(count == 3){
-        tmp_second = stack->top->next;
-        tmp_third = stack->top->next->next;
-
-        if(tmp_first->symbol == NON_TERMINAL && tmp_third->symbol == NON_TERMINAL){ // E X E
-            if(tmp_second->symbol == PLUS){ // E + E
-                pop_count(count+1);
-                push_stack(stack, OTR, NON_TERMINAL);
+    switch(operand){
+        case(MINUS):
+        case(MUL):
+        case(PLUS):
+            if(first_symbol->type == third_symbol->type){
+                if(first_symbol->type == INT){
+                    current_data = INT;
+                }
+                else if(first_symbol->type == FLT){
+                    current_data = FLT;
+                }
+                else if(first_symbol->type == STR){
+                    if(operand == PLUS){
+                        current_data = STR;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+                else{
+                    return false;
+                }
             }
-            else if(tmp_second->symbol == MINUS){ // E - E
-                pop_count(count+1);
-                push_stack(stack, OTR, NON_TERMINAL);
+            else if(first_symbol->type == INT && first_symbol->type == FLT){
+                current_data = FLT;
             }
-            else if(tmp_second->symbol == MUL){ // E * E
-                pop_count(count+1);
-                push_stack(stack, OTR, NON_TERMINAL);
-            }
-            else if(tmp_second->symbol == DIV){ // E / E
-                pop_count(count+1);
-                push_stack(stack, OTR, NON_TERMINAL);
-            }
-            else if(tmp_second->symbol == EQL){ // E == E
-                pop_count(count+1);
-                push_stack(stack, OTR, NON_TERMINAL);
-            }
-            else if(tmp_second->symbol == NEQ){ // E != E
-                pop_count(count+1);
-                push_stack(stack, OTR, NON_TERMINAL);
-            }
-            else if(tmp_second->symbol == LEQ){ // E <= E
-                pop_count(count+1);
-                push_stack(stack, OTR, NON_TERMINAL);
-            }
-            else if(tmp_second->symbol == LTN){ // E < E
-                pop_count(count+1);
-                push_stack(stack, OTR, NON_TERMINAL);
-            }
-            else if(tmp_second->symbol == MEQ){ // E >= E
-                pop_count(count+1);
-                push_stack(stack, OTR, NON_TERMINAL);
-            }
-            else if(tmp_second->symbol == MTN){ // E > E
-                pop_count(count+1);
-                push_stack(stack, OTR, NON_TERMINAL);
+            else if(first_symbol->type == FLT && first_symbol->type == INT){
+                current_data = FLT;
             }
             else{
                 return false;
             }
-        } // TODO - has to add brackets
-        else{
-            return false;
+            break;
+        case(DIV):
+            if(first_symbol->type == third_symbol->type){
+                if(first_symbol->type == INT){
+                    current_data = INT;
+                }
+                else if(first_symbol->type == FLT){
+                    current_data = FLT;
+                }
+                else if(first_symbol->type == STR){
+                    return false;
+                }
+                else{
+                    return false;
+                }
+            }
+            else if(first_symbol->type == INT && first_symbol->type == FLT){ // conversion !!!
+                current_data = FLT;
+            }
+            else if(first_symbol->type == FLT && first_symbol->type == INT){ // conversion !!!
+                current_data = FLT;
+            }
+            else{
+                return false;
+            }
+            break;
+    }
+    
+    pop_count(to_pop);
+    push_stack(stack, current_data, NON_TERMINAL);
+    return true;
+}
+
+/**
+ * Reduce it by the rule
+ */
+bool reduce_by_rule(Symbol_stack_t* stack){
+    int count = count_to_reduce(stack);     // how many symbols are we reducing
+    int to_pop = count + 1;                 // we have to pop the count + the start symbol
+    Symbol_item_t* tmp_first = stack->top;  // first item from the stack
+    Data_type current_data_type = tmp_first->type;
+    Precedential_table_symbol operand;
+
+    // we are reducing 1 symbol
+    if(count == 1){ // i -> E
+        if(tmp_first->symbol == ID){
+            pop_count(to_pop);
+            push_stack(stack, current_data_type, NON_TERMINAL);
+        }
+    } // we are reducing 3 symbols
+    else if(count == 3){
+        Symbol_item_t* tmp_second = stack->top->next;
+        Symbol_item_t* tmp_third = stack->top->next->next;
+
+        // first and third symbols are nonterminals, so we just check the second operand to make sure the grammar is correct
+        if(tmp_first->symbol == NON_TERMINAL && tmp_third->symbol == NON_TERMINAL){ // E X E
+            operand = tmp_second->symbol;
+            if(operand == PLUS){         // E + E
+                CHECK_NUMERICAL_OPERATIONS(); 
+            }
+            else if(operand == MINUS){   // E - E
+                CHECK_NUMERICAL_OPERATIONS();
+            }
+            else if(operand == MUL){     // E * E
+                CHECK_NUMERICAL_OPERATIONS();
+            }
+            else if(operand == DIV){     // E / E
+                CHECK_NUMERICAL_OPERATIONS();
+            }
+            else if(operand == EQL){     // E == E
+                pop_count(to_pop);
+                push_stack(stack, NIL, NON_TERMINAL);
+            }
+            else if(operand == NEQ){     // E != E
+                pop_count(to_pop);
+                push_stack(stack, NIL, NON_TERMINAL);
+            }
+            else if(operand == LEQ){     // E <= E
+                pop_count(to_pop);
+                push_stack(stack, NIL, NON_TERMINAL);
+            }
+            else if(operand == LTN){     // E < E
+                pop_count(to_pop);
+                push_stack(stack, NIL, NON_TERMINAL);
+            }
+            else if(operand == MEQ){     // E >= E
+                pop_count(to_pop);
+                push_stack(stack, NIL, NON_TERMINAL);
+            }
+            else if(operand == MTN){     // E > E
+                pop_count(to_pop);
+                push_stack(stack, NIL, NON_TERMINAL);
+            }
+            else{
+                return_code = OTHER_SYNTACTICAL_ERRORS;
+                return false;
+            }
+        } 
+        else{ // the non_terminal is in brackets (E) -> E
+            if(tmp_first->symbol == RIGHT_B && tmp_third->symbol == LEFT_B){
+                if(tmp_second->symbol == NON_TERMINAL){
+                    pop_count(to_pop);
+                    push_stack(stack, NIL, NON_TERMINAL);
+                }
+                else{
+                    return_code = OTHER_SYNTACTICAL_ERRORS;
+                    return false;
+                }
+            }
+            else{
+                return_code = OTHER_SYNTACTICAL_ERRORS;
+                return false;
+            }
         }
     }
     else{
+        return_code = OTHER_SYNTACTICAL_ERRORS;
         return false;
     }
+
+    // if it passed all the grammar tests, it was correct
     return true;
-    //printf("Zredukoval som to! Teraz je na stacku toto:\n");
-    //print_current_stack(stack);
 }
 
 /**
@@ -216,7 +326,6 @@ bool is_term(Precedential_table_symbol symbol){
     switch(symbol){
         case NON_TERMINAL:
         case START:
-        case END:
             return false;
         default:
             return true;
@@ -258,7 +367,7 @@ Data_type get_data_type(Data_t* data){
     else if(data->token->token == TYPE_STRING)
         return STR;
     else
-        return OTR;
+        return NIL;
 }
 
 /**
@@ -285,7 +394,7 @@ void pop_count(int n){
 }
 
 /**
- * Get rule according to columns and rows
+ * Gets rule according to columns and rows
  */
 Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_table_symbol columns){
     //printf("Rows: %d\tColumns: %d\tRule: %s\n", rows, columns, rules[precedential_table[rows][columns]]);
@@ -297,10 +406,10 @@ Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_ta
 /**
  * 
  */
-int expression_error(Symbol_stack_t* stack){
+int expression_error(Symbol_stack_t* stack, int error_type){
     free_stack(stack);
     printf("EXPRESSION ERROR!\n");
-    return ERR_EXPRESION;
+    return error_type;
 }
 
 /**
@@ -475,8 +584,4 @@ void free_stack(Symbol_stack_t* stack){
         stack->top = tmp->next;
         free(tmp);
     }
-}
-
-Symbol_item_t* get_stack_top(Symbol_stack_t* stack){
-    return stack->top;
 }

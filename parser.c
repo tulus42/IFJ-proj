@@ -23,16 +23,21 @@ Adrián Tulušák, xtulus00
     if (get_next_token(data->token) != LEXER_OK)                             \
         return(ER_LEX)
 
+#define IS_VALUE()                                                           \
+    data->token->token == TYPE_INT || data->token->token == TYPE_FLOAT      \
+    || data->token->token == TYPE_STRING || data->token->token == TYPE_IDENTIFIER 
+        
+
 
 
 /**
  * TODO: 
- * nový main
- * kontrola 0 alebo 1 LEX. analýzy
- * allocation of tokens
- * structures for parser.h
+ * 
+ * vyriešiť situáciu "func ()/func param" - bez zátvoriek
+ * dorobiť kontrolu premenných a funkcií v tabulke symbolov
+ * urobiť <declare>
  * procedenční tabuľka
- * LL-gramatika
+ * 
  */
 
 // premenna pre uchovanie ID z tokenu pre neskorsie ulozenie do TS
@@ -82,8 +87,12 @@ static int prog(Data_t* data){
 
     // <prog> -> DEF ID_FUNC ( <params> ) EOL <statement> END <prog>
     if(data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_DEF){
-        data->in_definition = true;
-        
+        if (data->in_definition == false) {
+            data->in_definition = true;
+        } else {
+            return(ER_SYN);
+        }
+
         // ... ID_FUNC ...
         GET_TOKEN();
         save_id(&identifier, data);
@@ -305,7 +314,7 @@ static int statement(Data_t* data) {
 
 
         // if (ID_var) then:    ************************
-        printf("in <statement> ID <declare>\n");
+        printf("in <statement> ID EOL/ID <declare>/ID_FUNC...\n");
         save_id(&identifier, data);
         //*** somehow check ID in table
 
@@ -318,6 +327,9 @@ static int statement(Data_t* data) {
 
         // <statement> -> ID EOL || EOF 
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            /**
+             * check if ID in table
+             */
             return(prog(data));
         } else
         
@@ -325,7 +337,23 @@ static int statement(Data_t* data) {
         // else if (ID_func) then :************************
         // <statement> -> ID_FUNC ( <argvs> )
         if (data->token->token == TYPE_LEFT_BRACKET) {
+            /******
+             * check if ID_FUNC in table
+             * if (in table) {
+             *    vsetko ok a pokracuj
+             * } else {
+             *    if (data->in_declaration == true) {
+             *       save ID_FUNC in table, ID_FUNC.declared = false;
+             *    } else
+             *       return(ER_SYN);
+             * }
+             */
+           
+            GET_TOKEN();
             return(argvs(data));
+        } else {
+
+            return(ER_SYN);
         }
     }
 
@@ -382,6 +410,7 @@ static int statement(Data_t* data) {
  * <declare>
  * ***************************/
 static int declare(Data_t* data) {
+    // <declare> =
 
     GET_TOKEN();
 
@@ -427,6 +456,7 @@ static int param(Data_t* data) {
         printf("<param> ID: %s\n", data->token->attr.string->s);
     /**
      * somehow check ID in table
+     * 
      **/
     
         GET_TOKEN();
@@ -451,13 +481,50 @@ static int param(Data_t* data) {
  * <argvs>
  * ***************************/
 static int argvs(Data_t* data) {
-// <argvs> -> <value> <arg>
-// <argvs> -> ε
+    // <argvs> -> <value> <arg>
+    // ... <value> ...
+
+    printf("in <argvs>\n");
+    if (data->token->token != TYPE_RIGHT_BRACKET) {
+    
+
+        if (arg(data) != SYN_OK) {
+            return(ER_SYN);
+        }
+        return(prog(data));
+
+    // ... ) ...
+    } else {
+        return(prog(data));
+    }
+    // <argvs> -> ε
 }
 
 static int arg(Data_t* data) {
-// <arg> -> , <value> <arg>
-// <arg> -> ε
+    // <arg> -> , <value> <arg>
+    // <arg> -> ε
+
+    printf("<arg>\n");
+    if (IS_VALUE()) {
+        printf("in IS_VALUE\n");
+    /**
+     * somehow check ID in table
+     * 
+     **/
+    
+        GET_TOKEN();
+        // ... , ...
+        if (data->token->token == TYPE_COMMA) {
+
+            GET_TOKEN();
+            return(arg(data));
+        
+        } else
+        // ... ) ...
+        if (data->token->token == TYPE_RIGHT_BRACKET) {
+            return(argvs(data));
+        }
+    }
 }
 
 
@@ -465,12 +532,24 @@ static int arg(Data_t* data) {
  * <value>
  * ***************************/
 static int value(Data_t* data) {
-// <value> -> INT_VALUE
-// <value> -> FLOAT_VALUE
-// <value> -> STRING_VALUE
+    // <value> -> INT_VALUE
+    if (data->token->token == TYPE_INT){
+
+    }
+    // <value> -> FLOAT_VALUE
+    if (data->token->token == TYPE_FLOAT){
+
+    }
+    // <value> -> STRING_VALUE
+    if (data->token->token == TYPE_STRING){
+
+    }
 }
 
 
+/* ****************************
+ * <function>
+ * ***************************/
 static int function(Data_t* data) {
     printf("in <function>\n");
     // <function> -> PRINT ( <argvs> ) EOL

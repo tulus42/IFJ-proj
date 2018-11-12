@@ -36,7 +36,10 @@ Adrián Tulušák, xtulus00
  * vyriešiť situáciu "func ()/func param" - bez zátvoriek
  * dorobiť kontrolu premenných a funkcií v tabulke symbolov
  * urobiť <declare>
- * procedenční tabuľka
+ * 
+ * prerobit Errorove vystupy
+ *    - if (something() != SYN_OK)
+ *          return(NAVRATOVA HODNOTA of something());
  * 
  */
 
@@ -562,22 +565,6 @@ static int function(Data_t* data) {
     // <function> -> PRINT ( <argvs> ) EOL
     if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_PRINT) {
         printf("in <function> PRINT\n");
-        /*
-        GET_TOKEN();
-        if (1//<argvs>/) {                    // TODO <argvs>
-            ;
-        } else
-            return(ER_SYN);
-        
-        // ... EOL || EOF ... 
-        GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {  
-            printf("Checkpoint 4 - successfull PRINT\n");
-            return(SYN_OK);
-        } else {
-            return(ER_SYN);
-        }
-        */
 
         GET_TOKEN();
 
@@ -594,7 +581,7 @@ static int function(Data_t* data) {
             }
 
 
-            // ... EOL || EOF ...
+            // ... EOL || EOF ... - uz skontrolovany token v PRINT
             return(SYN_OK);
         } else
         return(ER_SYN);
@@ -604,84 +591,326 @@ static int function(Data_t* data) {
     // <function> -> LENGTH ( <argvs> ) EOL
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_LENGTH) {
         printf("in <function> LENGTH\n");
+        
         GET_TOKEN();
-        if (1/*<argvs>*/) {                    // TODO <argvs>
-            ;
-        } else
-            return(ER_SYN);
-    
-        // ... EOL || EOF ... 
+
+        // ... ( ... - volitelna
+        if (data->token->token == TYPE_LEFT_BRACKET) {
+            data->in_bracket = true;
+            GET_TOKEN();
+        }
+
+        // ... string ...
+        if (data->token->token == TYPE_STRING) {
+            // vygeneruj instrukciu pre dlzku stringu
+
+        } else 
+
+        // ... ID ...
+        if (data->token->token == TYPE_IDENTIFIER) {
+            // check ID in table - musi byt typu string
+        
+        } 
+        
+        // ak cokolvek ine -> nevyhovujuci parameter
+        else {
+            return(ER_SEM_TYPE);
+        }
+
         GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+        
+        // ... ) ... - len ak bola pouzita "("
+        if (data->in_bracket == true) {
+            if (data->token->token == TYPE_RIGHT_BRACKET) {
+                data->in_bracket = false;
+                GET_TOKEN();
+            } else {
+                return(ER_SYN);
+            }
+        }
+
+        // ... EOL || EOF ...
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
             return(SYN_OK);
-        else    
-            return(ER_SYN);
+        }
+
+        return(ER_SYN);
     }
 
 
-    // <function> -> SUBSTR ( <argvs> ) EOL
+    // <function> -> SUBSTR ( s, i, n ) EOL
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_SUBSTR) {
         printf("in <function> SUBSTR\n");
-        GET_TOKEN();
-        if (1/*<argvs>*/) {                    // TODO <argvs>
-            ;
-        } else
-            return(ER_SYN);
         
-        // ... EOL || EOF ... 
         GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
-            return(SYN_OK);
-        else    
+
+        // ... ( ... - volitelna
+        if (data->token->token == TYPE_LEFT_BRACKET) {
+            data->in_bracket = true;
+            GET_TOKEN();
+        }
+
+        /***
+         * PRVY PARAMETER - s
+         ***/
+        // ... string ...
+        if (data->token->token == TYPE_STRING) {
+            // vyhovuje
+
+        } else 
+
+        // ... ID ...
+        if (data->token->token == TYPE_IDENTIFIER) {
+            // check ID in table - musi byt typu string
+        
+        } 
+        
+        // ak cokolvek ine -> nevyhovujuci parameter
+        else {
+            return(ER_SEM_TYPE);
+        }
+
+        GET_TOKEN();
+
+        // ... , ...
+        if (data->token->token == TYPE_COMMA) {
+            GET_TOKEN();
+        } else {
             return(ER_SYN);
+        }
+
+
+        /***
+         * DRUHY PARAMETER - i
+         ***/
+        // ... int ...
+        if (data->token->token == TYPE_INT) {
+            // vyhovuje
+
+        } else 
+
+        // ... ID ...
+        if (data->token->token == TYPE_IDENTIFIER) {
+            // check ID in table - musi byt typu int
+        
+        } 
+        
+        // ak cokolvek ine -> nevyhovujuci parameter
+        else {
+            return(ER_SEM_TYPE);
+        }
+
+        GET_TOKEN();
+
+        // ... , ...
+        if (data->token->token == TYPE_COMMA) {
+            GET_TOKEN();
+        } else {
+            return(ER_SYN);
+        }
+
+
+        /***
+         * TRETI PARAMETER - n
+         ***/
+        // ... int ...
+        if (data->token->token == TYPE_INT) {
+            // vyhovuje
+
+        } else 
+
+        // ... ID ...
+        if (data->token->token == TYPE_IDENTIFIER) {
+            // check ID in table - musi byt typu int
+        
+        } 
+        
+        // ak cokolvek ine -> nevyhovujuci parameter
+        else {
+            return(ER_SEM_TYPE);
+        }
+
+        GET_TOKEN();
+
+
+        // ... ) ... - len ak bola pouzita "("
+        if (data->in_bracket == true) {
+            if (data->token->token == TYPE_RIGHT_BRACKET) {
+                data->in_bracket = false;
+                GET_TOKEN();
+            } else {
+                return(ER_SYN);
+            }
+        }
+
+        // ... EOL || EOF ...
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            return(SYN_OK);
+        }
+
+        return(ER_SYN);
     }
 
 
-    // <function> -> ORD ( <argvs> ) EOL
+    // <function> -> ORD ( s, i ) EOL
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_ORD) {
         printf("in <function> ORD\n");
-        GET_TOKEN();
-        if (1/*<argvs>*/) {                    // TODO <argvs>
-            ;
-        } else
-            return(ER_SYN);
         
-        // ... EOL || EOF ... 
         GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
-            return(SYN_OK);
-        else    
+
+        // ... ( ... - volitelna
+        if (data->token->token == TYPE_LEFT_BRACKET) {
+            data->in_bracket = true;
+            GET_TOKEN();
+        }
+
+        /***
+         * PRVY PARAMETER - s
+         ***/
+        // ... string ...
+        if (data->token->token == TYPE_STRING) {
+            // vyhovuje
+
+        } else 
+
+        // ... ID ...
+        if (data->token->token == TYPE_IDENTIFIER) {
+            // check ID in table - musi byt typu string
+        
+        } 
+        
+        // ak cokolvek ine -> nevyhovujuci parameter
+        else {
+            return(ER_SEM_TYPE);
+        }
+
+        GET_TOKEN();
+
+        // ... , ...
+        if (data->token->token == TYPE_COMMA) {
+            GET_TOKEN();
+        } else {
             return(ER_SYN);
+        }
+
+
+        /***
+         * DRUHY PARAMETER - i
+         ***/
+        // ... int ...
+        if (data->token->token == TYPE_INT) {
+            // vyhovuje
+
+        } else 
+
+        // ... ID ...
+        if (data->token->token == TYPE_IDENTIFIER) {
+            // check ID in table - musi byt typu int
+        
+        } 
+        
+        // ak cokolvek ine -> nevyhovujuci parameter
+        else {
+            return(ER_SEM_TYPE);
+        }
+
+        GET_TOKEN();
+
+
+        // ... ) ... - len ak bola pouzita "("
+        if (data->in_bracket == true) {
+            if (data->token->token == TYPE_RIGHT_BRACKET) {
+                data->in_bracket = false;
+                GET_TOKEN();
+            } else {
+                return(ER_SYN);
+            }
+        }
+
+        // ... EOL || EOF ...
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            return(SYN_OK);
+        }
+
+        return(ER_SYN);
     }
 
 
-    // <function> -> CHR ( <argvs> ) EOL
+    // <function> -> CHR ( i ) EOL
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_CHR) {
         printf("in <function> CHR\n");
+       
         GET_TOKEN();
-        if (1/*<argvs>*/) {                    // TODO <argvs>
-            ;
-        } else
-            return(ER_SYN);
 
-        // ... EOL || EOF ... 
+        // ... ( ... - volitelna
+        if (data->token->token == TYPE_LEFT_BRACKET) {
+            data->in_bracket = true;
+            GET_TOKEN();
+        }
+
+        // ... int ...
+        if (data->token->token == TYPE_INT) {
+            // vyhovuje
+
+        } else 
+
+        // ... ID ...
+        if (data->token->token == TYPE_IDENTIFIER) {
+            // check ID in table - musi byt typu int
+        
+        } 
+        
+        // ak cokolvek ine -> nevyhovujuci parameter
+        else {
+            return(ER_SEM_TYPE);
+        }
+
         GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+
+
+        // ... ) ... - len ak bola pouzita "("
+        if (data->in_bracket == true) {
+            if (data->token->token == TYPE_RIGHT_BRACKET) {
+                data->in_bracket = false;
+                GET_TOKEN();
+            } else {
+                return(ER_SYN);
+            }
+        }
+
+        // ... EOL || EOF ...
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
             return(SYN_OK);
-        else    
-            return(ER_SYN);
+        }
+
+        return(ER_SYN);
+
     }
 
     // <function> -> INPUTS EOL
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_INPUTS) {
         printf("in <function> INPUTS\n");
     
-         // ... EOL || EOF ... 
         GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+
+        // ... ( ... - volitelna
+        if (data->token->token == TYPE_LEFT_BRACKET) {
+            GET_TOKEN();
+
+            // ... ) ...
+            if (data->token->token == TYPE_RIGHT_BRACKET) {
+                GET_TOKEN();
+            } else {
+                return(ER_SYN);
+            }
+        }
+
+        // ... EOL || EOF ...
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
             return(SYN_OK);
-        else    
-            return(ER_SYN);
+        }
+
+        return(ER_SYN);
     }
 
     
@@ -689,24 +918,52 @@ static int function(Data_t* data) {
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_INPUTI) {
         printf("in <function> INPUTI\n");
     
-         // ... EOL || EOF ... 
         GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+
+        // ... ( ... - volitelna
+        if (data->token->token == TYPE_LEFT_BRACKET) {
+            GET_TOKEN();
+
+            // ... ) ...
+            if (data->token->token == TYPE_RIGHT_BRACKET) {
+                GET_TOKEN();
+            } else {
+                return(ER_SYN);
+            }
+        }
+
+        // ... EOL || EOF ...
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
             return(SYN_OK);
-        else    
-            return(ER_SYN);
+        }
+
+        return(ER_SYN);
     }
 
     // <function> -> INPUTF EOL
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_INPUTF) {
         printf("in <function> INPUTF\n");
     
-         // ... EOL || EOF ... 
         GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+
+        // ... ( ... - volitelna
+        if (data->token->token == TYPE_LEFT_BRACKET) {
+            GET_TOKEN();
+
+            // ... ) ...
+            if (data->token->token == TYPE_RIGHT_BRACKET) {
+                GET_TOKEN();
+            } else {
+                return(ER_SYN);
+            }
+        }
+
+        // ... EOL || EOF ...
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
             return(SYN_OK);
-        else    
-            return(ER_SYN);
+        }
+
+        return(ER_SYN);
     }
 }
 

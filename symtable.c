@@ -8,32 +8,55 @@ Adrián Tulušák, xtulus00
 
 // VARIANTA HASH TABLE
 
-/*TODO UPDATE_ITEM()
-  TODO GIVE_TYPE()
-  TODO SEARCHLOCGLOBAL()
+/*na konci vymaz htPrintTable a testing.h
   */
 
 
 #include "sym_table.h"
 
-tStackP* s;
-tHTable* local_frame;
-tHTable* global_frame;
+//tStackP s;
+tHTable local_ST;
+tHTable global_ST;
+
+#include "testing.h"
+
+void htPrintTable( tHTable ptrht ) {
+	//int maxlen = 0;
+	//int sumcnt = 0;
+	
+	printf ("------------HASH TABLE--------------\n");
+	for ( int i=0; i<HTSIZE; i++ ) {
+		if ((ptrht)[i]==NULL)
+		{
+			continue;
+		}
+		printf ("%i:",i);
+		//int cnt = 0;
+		tHTItem* ptr = (ptrht)[i];
+		while ( ptr != NULL ) {
+			printf (" (%s,%s)",ptr->key->s,Types_of_tHTItem[ptr->typ]);
+			//if ( ptr->ptrnext != NULL )
+			//	cnt++;
+			ptr = ptr->ptrnext;
+		}
+		//if (cnt > maxlen)
+		//	maxlen = cnt;
+		//sumcnt+=cnt;
+	}
+	printf ("koniec tabulky\n");
+}
+
 /**
  * Writes error to stderr, returns error type
  */
-int sym_table_error(int error_type){
-	if (s->top!=0){
-		for (int i = 0; i < s->top; i++){
-			htClearAll(s->a[i]);
-		}
-	}
-	free_string(s);
+int sym_table_error(int error_code){
+	htClearAll(local_ST);
+	htClearAll(global_ST);
 	fprintf(stderr, "sym_table ERROR\n");
-return error_type;
+return error_code;
 }
 /*
-int sym_table_error(tHTable* s, int error_type){
+int sym_table_error(tHTable s, int error_type){
 	free_string(s);
 	fprintf(stderr, "sym_table ERROR\n");
 return error_type;*/
@@ -47,11 +70,12 @@ return error_type;*/
 ** volena s ohledem na maximální kvalitu výsledku). }
 */
 
-int hashCode ( tKey key ) {
+int hashCode ( string_t* key ) {
 	int retval = 1;
-	int keylen = strlen(key);
+	int keylen = strlen(key->s);
 	for ( int i=0; i<keylen; i++ )
-		retval += key[i];
+		retval += key->s[i];
+	//printf("%d\n",retval % HTSIZE );
 	return ( retval % HTSIZE );
 }
 
@@ -60,31 +84,52 @@ int hashCode ( tKey key ) {
 ** se volá pouze před prvním použitím tabulky.
 */
 
-void htInit ( tHTable* ptrht ) {
-
+void htInit ( tHTable ptrht ) {
+	printf("som v htInit\n" );
 	for (int i=0;i<HTSIZE;i++){		//cyklus nastavý kazdy prvok tabulky na NULL
-			(*ptrht)[i]=NULL;
-		}
+			(ptrht)[i]=NULL;
+	}
+	printf("tabulka inicializovana\n" );
+	//htPrintTable(ptrht);
 return;
 }
 
 /* TRP s explicitně zřetězenými synonymy.
-** Vyhledání prvku v TRP ptrht podle zadaného klíče key.  Pokud je
+** Vyhledání prvku v TRP ptrht podle zadaného klíče key->  Pokud je
 ** daný prvek nalezen, vrací se ukazatel na daný prvek. Pokud prvek nalezen není, 
 ** vrací se hodnota NULL.
 **
 */
 
-tHTItem* htSearch ( tHTable* ptrht, tKey key ) {
+tHTItem* htSearch ( tHTable ptrht, string_t* key ) {
+	printf("som v HTSearch\n");
+	printf("som hladany kluc: %s\n", key->s );
+	//printf("%d\n", hashCode((key)));
+	tHTItem* tmp=(ptrht)[hashCode(key)]; 	//zahashuje kluc
+	printf("%d\n", hashCode(key));
+	printf("hash ok\n");
+	if(tmp!=NULL){
+		printf("%s\n", (ptrht)[hashCode(key)]->key->s);
 
-	tHTItem *tmp=(*ptrht)[hashCode(key)]; 	//zahashuje kluc
+		printf("%s\n",tmp->key->s );
+		printf("%s\n", Types_of_tHTItem[tmp->typ]);
+	}
 
+	else
+	printf("%d\n", hashCode(key));
+	printf("hash ok\n");
+	//printf("%s\n",tmp->key->s );
 	while (tmp){							//cyklus prehladáva zoznam na danom mieste v tabulke
-	
-		if (strcmp(tmp->key, key)==0){		//ak je item najdeny tak ho funkcia vrati
+		//printf("%s\n",tmp->key->s );
+		if (compare_dynamic_strings((tmp->key), key)){		//ak je item najdeny tak ho funkcia vrati
+			printf("nasiel som zhodu\n");
+			printf("koniec HTSearch\n");
+
 			return tmp;
 		}
 		if (tmp->ptrnext==NULL){			//ak v zozname uz nie je ziadny dalsi item tak funkcia vrati NULL
+			printf("not found\n");
+			printf("koniec HTSearch\n");
 			return NULL;
 		}
 		else{
@@ -97,23 +142,48 @@ return NULL;
 
 
 
-int def_ID( tHTable* ptrht,tKey key ){
+int def_ID( tHTable ptrht,string_t* key ){
 
-	if (htSearch(ptrht,key)){						//ak je item najdeny je to chyba
+	if (htSearch(ptrht,key)!=NULL){						//ak je item najdeny je to chyba
+		printf("key najdeny\n");
 		
-		return sym_table_error(s->a,ER_SEM_VARIABLE);
+		return sym_table_error(ER_SEM_VARIABLE);
  		 
  	}
  	else{
+ 		printf("key nenajdeny\n");
  		tHTItem *Ninsert = malloc(sizeof(tHTItem));	//ak nie je najdeny naalokuje si pamat pre dany item
  		if (Ninsert==NULL){							//ak sa alokacia nepodarila tak funkcia skonci
- 			return;
+ 			return sym_table_error(ER_INTERNAL);
  		}
+ 		printf("Ninsert ok\n");
+ 		/*
+ 		Ninsert->key= malloc(sizeof(string_t));
+ 		if (Ninsert->key==NULL){
+ 			printf("chyba\n");
+ 			return sym_table_error(ER_INTERNAL);
+ 		}*/
+ 		string_t string;
+ 		Ninsert->key=&string;
 
- 		Ninsert->key=key;							//nahra sa kluc
- 		Ninsert->var->typ=NILL;							//TO DO moze sa to takto priradzovat?
- 		Ninsert->ptrnext=(*ptrht)[hashCode(key)];	//prvok zaradime na zaciatok zoznamu
- 		(*ptrht)[hashCode(key)]=Ninsert;
+
+ 		printf("pred alokate string\n");
+ 		if(!allocate_string(Ninsert->key)){
+ 			printf("chyba\n");
+ 			return sym_table_error(ER_INTERNAL);
+ 		}
+ 		printf("alokacie ok\n");
+		/*if(allocate_string(Ninsert->data.string)){
+ 			return sym_table_error(ER_INTERNAL);
+ 		}*/
+ 		copy_string_content((Ninsert->key),key);			//nahra sa kluc
+ 		printf("nahratie kluca ok\n");
+ 		Ninsert->typ=NILL;							
+ 		printf("typ ok\n");
+ 		printf("%d\n", hashCode(key));
+ 		Ninsert->ptrnext=(ptrht)[hashCode(key)];	//prvok zaradime na zaciatok zoznamu
+ 		(ptrht)[hashCode(key)]=Ninsert;
+ 		printf("hash ok\n");
  	}
 	return 0;
 }
@@ -130,70 +200,81 @@ int def_ID( tHTable* ptrht,tKey key ){
 ** tedy proveďte.vložení prvku na začátek seznamu.
 **/
 
-int htInsert ( tHTable* ptrht, tHTItem* item_ptr) {
+int htInsert ( tHTable ptrht, tHTItem* item_ptr) {
 
 	tHTItem *actual_item=htSearch(ptrht,item_ptr->key);
 	if (actual_item==NULL){	//ak je item niejenajdeny
 
 		tHTItem *Ninsert = malloc(sizeof(tHTItem));	//ak nie je najdeny naalokuje si pamat pre dany item
  		if (Ninsert==NULL){							//ak sa alokacia nepodarila tak funkcia skonci
- 			return sym_table_error(s->a,ER_INTERNAL);
+ 			return sym_table_error(ER_INTERNAL);
  		}
- 		Ninsert->key= item_ptr->key;							//nahra sa kluc
+ 		if(allocate_string((Ninsert->key))){
+ 			return sym_table_error(ER_INTERNAL);
+ 		}
+ 		/*if(allocate_string(Ninsert->data.string)){
+ 			return sym_table_error(ER_INTERNAL);
+ 		}*/
+
+ 		copy_string_content((Ninsert->key),(item_ptr->key));			//nahra sa kluc
  		Ninsert->typ= item_ptr->typ;							
- 		swich(item_ptr->typ){
- 			case STRING:					//TO DO moze sa to takto priradzovat?
- 			 	Ninsert->var->data.string=item_ptr->var->data.string;
+ 		switch(item_ptr->typ){
+ 			case STRING:
+ 				//clear_string_content(Ninsert->data.string);
+ 				//copy_string_content((Ninsert->data.string), (item_ptr->data.string));
  			 	break;
  			case INTEGER:
- 				Ninsert->var->data.integer=item_ptr->var->data.integer;
+ 				//Ninsert->data.integer=item_ptr->data.integer;
  				break;
  			case FLT:
- 				Ninsert->var->data.flt=item_ptr->var->data.flt;
+ 				//Ninsert->data.flt=item_ptr->data.flt;
  				break;
  			case FUNCTION:
- 				Ninsert->function.param_count=item_ptr->function.param_count;
- 				Ninsert->function.defined=item_ptr->function.defined;
+ 				Ninsert->param_count=item_ptr->param_count;
+ 				Ninsert->defined=item_ptr->defined;
  				break;		
  			default:
  				return  sym_table_error(ER_SEM_TYPE);
  				break;
  		}
- 		Ninsert->ptrnext=(*ptrht)[hashCode(key)];	//prvok zaradime na zaciatok zoznamu
- 		(*ptrht)[hashCode(key)]=Ninsert;
+ 		Ninsert->ptrnext=(ptrht)[hashCode((item_ptr->key))];	//prvok zaradime na zaciatok zoznamu
+ 		(ptrht)[hashCode((item_ptr->key))]=Ninsert;
  		return 0;
-	}else{
-		if ((actual_item->var.typ==NILL)&&(item_ptr->var.typ!=NILL)){
-			actual_item->typ= item_ptr->typ;
-			actual_item->var->data=item_ptr->var->data;
-			return 0;	
-		}
-		if (actual_item->typ==item_ptr->typ){
-	  		swich(item_ptr->var->typ){					
-	 			case STRING:					
-	 			 	actual_item->var->data.string=item_ptr->var->data.string;
-	 			 	break;
-	 			case INTEGER:
-	 				actual_item->var->data.integer=item_ptr->var->data.integer;
-	 				break;
-	 			case FLT:
-	 				actual_item->var->data.flt=item_ptr->var->data.flt;
-	 				break;
-	 			case FUNCTION:
- 					if ((!actual_item->function.defined)&&(item_ptr->function.defined)&&(Ninsert->function.param_count==item_ptr->function.param_count)){		//ako je to s optional parametrami?
- 						actual_item->function.defined=TRUE;
- 					}else{
- 						return  sym_table_error(ER_SEM_TYPE);
- 					}
- 				break;	
-	 			default:
-	 				return  sym_table_error(ER_SEM_TYPE);
-	 				break;			
- 			}
- 		}else{
- 			return  sym_table_error(ER_SEM_TYPE);
+	}else{	
 
- 		}
+		//ak je len jeden z itemov typu funkcia vracia sa error	
+		if (((actual_item->typ==FUNCTION)&&(item_ptr->typ!=FUNCTION))||((item_ptr->typ==FUNCTION)&&(actual_item->typ!=FUNCTION))){
+			return  sym_table_error(ER_SEM_TYPE);
+		}//Ak su obe funkcie
+		if ((actual_item->typ==FUNCTION)&&(item_ptr->typ==FUNCTION)){
+			if ((!actual_item->defined)&&(item_ptr->defined)&&(actual_item->param_count==item_ptr->param_count)){		//ako je to s optional parametrami?
+ 				actual_item->defined=TRUE;
+ 				return 0;
+ 			}else{
+ 				return  sym_table_error(ER_SEM_TYPE);
+ 			}
+		}else{
+			switch(item_ptr->typ){
+				case STRING:
+					actual_item->typ= item_ptr->typ;
+					//clear_string_content(actual_item->data.string);
+	 				//copy_string_content(actual_item->data.string, item_ptr->data.string);
+				 	break;
+				case INTEGER:
+					actual_item->typ= item_ptr->typ;
+					//actual_item->data.integer=item_ptr->data.integer;
+					break;
+				case FLT:
+					actual_item->typ= item_ptr->typ;
+					//actual_item->data.flt=item_ptr->data.flt;
+					break;
+				default:
+					return  sym_table_error(ER_SEM_TYPE);
+ 					break;
+			}
+ 
+
+		}	
  	}
  return 0;
 }
@@ -206,27 +287,40 @@ int htInsert ( tHTable* ptrht, tHTItem* item_ptr) {
 **
 ** Využijte dříve vytvořenou funkci HTSearch.
 */
+/*
+tHTItem* htRead (string_t key) {
 
-
-tHTItem* htRead (tKey key) {
-
-	if (htSearch(local_frame,key)!=NULL){				//ak je item najdeny
-		return &(htSearch(local_frame,key));	//funkcia vrati data hladaneho itemu
+	if (htSearch(local_ST,key)!=NULL){				//ak je item najdeny
+		return (htSearch(local_ST,key));	//funkcia vrati data hladaneho itemu
 	}
 	else{										//inak vrati NULL
-		return &(htSearch(global_frame,key));
+		return (htSearch(global_ST,key));
 	}
+}
+*/
+
+Type_of_tHTItem get_type (tHTable ptr,string_t* key) {
+
+	printf("som v get_type\n");
+	printf("%s\n",key->s );
+	tHTItem *tmp=(htSearch(ptr,key));
+	printf("%s\n",tmp->key->s);
+									
+	return (tmp->typ);
 }
 
 
-ttyp give_type (tKey key) {
+int check_define (string_t* key) {		//defined==TRUE==1 ; defined==FALSE==0; not_a_function==2
 
-	if (htSearch(local_frame,key)!=NULL){				//ak je item najdeny
-		return (htSearch(local_frame,key)->typ);	//funkcia vrati data hladaneho itemu
-	}
-	else{										//inak vrati NULL
-		return (htSearch(global_frame,key)->typ);
-	}
+	tHTItem *tmp = htSearch(global_ST,key);
+
+	if (tmp->typ!=FUNCTION){
+		return 2;				
+	}else{
+		return (tmp->defined);
+	}								
+	
+	
 }
 
 /* TRP s explicitně zřetězenými synonymy.
@@ -234,103 +328,47 @@ ttyp give_type (tKey key) {
 ** který tyto položky zabíraly, a uvede tabulku do počátečního stavu.
 */
 
-void htClearAll ( tHTable* ptrht ) {
+void htClearAll ( tHTable ptrht ) {
 
 
 
 	tHTItem *tmp; //pomocny pointer
 	for (int i=0;i<HTSIZE;i++){	//cyklus prechadza tabulkov
 		
-		tmp=(*ptrht)[i];
+		tmp=(ptrht)[i];
 
-		while((*ptrht)[i]!=NULL){	//cyklus prechadza zoznamom
-			tmp=(*ptrht)[i];		//postupne uvolni cely zoznam
-			(*ptrht)[i]=(*ptrht)[i]->ptrnext;
+		while((ptrht)[i]!=NULL){	//cyklus prechadza zoznamom
+			//tmp=(*ptrht)[i];		//postupne uvolni cely zoznam
+			//free_string(tmp->data.string);
+			(ptrht)[i]=(ptrht)[i]->ptrnext;
 			free(tmp);
 		}
 	}
 	htInit(ptrht);					//reinicializacia tabulky
 }
 
-//Stack ops
 
-int create_local_frame(){
-	tHTable* tmp;
-	htInit(tmp);
-	return PushFrame(tmp);
-}
+//kontroluje ci su vvsetky funkcie definovane
+int STlast_check(){
 
-int FrameStackInit ()  
-/*   ------
-** Inicializace zásobníku.
-**/
-{
-	S->top = 0;
-	s->count=STACK_SIZE;  
-	s->a = (tHTable*) malloc(s->count*sizeof(tHTable));
-	if (s->a==NULL){
-		return sym_table_error(s->a,ER_INTERNAL);
-	}
-	//Global Frame init
-	htInit(global_frame);
-	PushFrame(global_frame);
-	global_frame=S->a[S->top];
+	tHTItem *tmp; //pomocny pointer
 	
-	return 0;
-}	
+	for (int i=0;i<HTSIZE;i++){	//cyklus prechadza tabulkov
+		
+		tmp=global_ST[i];
 
-int PushFrame (tHTable* ptr)
-/*   ------
-** Vloží hodnotu na vrchol zásobníku.
-**/
-{ 
-	/* Při implementaci v poli může dojít k přetečení zásobníku. */
-  	if (S->top==s->count){
-    	s->count=(s->count)*2 
-      	s->a=realloc(s->a,s->count*sizeof(tHTable))
-      	if (s->a==NULL){
-  			return sym_table_error(s->a,ER_INTERNAL);
-  		}
-  	}
-	S->top++;  
-	S->a[S->top]=ptr;
-	local_frame=S->a[S->top];
-	return 0;
-}	
-
-int PopFrame (tHTable* ptr )
-/*         --------
-** Odstraní prvek z vrcholu zásobníku a současně vrátí jeho hodnotu.
-**/
-{
-  /* Operace nad prázdným zásobníkem způsobí chybu. */
-	if (S->top==0)  {
-		return sym_table_error(s->a,ER_FRAME);	
-	}	
-	else {
-		htClearAll(S->a[S->top])
-		ptr=(S->a[S->top--]);
-		return 0;
-	}	
-}
-
-bool EmptyStack ()
-/*   -------
-** Je-li zásobník prázdný, vrátí hodnotu true.
-**/
-{
-  return(S->top==0);
-}
-
-//dealokuje pole a nastavy vrchol a pocitadlo velkosti na 0
-int DeleteStack(){
-	if (s->top!=0){
-		for (int i = 0; i < s->top; i++){
-			htClearAll(s->a[i]);
+		while(tmp!=NULL){	//cyklus prechadza zoznamom
+			if ((tmp->typ==FUNCTION)&&(tmp->defined==FALSE)){
+				return sym_table_error(ER_SEM_VARIABLE);
+			}
+			tmp=tmp->ptrnext;
 		}
 	}
-	S->top = 0;
-	s->count=0;  
-	free(s->a);
 	return 0;
+}
+
+void STinits(){
+	htInit(local_ST);
+	htInit(global_ST);
+
 }

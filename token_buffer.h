@@ -7,3 +7,13 @@ Adrián Tulušák, xtulus00
 */
 
 
+typedef struct Data_element{
+    Data_t data;
+    struct Data_element* next;
+} DElem;
+
+typedef struct Data_list{
+    DElem* first;
+    DElem* last;
+} DList;
+

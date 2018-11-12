@@ -111,6 +111,7 @@ bool check_other_numerical_operations(Symbol_stack_t* stack, int to_pop, Precede
 
 int expression_error(Symbol_stack_t* stack, int error_type);
 int count_to_reduce(Symbol_stack_t* stack);
+int handle_expression(Data_t* data);
 
 Symbol_item_t* get_stack_top(Symbol_stack_t* stack);
 

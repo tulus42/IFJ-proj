@@ -36,8 +36,7 @@ skontrolovať rozsah int a double?
 /**
  * Sets the source file
  */
-void get_source(FILE *f)
-{
+void get_source(FILE *f){
 	source = f;
 }
 
@@ -144,16 +143,17 @@ int lexer_succesful(string_t* string_ptr){
 	return LEXER_OK;
 }
 
+/**
+ * Sets dynamic string
+ */
 void set_string(string_t* string){
 	dynamic_string = string;
 }
 
 /**
- * 
  * Finite state machine, it either return a correct token or EL_LEX if there is lexical error
- * 
  */
-int get_next_token(Token_t *token) // konecny automat, v podstate while cyklus, ve kterem je switch, nacitame znaky, jakmile urcime token tak ho vratime nebo najdeme blbost a vratime ER_LEX
+int get_next_token(Token_t *token)
 {
 	/* Used variables */
 	int current_status = STATE_START; // current state is start

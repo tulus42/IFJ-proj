@@ -7,9 +7,6 @@ Dominik Peza, xpezad00
 Adrián Tulušák, xtulus00
 */
 
-
-#define _HASHTABLE_H_
-
 #include <stdlib.h>
 #include <string.h>
 #include "lexer.h"
@@ -22,7 +19,8 @@ Adrián Tulušák, xtulus00
 */
 #define HTSIZE 6421
 #define STACK_SIZE 30
-
+#define TRUE 1
+#define FALSE 0
 typedef enum
 {
   NILL,
@@ -33,39 +31,51 @@ typedef enum
 
 } Type_of_tHTItem;
 
-
-/* typ klíče (například identifikace zboží) */
-typedef char tKey;
-
-typedef  Type_of_tHTItem ttyp;
-
-/* typ obsahu (například cena zboží) */
-typedef union tData;
-
-typedef struct tHvar{
-  tData data;       /* obsah */
-}tHvar;
-
+/*
 typedef struct tHfunction{
-  bool defined;
+   bool defined;
   int param_count;
+
 }tHfunction;
+*/
 
 /*Datová položka TRP s explicitně řetězenými synonymy*/
  typedef struct tHTItem{
-  tKey key[];       /* klíč  */
-  ttyp typ;    //najdlhí typ function má 8 znako
-  tHfunction function;
-  tHvar var;
+  string_t* key;       
+  Type_of_tHTItem typ;    
+  bool defined;
+  int param_count;
+  //Token_attr data;
   struct tHTItem* ptrnext;
 } tHTItem;
 
-typedef struct {                          /* zásobník hodnot typu thtable */
+/* TRP s explicitně zřetězenými synonymy. */
+typedef tHTItem* tHTable[HTSIZE];
+/*
+typedef struct {                          
     tHTable* a;
     int top;
     int count;
 } tStackP;
+*/
 
-/* TRP s explicitně zřetězenými synonymy. */
-typedef tHTItem* tHTable[HTSIZE];
+//extern int HTSIZE;
 
+/* Hlavičky řešených procedur a funkcí. */
+/*
+int hashCode ( tKey key );
+
+void htInit ( tHTable* ptrht );
+
+tHTItem* htSearch ( tHTable* ptrht, tKey key );
+
+void htInsert ( tHTable* ptrht, tKey key, tData data );
+
+tData* htRead ( tHTable* ptrht, tKey key );
+
+void htDelete ( tHTable* ptrht, tKey key );
+
+void htClearAll ( tHTable* ptrht );
+
+#endif
+*/

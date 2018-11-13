@@ -41,7 +41,7 @@ typedef struct tHfunction{
 
 /*Datová položka TRP s explicitně řetězenými synonymy*/
  typedef struct tHTItem{
-  string_t* key;       
+  char* key;       
   Type_of_tHTItem typ;    
   bool defined;
   int param_count;

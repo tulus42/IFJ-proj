@@ -51,7 +51,9 @@ void htPrintTable( tHTable ptrht ) {
  */
 int sym_table_error(int error_code){
 	htClearAll(local_ST);
+	//htInit(local_ST);
 	htClearAll(global_ST);
+	//htInit(global_ST);
 	fprintf(stderr, "sym_table ERROR\n");
 return error_code;
 }
@@ -139,7 +141,7 @@ int def_ID( tHTable ptrht,char key[] ){
  		}
  		printf("Ninsert ok\n");
  		
-		Ninsert->key = (char*) malloc(sizeof(strlen(key)+1));
+		Ninsert->key = (char*) malloc((strlen(key)+2));
 		if (Ninsert->key==NULL){							//ak sa alokacia nepodarila tak funkcia skonci
  			return sym_table_error(ER_INTERNAL);
  		}
@@ -158,17 +160,10 @@ int def_ID( tHTable ptrht,char key[] ){
 	return 0;
 }
 
-/* 
-** TRP s explicitně zřetězenými synonymy.
-** Tato procedura vkládá do tabulky ptrht položku s klíčem key a s daty
-** data.  Protože jde o vyhledávací tabulku, nemůže být prvek se stejným
-** klíčem uložen v tabulce více než jedenkrát.  Pokud se vkládá prvek,
-** jehož klíč se již v tabulce nachází, aktualizujte jeho datovou část.
-**
-** Využijte dříve vytvořenou funkci htSearch.  Při vkládání nového
-** prvku do seznamu synonym použijte co nejefektivnější způsob,
-** tedy proveďte.vložení prvku na začátek seznamu.
-**/
+/*	!!! ak sa užívateľ snaží updatovať funkciu s rovnakým názvom a počtom parametrov nestane sa nič !!!
+
+
+*/
 
 int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
 	printf("som v insert\n");
@@ -178,7 +173,10 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
 		printf("item najdeny\n");
 		if ((item_ptr->typ==FUNCTION)&&(actual_item->typ==FUNCTION)){	//obe su funkcie
 			if (actual_item->param_count==item_ptr->param_count){
-				actual_item->defined=item_ptr->defined;
+				if (item_ptr->defined && !actual_item->defined){
+					actual_item->defined=item_ptr->defined;
+					return 0;
+				}
 			}
 		}
 
@@ -209,7 +207,7 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
  		printf("new item alokacia ok\n");
  		}
 
-		Ninsert->key = (char*) malloc(sizeof(strlen(item_ptr->key)+1));
+		Ninsert->key = (char*) malloc((strlen((item_ptr->key))+2));
 		if (Ninsert->key==NULL){							//ak sa alokacia nepodarila tak funkcia skonci
  			return sym_table_error(ER_INTERNAL);
  		}
@@ -228,25 +226,37 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
 
 
 
-Type_of_tHTItem get_type (tHTable ptr,char key[]) {
-
+Type_of_tHTItem* get_type (tHTable ptrht,char key[]) {
+/*
 	printf("som v get_type\n");
 	printf("%s\n",key);
 	tHTItem *tmp=(htSearch(ptr,key));
-	printf("%s\n",tmp->key);
+	//printf("%s\n",tmp->key);
 									
 	return (tmp->typ);
+	*/
+	printf("som v get_type\n");
+	printf("%s\n",key);
+	if (htSearch(ptrht,key)!=NULL){				//ak je item najdeny
+		return &(htSearch(ptrht,key))->typ;	//funkcia vrati data hladaneho itemu
+	}
+	else{										//inak vrati NULL
+		return NULL;
+	}
 }
 
 
-int check_define (char key[]) {		//defined==TRUE==1 ; defined==FALSE==0; not_a_function==2
+int check_define (char key[]) {		//defined==TRUE==1 ; defined==FALSE==0; not_a_function==2; NOT_FOUND==3
 
 	tHTItem *tmp = htSearch(global_ST,key);
+	if (tmp==NULL){
+		return 3;
+	}
 
-	if (tmp->typ!=FUNCTION){
+	if ((tmp->typ)!=FUNCTION){
 		return 2;				
 	}else{
-		return (tmp->defined);
+		return ((tmp->defined));
 	}								
 	
 	
@@ -276,4 +286,24 @@ void htClearAll ( tHTable ptrht ) {
 		}
 	}
 	htInit(ptrht);					//reinicializacia tabulky
+}
+
+
+int STlast_check(){
+
+	tHTItem *tmp; //pomocny pointer
+	
+	for (int i=0;i<HTSIZE;i++){	//cyklus prechadza tabulkov
+		
+		tmp=global_ST[i];
+
+		while(tmp!=NULL){	//cyklus prechadza zoznamom
+			printf("%s\n",tmp->key );
+			if ((tmp->typ==FUNCTION)&&(tmp->defined==FALSE)){
+				return sym_table_error(ER_SEM_VARIABLE);
+			}
+			tmp=tmp->ptrnext;
+		}
+	}
+	return 0;
 }

@@ -8,20 +8,61 @@ Adrián Tulušák, xtulus00
 
 #include "expression.h"
 
-#define GET_TOKEN()                                     \
-    if (get_next_token(data->token) != LEXER_OK)        \
-        return(ER_LEX)
+/***********************************************************
+ * 
+ *                       MACROS
+ * 
+ **********************************************************/
 
+/**
+ * 
+ */
+#define GET_TOKEN()                                                             \
+    if (get_next_token(data->token) != LEXER_OK)                                \
+        return(ER_LEX)
 
 /**
  * Checks type mismatch in numerical operations
  */
-#define CHECK_NUMERICAL_OPERATIONS()              \
-    if(!check_operations(stack, to_pop, operand)){             \
-        return_code = OPERATION_TYPE_MISMATCH;                                 \
-        return(false);                                                         \
-    }                                                                          \
+#define CHECK_NUMERICAL_OPERATIONS()                                            \
+    if(!check_operations(stack, to_pop, operand)){                              \
+        return_code = OPERATION_TYPE_MISMATCH;                                  \
+        return(false);                                                          \
+    }                                                                           \
 
+/**
+ * 
+ */
+#define SAVE_SYMBOL()                                                           \
+    do{                                                                         \
+        tmp = get_from_buffer(&buffer);                                         \
+        to_push_symbol = tmp->symbol;                                           \
+        to_push_type = tmp->type;                                               \
+        delete_first(&buffer);                                                  \
+    }while(0);                                                                  \
+
+/**
+ * 
+ */
+#define SAVE_TOKEN()                                                            \
+    do{                                                                         \
+        to_push_type = get_data_type(data);                                     \
+        to_push_symbol = get_symbol_from_token(data);                           \
+    }while(0);                                                                  \
+
+/**
+ * 
+ */
+#define GET_SYMBOL_OR_TOKEN()                                                   \
+    do{                                                                         \
+        if(is_empty(&buffer)){                                                  \
+            GET_TOKEN();                                                        \
+            SAVE_TOKEN();                                                       \
+        }                                                                       \
+        else{                                                                   \
+            SAVE_SYMBOL();                                                      \
+        }                                                                       \
+    }while(0);                                                                  \
 
 /**
  * 
@@ -39,6 +80,7 @@ Adrián Tulušák, xtulus00
 
 
 Symbol_stack_t stack;
+Symbol_list buffer;
 bool finished = false;
 int return_code = EXPRESSION_OK;
 
@@ -59,7 +101,7 @@ int handle_expression(Data_t* data){
     Precedential_table_rule current_rule;
     Symbol_item_t* tmp;
 
-    printf("\n\n");
+    printf("\n");
 
     // initialize stack
     init_stack(&stack);
@@ -68,11 +110,10 @@ int handle_expression(Data_t* data){
     if(!push_stack(&stack, NIL, DOLLAR)){ // push dollar
         return expression_error(&stack, ER_INTERNAL);
     }
-    printf("Som zásobník a obsahujem zatial snad iba dolár\n");
+    
     print_current_stack(&stack);
     
-
-    GET_TOKEN(); // get first token
+    GET_TOKEN();
 
     // We iterate through all the tokens and check their syntax
     // When the rule is SHIFT or EQUAL, we can get new token
@@ -80,8 +121,8 @@ int handle_expression(Data_t* data){
     // UDEFINED symbolizes either gramatical error or succesfull reduction of expression 
     while(!is_reduced){ 
         current_rule = get_indexes_and_rule(&stack, data);  // get current rule
-        to_push_type = get_data_type(data);                 // get type of token
-        to_push_symbol = get_symbol_from_token(data);       // get symbol from token
+        to_push_symbol = get_symbol_from_token(data);
+        to_push_type = get_data_type(data);
         
         if(current_rule == S){  // SHIFT rule
             can_get_token = true;
@@ -91,11 +132,13 @@ int handle_expression(Data_t* data){
             if(!push_stack(&stack, to_push_type, to_push_symbol)){ // push token symbol
                 return expression_error(&stack, ER_INTERNAL);
             }
+
         }
         if(current_rule == R){  // REDUCE rule
             can_get_token = false;                                  // don't get any new token
-            if(!reduce_by_rule(&stack))                             // reduce it
-                return expression_error(&stack, return_code); 
+            if(!reduce_by_rule(&stack)){                             // reduce it
+                return expression_error(&stack, return_code);
+            } 
         }
         if(current_rule == E){  // EQUAL rule
             can_get_token = true;                                   // can get new token
@@ -113,9 +156,11 @@ int handle_expression(Data_t* data){
                 return expression_error(&stack, OTHER_SYNTACTICAL_ERRORS);
             }    
         }
+
         if(can_get_token)
             GET_TOKEN();
         print_current_stack(&stack); // DEBUG
+        
     }
     printf("While has finished succesfully!\n"); // DEBUG
     print_token(data);
@@ -406,9 +451,12 @@ void print_token(Data_t* data){
  * Debug functions
  */
 void print_current_stack(Symbol_stack_t* stack){ // 
-    if(stack->top == NULL)
+    if(stack->top == NULL){
+        printf("STACK IS EMPTY\n");
         return;
+    }
     else{
+        printf("STACK CONTAINS:\n");
         Symbol_item_t* tmp = stack->top;
         int i = 0;
         while(tmp != NULL){
@@ -569,4 +617,120 @@ void free_stack(Symbol_stack_t* stack){
         stack->top = tmp->next;
         free(tmp);
     }
+}
+
+/***********************************************************
+ * 
+ *                  BUFFER FUNCTIONS
+ * 
+ **********************************************************/
+
+/**
+ * 
+ */
+void init_buffer(Symbol_list* list){
+    list->first = NULL;
+    list->last = NULL;
+}
+
+/**
+ * 
+ */
+void clear_buffer(Symbol_list* list){
+    Symbol_list* tmp = list;
+    Symbol_item_t* to_delete;
+    while(tmp->first != NULL){
+        to_delete = tmp->first;
+        if(tmp->first == tmp->last){
+            tmp->last = NULL;
+        }
+        tmp->first = tmp->first->next;
+        free(to_delete);
+    }
+}
+
+/**
+ * 
+ */
+int insert_to_buffer(Symbol_list* list, Data_t* data){
+    Precedential_table_symbol current_symbol = get_symbol_from_token(data);
+    Data_type type = get_data_type(data);
+    Symbol_item_t* last_one;
+
+    Symbol_item_t* tmp = malloc(sizeof(Symbol_item_t));
+    if(tmp == NULL){
+        return ER_INTERNAL;
+    }
+
+    tmp->symbol = current_symbol;
+    tmp->type = type;
+    tmp->next = NULL;
+
+    if(list->first == NULL && list->last == NULL){ // zero elements
+        list->first = tmp;
+        list->last = tmp;
+    }
+    else if(list->first != NULL && list->first == list->last){ // one element
+        list->last = tmp;
+        list->first->next = tmp;
+    }
+    else{   // more elements
+        last_one = list->last;
+        last_one->next = tmp;
+        list->last = tmp;
+    }
+}
+
+/**
+ * 
+ */
+Symbol_item_t* get_from_buffer(Symbol_list* list){
+    return (list->first);
+}
+
+/**
+ * 
+ */
+void delete_first(Symbol_list* list){
+    if(is_empty(list))
+        return;
+
+    Symbol_item_t* tmp = list->first;
+    if(list->first == list->last){  // there is only one element
+        list->first = NULL;
+        list->last = NULL;       
+    }
+    else{
+        list->first = list->first->next;
+    }
+    free(tmp);
+}
+
+/**
+ * 
+ */
+bool is_empty(Symbol_list* list){
+    if(list->first == NULL && list->last == NULL)
+        return true;
+    else
+        return false;
+}
+
+/**
+ * 
+ */
+void print_buffer(Symbol_list* list){
+    if(list->first == NULL){
+        printf("BUFFER IS EMPTY\n\n");
+        return;
+    }
+    int counter = 0;
+    Symbol_item_t* tmp = list->first;
+    printf("BUFFER CONTAINS:\n");
+    while(tmp != NULL){
+        printf("%d : %s\n", counter, symbols[tmp->symbol]);
+        counter++;
+        tmp = tmp->next;
+    }
+    printf("\n");
 }

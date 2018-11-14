@@ -55,4 +55,5 @@ Type_of_tHTItem* get_type (tHTable ptrht,char key[]);
 int check_define (char key[]);
 void htClearAll ( tHTable ptrht );
 int STlast_check();
+void htClearAlltables();
 

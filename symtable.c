@@ -268,3 +268,9 @@ int STlast_check(){
 	}
 	return 0;
 }
+
+void htClearAlltables(){
+	htClearAll(local_ST);
+	htClearAll(global_ST);
+
+}

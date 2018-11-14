@@ -7,7 +7,14 @@ Adrián Tulušák, xtulus00
 */
 
 #include <stdio.h>
-#include "dynamic_string.c"
+
+
+#include "dynamic_string.h"
+
+#ifndef LEXER
+#define LEXER
+
+#define LEXER_OK 0
 
 // add keywords
 // TODO - Finish the state list, give it proper numbers
@@ -114,4 +121,7 @@ int get_next_token(Token_t *token);
 void keywords(string_t *string_ptr, Token_t* token);
 void change_state(int * current_state, int next_state);
 void get_source(FILE *f);
+void set_string(string_t* string);
+
+#endif
 

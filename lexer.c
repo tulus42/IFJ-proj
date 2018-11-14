@@ -15,16 +15,13 @@ Adrián Tulušák, xtulus00
 #include <limits.h>
 #include <stdbool.h>
 
-#include "lexer.h"
 #include "error.h"
-
-#include "testing.h"
+#include "lexer.h"
 
 FILE* source;
 char* string_content;
 string_t* dynamic_string;
 
-#define LEXER_OK 0
 
 /*
 TODO: 

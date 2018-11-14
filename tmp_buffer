@@ -1,0 +1,89 @@
+/*
+IFJ 2018
+Adam Hostin, xhosti02
+Sabína Gregušová, xgregu02
+Dominik Peza, xpezad00
+Adrián Tulušák, xtulus00
+*/
+
+#include <stdio.h>
+#include "token_buffer.h"
+
+DList buffer;
+DElem element;
+int buffer_index;
+#define SIZE_OF_BUFFER 10
+Data_t current_data[SIZE_OF_BUFFER];
+
+/**
+ * Initializes list
+ */
+void ListInit(DList* L){
+    L->last = NULL;
+    L->first = NULL;
+    buffer_index = 0;
+}
+
+
+/**
+ * Deletes all elements and frees the memory
+ */
+void DisposeList(DList* L){
+    L->last = NULL;
+    while(L->first != NULL){
+        DElem* next_element = L->first->next;
+        DElem* to_delete = L->first;
+        free(to_delete);
+        L->first = next_element;
+    }
+}
+
+
+/**
+ * Inserts element at the end of the list
+ */
+bool Insert(DList* L, Data_t* data){
+    
+
+    DElem* tmp_struct_pointer;
+    tmp_struct_pointer = malloc(sizeof(struct Data_element));
+
+    if(tmp_struct_pointer == NULL){
+        return_code = ER_INTERNAL;
+        return false;
+    }
+    else{
+        current_data[buffer_index].token = data->token;
+        current_data[buffer_index].in_while_or_if = data->in_while_or_if;
+        current_data[buffer_index].in_definition = data->token;
+        current_data[buffer_index].in = data->token;
+        printf("Som data s tokenom %s\n", tokens[tmp_struct_pointer->data.token->token]);
+        if(L->first == NULL && L->last == NULL){ // first ever added
+            L->first = tmp_struct_pointer;
+            L->last = tmp_struct_pointer;
+        }
+        else if(L->first == L->last){                // there is only 1 element
+            L->first->next = tmp_struct_pointer;
+            L->last = tmp_struct_pointer;
+        }
+        else{                                       // more elements
+            L->last->next = tmp_struct_pointer;
+            L->last = tmp_struct_pointer;
+        }
+        print_token_list(L);
+    }
+    printf("Pridal som\n");
+    buffer_index++;
+}
+
+Data_t Get_First(DList* L){
+    return (L->first->data);
+}
+
+void print_token_list(DList* L){
+    DElem* tmp = L->first;
+    while(tmp != NULL){
+        printf("TOKEN TYPE IS %s\n", tokens[tmp->data.token->token]);
+        tmp = tmp->next;
+    }
+}

@@ -71,6 +71,7 @@ Pre jednoduchšie spracovanie reťazcov sme sa rozhodli implementovať súbor \t
 
 \section{Syntaktická analýza}
 
+\subsection{Sématická analýza}
 \subsection{Tabuľka symbolov}
 
 \section{Generátor inštrukcií}
@@ -85,5 +86,26 @@ Už na začiatku sme sa dohodli na pravidelných týždenných stretnutiach, kde
 
 \subsection{Hodnotenie}
 
+\section{Prílohy}
+
+\subsection{Deterministický konečný automat}
+\subsection{LL-gramatika}
+\subsection{Precedenčná tabuľka}
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+   & \textbf{+} & \textbf{\--}  & \textbf{*} & \textbf{/} & \textbf{(} & \textbf{)} & \textbf{i}  & \textbf{R} & \textbf{\$} \\ \hline
+\textbf{+}  & \textgreater{} & \textless{}    & \textless{}    & \textless{}    & \textless{} & \textgreater{} & \textless{} & \textgreater{} & \textgreater{} \\ \hline
+\textbf{\--}  & \textgreater{} & \textgreater{} & \textless{}    & \textless{}    & \textless{} & \textgreater{} & \textless{} & \textgreater{} & \textgreater{} \\ \hline
+\textbf{*}  & \textgreater{} & \textgreater{} & \textgreater{} & \textgreater{} & \textless{} & \textgreater{} & \textless{} & \textgreater{} & \textgreater{} \\ \hline
+\textbf{/}  & \textless{}    & \textgreater{} & \textgreater{} & \textgreater{} & \textless{} & \textgreater{} & \textless{} & \textgreater{} & \textgreater{} \\ \hline
+\textbf{(}  & \textless{}    & \textless{}    & \textless{}    & \textless{}    & \textless{} & =              & \textless{} & \textless{}    &                \\ \hline
+\textbf{)}  & \textgreater{} & \textgreater{} & \textgreater{} & \textgreater{} &             & \textgreater{} &             & \textgreater{} & \textgreater{} \\ \hline
+\textbf{i}  & \textgreater{} & \textgreater{} & \textgreater{} & \textgreater{} &             & \textgreater{} &             & \textgreater{} & \textgreater{} \\ \hline
+\textbf{R}  & \textless{}    & \textless{}    & \textless{}    & \textless{}    & \textless{} & \textgreater{} & \textless{} &                & \textgreater{} \\ \hline
+\textbf{\$} & \textless{}    & \textless{}    & \textless{}    & \textless{}    & \textless{} &                & \textless{} & \textless{}    &                \\ \hline
+\end{tabular}
+\end{table}
 
 \end{document}

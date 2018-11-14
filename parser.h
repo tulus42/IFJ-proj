@@ -8,6 +8,11 @@ Adrián Tulušák, xtulus00
 
 #include <stdbool.h>
 
+#include "lexer.h"
+
+#ifndef PARSER
+#define PARSER
+
 #define SYN_OK 0
 
 typedef struct {
@@ -19,3 +24,22 @@ typedef struct {
     bool in_definition;
 
 } Data_t;
+
+// forward declarations
+/*
+static int statement(Data_t* data);
+static int declare(Data_t* data);
+static int params(Data_t* data);
+static int param(Data_t* data);
+static int argvs(Data_t* data);
+static int arg(Data_t* data);
+static int value(Data_t* data);
+static int function(Data_t* data);
+static int print(Data_t* data);
+*/
+
+int start_parser();
+int buffer_testing(Data_t* data);
+int parser_error(Data_t* Data, string_t* string);
+
+#endif

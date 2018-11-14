@@ -15,6 +15,11 @@ Adrián Tulušák, xtulus00
 #include <stdbool.h>
 
 
+#include "parser.h"
+
+#ifndef EXPRESSION
+#define EXPRESSION
+
 #define table_size 9
 #define EXPRESSION_OK 0
 #define OTHER_SYNTACTICAL_ERRORS 2
@@ -27,20 +32,6 @@ typedef enum{
     E,  // equal =
     U   // undefined - no rule, error
 } Precedential_table_rule;
-
-int precedential_table[table_size][table_size] = {
- //  +  -  *  /  (  )  i  R  $
-    {R, S, S, S, S, R, S, R, R}, // +
-    {R, R, S, S, S, R, S, R, R}, // -
-    {R, R, R, R, S, R, S, R, R}, // *
-    {R, R, R, R, S, R, S, R, R}, // /
-    {S, S, S, S, S, E, S, S, U}, // (
-    {R, R, R, R, U, R, U, R, R}, // )
-    {R, R, R, R, U, R, U, R, R}, // ID
-    {S, S, S, S, S, R, S, U, R}, // Relational operators
-    {S, S, S, S, S, U, S, S, U}, // $
-
-};
 
 typedef enum{
     INDEX_PLUS,                 // +
@@ -89,40 +80,72 @@ typedef struct one_item{
 
 
 typedef struct {
-    Symbol_item_t *top;
+    Symbol_item_t* top;
 } Symbol_stack_t;
 
+typedef struct {
+    Symbol_item_t* first;
+    Symbol_item_t* last;
+} Symbol_list;
 
+// DEBUG FUNCTIONS
 void print_current_stack(Symbol_stack_t* stack);
 void print_token(Data_t* data);
-void init_stack(Symbol_stack_t* stack);
-void free_stack(Symbol_stack_t* stack);
+void print_buffer(Symbol_list* list);
+
+/***********************************************************
+ * 
+ *                  EXPRESSION FUNCTIONS
+ * 
+ **********************************************************/
 void pop_count(int n);
 
-bool reduce_by_rule(Symbol_stack_t* stack);
-bool push_stack(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
-bool pop_stack(Symbol_stack_t* stack);
-bool check_expected_token(Data_t* data, Token_type next_token);
-bool is_term(Precedential_table_symbol symbol);
+bool allowed_string_operations(Precedential_table_symbol symbol);
+bool check_operations(Symbol_stack_t* stack, int to_pop, Precedential_table_symbol operand);
 bool add_after_first_terminal(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
+bool reduce_by_rule(Symbol_stack_t* stack);
+bool is_term(Precedential_table_symbol symbol);
 bool check_plus(Symbol_stack_t* stack, int to_pop);
-bool check_other_numerical_operations(Symbol_stack_t* stack, int to_pop, Precedential_table_symbol operand);
 
-
-int expression_error(Symbol_stack_t* stack, int error_type);
-int count_to_reduce(Symbol_stack_t* stack);
 int handle_expression(Data_t* data);
+int count_to_reduce(Symbol_stack_t* stack);
+int expression_error(Symbol_stack_t* stack, int error_type);
 
-Symbol_item_t* get_stack_top(Symbol_stack_t* stack);
-
-Precedential_table_symbol get_symbol_from_token(Data_t* data);
 Precedential_table_symbol get_first_term(Symbol_stack_t* stack);
+Precedential_table_symbol get_symbol_from_token(Data_t* data);
 
 Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Data_t* data);
-
-Precedential_table_index get_index(Precedential_table_symbol symbol);
+Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_table_symbol columns);
 
 Data_type get_data_type(Data_t* data);
 
-Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_table_symbol columns);
+Precedential_table_index get_index(Precedential_table_symbol symbol);
+
+/***********************************************************
+ * 
+ *                  STACK FUNCTIONS
+ * 
+ **********************************************************/
+void init_stack(Symbol_stack_t* stack);
+void free_stack(Symbol_stack_t* stack);
+
+bool push_stack(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
+bool pop_stack(Symbol_stack_t* stack);
+
+/***********************************************************
+ * 
+ *                  BUFFER FUNCTIONS
+ * 
+ **********************************************************/
+void init_buffer(Symbol_list* List);
+void clear_buffer(Symbol_list* list);
+void delete_first(Symbol_list* list);
+
+bool is_empty(Symbol_list* list);
+
+int insert_to_buffer(Symbol_list* list, Data_t* data);
+
+Symbol_item_t* get_from_buffer(Symbol_list* list);
+
+#endif
 

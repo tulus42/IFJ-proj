@@ -302,20 +302,44 @@ void htClearlocal () {
 	htInit(local_ST);							//reinicializacia tabulky
 }
 
-void iteminit(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc ){
+int iteminit(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc ){
 
 	item=malloc(sizeof(tHTItem));						//alokácia položky
- 		if (Ninsert==NULL){							
- 			return sym_table_error(ER_INTERNAL);
-
+	if (item==NULL){							
+		return sym_table_error(ER_INTERNAL);
+	}
 	item->key = (char*) malloc((strlen(k)+2));
 	if (item->key==NULL){								//ak sa alokacia nepodarila tak funkcia skonci
 			return sym_table_error(ER_INTERNAL);
 	}
 
-		strcpy(item->key,k);
-		item->typ=t;	
-		item->param_count=pc;
-		item->defined=d;						
-		item->ptrnext=NULL;
+	strcpy(item->key,k);
+	item->typ=t;	
+	item->param_count=pc;
+	item->defined=d;						
+	item->ptrnext=NULL;
+return ST_OK;
+
+}
+
+int itemupdate(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc ){
+
+	free(item->key);
+	item->key = (char*) malloc((strlen(k)+2));
+	if (item->key==NULL){								//ak sa alokacia nepodarila tak funkcia skonci
+			return sym_table_error(ER_INTERNAL);
+	}
+
+	strcpy(item->key,k);
+	item->typ=t;	
+	item->param_count=pc;
+	item->defined=d;						
+	item->ptrnext=NULL;
+return ST_OK;
+
+}
+
+void itemfree(tHTItem* item){
+	free(item_ptr->key);
+	free(item);
 }

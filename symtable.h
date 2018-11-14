@@ -13,14 +13,13 @@ Adrián Tulušák, xtulus00
 #include "error.h"
 
 
-/* Maximální velikost pole pro implementaci
-   vyhledávací tabulky. Řešené procedury však
-   využívají pouze HTSIZE prvků pole (viz deklarace této proměnné).
-*/
 #define HTSIZE 6421
 #define STACK_SIZE 30
 #define TRUE 1
 #define FALSE 0
+
+/*datové typy*/
+
 typedef enum
 {
   NILL,
@@ -31,15 +30,7 @@ typedef enum
 
 } Type_of_tHTItem;
 
-/*
-typedef struct tHfunction{
-   bool defined;
-  int param_count;
 
-}tHfunction;
-*/
-
-/*Datová položka TRP s explicitně řetězenými synonymy*/
  typedef struct tHTItem{
   char* key;       
   Type_of_tHTItem typ;    
@@ -49,33 +40,19 @@ typedef struct tHfunction{
   struct tHTItem* ptrnext;
 } tHTItem;
 
-/* TRP s explicitně zřetězenými synonymy. */
 typedef tHTItem* tHTable[HTSIZE];
-/*
-typedef struct {                          
-    tHTable* a;
-    int top;
-    int count;
-} tStackP;
-*/
 
-//extern int HTSIZE;
+/* Hlavičky funkcií. */
 
-/* Hlavičky řešených procedur a funkcí. */
-/*
-int hashCode ( tKey key );
+int sym_table_error(int error_code);
+int hashCode ( char key[] );
+void htInit ( tHTable ptrht );
+void STinits();
+tHTItem* htSearch ( tHTable ptrht, char key[] );
+int def_ID( tHTable ptrht,char key[] );
+int htInsert ( tHTable ptrht, tHTItem* item_ptr );
+Type_of_tHTItem* get_type (tHTable ptrht,char key[]);
+int check_define (char key[]);
+void htClearAll ( tHTable ptrht );
+int STlast_check();
 
-void htInit ( tHTable* ptrht );
-
-tHTItem* htSearch ( tHTable* ptrht, tKey key );
-
-void htInsert ( tHTable* ptrht, tKey key, tData data );
-
-tData* htRead ( tHTable* ptrht, tKey key );
-
-void htDelete ( tHTable* ptrht, tKey key );
-
-void htClearAll ( tHTable* ptrht );
-
-#endif
-*/

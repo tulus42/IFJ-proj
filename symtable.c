@@ -145,7 +145,6 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
 /*
  		switch(item_ptr->typ){
  			case STRING:
-
 					actual_item->typ= item_ptr->typ;
 					actual_item->defined= item_ptr->defined;
 					//clear_string_content(actual_item->data.string);
@@ -301,4 +300,22 @@ void htClearlocal () {
 		}
 	}
 	htInit(local_ST);							//reinicializacia tabulky
+}
+
+void iteminit(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc ){
+
+	item=malloc(sizeof(tHTItem));						//alokácia položky
+ 		if (Ninsert==NULL){							
+ 			return sym_table_error(ER_INTERNAL);
+
+	item->key = (char*) malloc((strlen(k)+2));
+	if (item->key==NULL){								//ak sa alokacia nepodarila tak funkcia skonci
+			return sym_table_error(ER_INTERNAL);
+	}
+
+		strcpy(item->key,k);
+		item->typ=t;	
+		item->param_count=pc;
+		item->defined=d;						
+		item->ptrnext=NULL;
 }

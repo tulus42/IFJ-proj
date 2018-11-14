@@ -8,10 +8,6 @@ Adrián Tulušák, xtulus00
 
 // VARIANTA HASH TABLE
 
-/*na konci vymaz htPrintTable a testing.h
-  */
-
-
 #include "symtable.h"
 
 //tStackP s;
@@ -120,7 +116,7 @@ int def_ID( tHTable ptrht,char key[] ){
  		Ninsert->ptrnext=(ptrht)[hashCode(key)];			//prvok zaradime na zaciatok zoznamu
  		(ptrht)[hashCode(key)]=Ninsert;
  	}
-	return 0;
+	return ST_OK;
 }
 
 /* Funkcia vkladá do zvolenej tabuľky ptrht celú vybranú položku item_ptr 
@@ -129,38 +125,46 @@ int def_ID( tHTable ptrht,char key[] ){
 */
 
 int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
-	printf("som v insert\n");
+
+
 	tHTItem *actual_item=htSearch(ptrht,item_ptr->key);
-	printf("pomocny item ok\n");
 	if (actual_item){													//ak je item najdeny aktuelizuje data
-		printf("item najdeny\n");
 		if ((item_ptr->typ==FUNCTION)&&(actual_item->typ==FUNCTION)){	//obe su funkcie
 			if (actual_item->param_count==item_ptr->param_count){		//maju rovnaky pocet parametrov
 				if (item_ptr->defined && !actual_item->defined){		//item v tabzľke je nedefinovany a "pridávaný" item je definovany
 					actual_item->defined=item_ptr->defined;
-					return 0;
+					return ST_OK;
 				}
 			}
 		}
-
+		if (!item_ptr->defined){
+			return sym_table_error(ER_SEM_VARIABLE);
+		}else{
+			actual_item->defined= item_ptr->defined;
+		}
+/*
  		switch(item_ptr->typ){
  			case STRING:
+
 					actual_item->typ= item_ptr->typ;
+					actual_item->defined= item_ptr->defined;
 					//clear_string_content(actual_item->data.string);
 	 				//copy_string_content(actual_item->data.string, item_ptr->data.string);
 				 	break;
 				case INTEGER:
+					actual_item->defined= item_ptr->defined;
 					actual_item->typ= item_ptr->typ;
 					//actual_item->data.integer=item_ptr->data.integer;
 					break;
 				case PRASATKO_S_PAPUCKAMI_FLT:
+					actual_item->defined= item_ptr->defined;
 					actual_item->typ= item_ptr->typ;
 					//actual_item->data.PRASATKO_S_PAPUCKAMI_FLT=item_ptr->data.PRASATKO_S_PAPUCKAMI_FLT;
 					break;
 				default:
-					return  sym_table_error(ER_SEM_TYPE);
+					return  sym_table_error(ER_SEM_VARIABLE);
  					break;
- 		}
+ 		}*/
  	}
  	else{																//položka nie je v tabuľke
 
@@ -181,7 +185,7 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
  		Ninsert->ptrnext=(ptrht)[hashCode(item_ptr->key)];				//prvok zaradime na zaciatok zoznamu
  		(ptrht)[hashCode(item_ptr->key)]=Ninsert;
  	}
- return 0;
+ return ST_OK;
 }
 
 /* Funkcia vyhľadáva v zvolenej tabuľke ptrht položku s kľúčom key
@@ -203,8 +207,9 @@ Type_of_tHTItem* get_type (tHTable ptrht,char key[]) {
 
 /* Funkcia kontroluje či je funkcia s kľúčom key v globálnej tabuľke symbolov (global_ST) definovaná
 ** Návratové hodnoty
-** NOT_FOUND==3
-** not_a_function==2
+** NOT_FOUND==2
+** param_defined==3
+** param_undefined==4
 ** defined==FALSE==0
 ** defined==TRUE==1
 */
@@ -213,11 +218,15 @@ int check_define (char key[]) {
 
 	tHTItem *tmp = htSearch(global_ST,key);
 	if (tmp==NULL){
-		return 3;
+		return NOT_FOUND;
 	}
 
 	if ((tmp->typ)!=FUNCTION){
-		return 2;				
+		if (tmp->defined){
+			return param_defined;
+		}else{
+			return param_undefined
+		}			
 	}else{
 		return ((tmp->defined));
 	}								
@@ -266,11 +275,30 @@ int STlast_check(){
 			tmp=tmp->ptrnext;
 		}
 	}
-	return 0;
+	return ST_OK;
 }
 
 void htClearAlltables(){
 	htClearAll(local_ST);
 	htClearAll(global_ST);
 
+}
+
+void htClearlocal () {
+
+
+
+	tHTItem *tmp;
+	for (int i=0;i<HTSIZE;i++){
+		
+		tmp=(local_ST)[i];
+
+		while((local_ST)[i]!=NULL){
+			tmp=(local_ST)[i];
+			(local_ST)[i]=(local_ST)[i]->ptrnext;
+			free(tmp->key);
+			free(tmp);
+		}
+	}
+	htInit(ptrht);							//reinicializacia tabulky
 }

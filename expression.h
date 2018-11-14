@@ -17,8 +17,8 @@ Adrián Tulušák, xtulus00
 
 #include "parser.h"
 
-#ifndef EXPRESSION
-#define EXPRESSION
+#ifndef EXPRESSION_H
+#define EXPRESSION_H
 
 #define table_size 9
 #define EXPRESSION_OK 0
@@ -89,9 +89,9 @@ typedef struct {
 } Symbol_list;
 
 // DEBUG FUNCTIONS
-void print_current_stack(Symbol_stack_t* stack);
-void print_token(Data_t* data);
-void print_buffer(Symbol_list* list);
+//void print_current_stack(Symbol_stack_t* stack);
+//void print_token(Data_t* data);
+//void print_buffer(Symbol_list* list);
 
 /***********************************************************
  * 
@@ -114,7 +114,7 @@ int expression_error(Symbol_stack_t* stack, int error_type);
 Precedential_table_symbol get_first_term(Symbol_stack_t* stack);
 Precedential_table_symbol get_symbol_from_token(Data_t* data);
 
-Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Data_t* data);
+Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Precedential_table_symbol symbol);
 Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_table_symbol columns);
 
 Data_type get_data_type(Data_t* data);

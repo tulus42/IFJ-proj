@@ -8,7 +8,7 @@ Adrián Tulušák, xtulus00
 
 
 #include "error.h"
-#include "testing.h"
+//#include "testing.h"
 #include "expression.h"
 
 
@@ -107,6 +107,7 @@ int precedential_table[table_size][table_size] = {
 Symbol_stack_t stack;
 Symbol_list buffer;
 bool finished = false;
+bool used_buffer = false;
 int return_code = EXPRESSION_OK;
 
 /***********************************************************
@@ -124,10 +125,7 @@ int handle_expression(Data_t* data){
     Data_type to_push_type;
     Precedential_table_symbol to_push_symbol;
     Precedential_table_rule current_rule;
-    //Symbol_item_t* tmp;
-
-    printf("\n");
-    print_current_stack(&stack);
+    Symbol_item_t* tmp;
 
     // initialize stack
     init_stack(&stack);
@@ -137,19 +135,16 @@ int handle_expression(Data_t* data){
         return expression_error(&stack, ER_INTERNAL);
     }
     
-    print_current_stack(&stack);
+    GET_SYMBOL_OR_TOKEN();
     
-    GET_TOKEN();
 
     // We iterate through all the tokens and check their syntax
     // When the rule is SHIFT or EQUAL, we can get new token
     // When the rule is REDUCE, we don't get any new tokens
     // UDEFINED symbolizes either gramatical error or succesfull reduction of expression 
     while(!is_reduced){ 
-        current_rule = get_indexes_and_rule(&stack, data);  // get current rule
-        to_push_symbol = get_symbol_from_token(data);
-        to_push_type = get_data_type(data);
-        
+        current_rule = get_indexes_and_rule(&stack, to_push_symbol);  // get current rule
+
         if(current_rule == S){  // SHIFT rule
             can_get_token = true;
             if(!add_after_first_terminal(&stack, NIL, START)){      // push start symbol after first terminal
@@ -160,19 +155,19 @@ int handle_expression(Data_t* data){
             }
 
         }
-        if(current_rule == R){  // REDUCE rule
+        else if(current_rule == R){  // REDUCE rule
             can_get_token = false;                                  // don't get any new token
             if(!reduce_by_rule(&stack)){                             // reduce it
                 return expression_error(&stack, return_code);
             } 
         }
-        if(current_rule == E){  // EQUAL rule
+        else if(current_rule == E){  // EQUAL rule
             can_get_token = true;                                   // can get new token
             if(!push_stack(&stack, to_push_type, to_push_symbol)){  // push token symbol
                 return expression_error(&stack, ER_INTERNAL);
             }
         }
-        if(current_rule == U){  // UNDEFINED rule
+        else if(current_rule == U){  // UNDEFINED rule
             Precedential_table_symbol last_symbol = get_first_term(&stack);
             to_push_symbol = get_symbol_from_token(data);
             if(finished && last_symbol == DOLLAR && to_push_symbol == DOLLAR){ // we are at the and reduced everything succesfully
@@ -184,14 +179,15 @@ int handle_expression(Data_t* data){
         }
 
         if(can_get_token)
-            GET_TOKEN();
-        print_current_stack(&stack); // DEBUG
+            GET_SYMBOL_OR_TOKEN()
+        //print_current_stack(&stack); // DEBUG
         
     }
     printf("While has finished succesfully!\n"); // DEBUG
-    print_token(data);
+    //print_token(data);
 
     // if we come here, the syntax and semantics were correct
+    clear_buffer(&buffer);
     free_stack(&stack);
     return EXPRESSION_OK;
 }
@@ -261,7 +257,7 @@ bool check_operations(Symbol_stack_t* stack, int to_pop, Precedential_table_symb
     if(same_type){
         ;
     }
-    
+
     pop_count(to_pop);
     push_stack(stack, current_data, NON_TERMINAL);
     return true;
@@ -421,9 +417,9 @@ Precedential_table_symbol get_first_term(Symbol_stack_t* stack){
 /**
  * Computes the rows and columns value and gets the rule
  */
-Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Data_t* data){
+Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Precedential_table_symbol symbol){
     int rows = get_index(get_first_term(stack));
-    int columns = get_index(get_symbol_from_token(data));
+    int columns = get_index(symbol);
     return get_rule(rows, columns);
 }
 
@@ -472,18 +468,18 @@ int expression_error(Symbol_stack_t* stack, int error_type){
 
 /**
  * Debug functions
- */
+
 void print_token(Data_t* data){
     if(data->token->token)
         printf("%s\n", tokens[data->token->token]);
-}
+}*/
 
 /**
  * Debug functions
- */
+
 void print_current_stack(Symbol_stack_t* stack){ // 
     if(stack->top == NULL){
-        printf("STACK IS EMPTY\n");
+        printf("STACK IS EMPTY\n\n");
         return;
     }
     else{
@@ -498,6 +494,7 @@ void print_current_stack(Symbol_stack_t* stack){ //
         printf("\n");
     }
 }
+*/
 
 /**
  * Evaluates what data type of token
@@ -750,7 +747,7 @@ bool is_empty(Symbol_list* list){
 
 /**
  * 
- */
+ 
 void print_buffer(Symbol_list* list){
     if(list->first == NULL){
         printf("BUFFER IS EMPTY\n\n");
@@ -766,3 +763,4 @@ void print_buffer(Symbol_list* list){
     }
     printf("\n");
 }
+*/

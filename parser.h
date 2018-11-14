@@ -6,6 +6,7 @@ Dominik Peza, xpezad00
 Adrián Tulušák, xtulus00
 */
 
+#include <stdlib.h>
 #include <stdbool.h>
 
 #include "lexer.h"

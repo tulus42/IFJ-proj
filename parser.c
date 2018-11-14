@@ -13,7 +13,7 @@ Adrián Tulušák, xtulus00
 #endif
 
 #include "error.h"
-#include "lexer.c"
+#include "testing.h"
 
 
 #include "parser.h"
@@ -26,7 +26,10 @@ Adrián Tulušák, xtulus00
 #define IS_VALUE()                                                           \
     data->token->token == TYPE_INT || data->token->token == TYPE_FLOAT      \
     || data->token->token == TYPE_STRING || data->token->token == TYPE_IDENTIFIER 
-        
+
+#define CHECK_AND_DO(__func__) \
+    res = __func__; \
+    if (res != SYN_OK) return(res);            
 
 
 
@@ -35,6 +38,8 @@ Adrián Tulušák, xtulus00
  * 
  * vyriešiť situáciu "func ()/func param" - bez zátvoriek
  * dorobiť kontrolu premenných a funkcií v tabulke symbolov
+ *    - zmenit typ premennej po priradeni
+ * 
  * urobiť <declare>
  * 
  * prerobit Errorove vystupy
@@ -45,6 +50,8 @@ Adrián Tulušák, xtulus00
 
 // premenna pre uchovanie ID z tokenu pre neskorsie ulozenie do TS
 string_t identifier;
+
+int res;
 
 // forward declarations
 static int statement(Data_t* data);
@@ -83,7 +90,6 @@ int get_token(Data_t* data) {
  * <prog>
  * ***************************/
 static int prog(Data_t* data){
-    int result;
 
     GET_TOKEN();
 
@@ -423,14 +429,30 @@ static int declare(Data_t* data) {
 
     GET_TOKEN();
 
-    // <declare> -> = <value>
+    
     // <declare> -> = <expression>
     if (data->token->token == TYPE_IDENTIFIER) {
 
-    } else {}
+    } else
 
     // <declare> -> = ID_FUNC ( <argvs> )
+    
+    // <declare> -> = <function>
+    if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword > 8 && data->token->attr.keyword < 17) {
+        if (function(data) != SYN_OK) {
+            return(ER_SYN);
+        } else
+            return(prog(data));
+    } else
+
+    // <declare> -> = <value>
+    if (IS_VALUE()) {
+        // prirad hodnotu a zmen typ premennej
+        return(prog(data));
+    }
+
     // <declare> -> ε
+    return(ER_SYN);
 }
 
 
@@ -483,6 +505,7 @@ static int param(Data_t* data) {
     }
 
     // <param> -> ε
+    return(ER_SYN);
 }
 
 
@@ -509,6 +532,10 @@ static int argvs(Data_t* data) {
     // <argvs> -> ε
 }
 
+
+/* ****************************
+ * <arg>
+ * ***************************/
 static int arg(Data_t* data) {
     // <arg> -> , <value> <arg>
     // <arg> -> ε
@@ -534,12 +561,15 @@ static int arg(Data_t* data) {
             return(argvs(data));
         }
     }
+
+    return(ER_SYN);
 }
 
 
 /* ****************************
  * <value>
  * ***************************/
+
 static int value(Data_t* data) {
     // <value> -> INT_VALUE
     if (data->token->token == TYPE_INT){
@@ -553,6 +583,8 @@ static int value(Data_t* data) {
     if (data->token->token == TYPE_STRING){
 
     }
+
+    return(ER_SYN);
 }
 
 
@@ -887,6 +919,7 @@ static int function(Data_t* data) {
 
     }
 
+
     // <function> -> INPUTS EOL
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_INPUTS) {
         printf("in <function> INPUTS\n");
@@ -940,6 +973,7 @@ static int function(Data_t* data) {
         return(ER_SYN);
     }
 
+
     // <function> -> INPUTF EOL
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_INPUTF) {
         printf("in <function> INPUTF\n");
@@ -965,6 +999,8 @@ static int function(Data_t* data) {
 
         return(ER_SYN);
     }
+
+    return(ER_SYN);
 }
 
 /* ****************************
@@ -1054,6 +1090,8 @@ int start_parser(){
 
     int res;
     res = prog(&our_data);
+
+    value(&our_data);
 
     
     free_string(&string);

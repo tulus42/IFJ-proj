@@ -1,7 +1,8 @@
-CFLAGS=-std=c99 -g
-CC = gcc
-make:
-	${CC} ${CFLAGS} tmp_main.c -o tmp_main
+CC=gcc
+CFLAGS=-std=c99 -g -pedantic -Wall -Wextra
+
+all: lexer.c dynamic_string.c parser.c tmp_main.c expression.c 
+	$(CC) $(CFLAGS) lexer.c dynamic_string.c parser.c tmp_main.c expression.c -o ifj2018
 
 clean:
-	-rm tmp_main tmp_main.o
+	rm -f *.o tmp_main

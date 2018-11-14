@@ -15,6 +15,11 @@ Adrián Tulušák, xtulus00
 #include <stdbool.h>
 
 
+#include "parser.h"
+
+#ifndef EXPRESSION
+#define EXPRESSION
+
 #define table_size 9
 #define EXPRESSION_OK 0
 #define OTHER_SYNTACTICAL_ERRORS 2
@@ -27,20 +32,6 @@ typedef enum{
     E,  // equal =
     U   // undefined - no rule, error
 } Precedential_table_rule;
-
-int precedential_table[table_size][table_size] = {
- //  +  -  *  /  (  )  i  R  $
-    {R, S, S, S, S, R, S, R, R}, // +
-    {R, R, S, S, S, R, S, R, R}, // -
-    {R, R, R, R, S, R, S, R, R}, // *
-    {R, R, R, R, S, R, S, R, R}, // /
-    {S, S, S, S, S, E, S, S, U}, // (
-    {R, R, R, R, U, R, U, R, R}, // )
-    {R, R, R, R, U, R, U, R, R}, // ID
-    {S, S, S, S, S, R, S, U, R}, // Relational operators
-    {S, S, S, S, S, U, S, S, U}, // $
-
-};
 
 typedef enum{
     INDEX_PLUS,                 // +
@@ -156,4 +147,5 @@ int insert_to_buffer(Symbol_list* list, Data_t* data);
 
 Symbol_item_t* get_from_buffer(Symbol_list* list);
 
+#endif
 

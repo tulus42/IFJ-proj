@@ -12,9 +12,9 @@ Adrián Tulušák, xtulus00
 #include <string.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "dynamic_string.h"
-
 
 /**
  * Allocates string with starting size of 10 
@@ -82,7 +82,7 @@ bool add_char(string_t* string_ptr, char to_add){
 bool compare_strings(string_t* string_ptr, char word[]){
     bool tmp_result;
     if(string_ptr->current_size == strlen(word)){
-        for(int i = 0; i < strlen(word); i++){
+        for(unsigned int i = 0; i < strlen(word); i++){
             if(string_ptr->s[i] == word[i]){
                 tmp_result = true;
             }
@@ -103,7 +103,7 @@ bool compare_strings(string_t* string_ptr, char word[]){
  */
 bool compare_dynamic_strings(string_t* string_ptr, string_t* another_ptr){
     if(string_ptr->current_size == another_ptr->current_size){
-        for(int i = 0; i < string_ptr->current_size; i++){
+        for(unsigned int i = 0; i < string_ptr->current_size; i++){
             if(string_ptr->s[i] != another_ptr->s[i]){
                 return false;
             }
@@ -150,7 +150,7 @@ bool check_comment_end(int match_count, string_t* string_ptr){
  * Size is set to 0
  */
 void clear_string_content(string_t* string_ptr){
-    for(int i = 0; i < string_ptr->current_size; i++){
+    for(unsigned int i = 0; i < string_ptr->current_size; i++){
         string_ptr->s[i] = '\0';
     }
     string_ptr->current_size = 0;
@@ -161,7 +161,7 @@ void clear_string_content(string_t* string_ptr){
  */
 bool add_string(string_t* string_ptr, char to_add[]){
     clear_string_content(string_ptr);
-    for(int i = 0; i < strlen(to_add); i++){
+    for(unsigned int i = 0; i < strlen(to_add); i++){
         if(add_char(string_ptr, to_add[i]))
             continue;
         else
@@ -179,6 +179,9 @@ char convert_from_hex(char hex[]){
     return tmp;
 }
 
+/**
+ * 
+ */
 void remove_first_char(string_t* string_ptr){
     char one_char;
     int counter = 1;
@@ -191,8 +194,11 @@ void remove_first_char(string_t* string_ptr){
     string_ptr->s[counter-1] = '\0';
 }
 
+/**
+ * 
+ */
 void copy_string_content(string_t* dest, string_t* source){
-    for(int i = 0; i < source->current_size; i++){
+    for(unsigned int i = 0; i < source->current_size; i++){
         add_char(dest, source->s[i]);
     }
 }

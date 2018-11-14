@@ -6,6 +6,8 @@ Dominik Peza, xpezad00
 Adrián Tulušák, xtulus00
 */
 
+#ifndef ERROR
+#define ERROR
 
 #define ER_LEX 1
 #define ER_SYN 2
@@ -15,3 +17,5 @@ Adrián Tulušák, xtulus00
 #define ER_SEM_OTHER 6
 #define ER_ZERO_DIV 9
 #define ER_INTERNAL 99
+
+#endif

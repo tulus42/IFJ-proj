@@ -1,3 +1,6 @@
+#ifndef TESTING
+#define TESTING
+
 const char* tokens[] = {
 	"TYPE_EOF", 
 	"TYPE_EOL", 
@@ -69,7 +72,7 @@ const char* symbols[] = {
     "DOLLAR",  // $
 	"E",
     "START",
-    "END"
+    "IDIV"
 };
 
 const char* rules[] = {
@@ -78,3 +81,5 @@ const char* rules[] = {
     "E",  // equal =
     "U" 
 };
+
+#endif

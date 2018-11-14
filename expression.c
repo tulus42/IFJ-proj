@@ -6,7 +6,31 @@ Dominik Peza, xpezad00
 Adrián Tulušák, xtulus00
 */
 
+
+#include "error.h"
+#include "testing.h"
 #include "expression.h"
+
+
+/***********************************************************
+ * 
+ *                  PRECEDENTIAL TABLE
+ * 
+ **********************************************************/
+
+int precedential_table[table_size][table_size] = {
+ //  +  -  *  /  (  )  i  R  $
+    {R, S, S, S, S, R, S, R, R}, // +
+    {R, R, S, S, S, R, S, R, R}, // -
+    {R, R, R, R, S, R, S, R, R}, // *
+    {R, R, R, R, S, R, S, R, R}, // /
+    {S, S, S, S, S, E, S, S, U}, // (
+    {R, R, R, R, U, R, U, R, R}, // )
+    {R, R, R, R, U, R, U, R, R}, // ID
+    {S, S, S, S, S, R, S, U, R}, // Relational operators
+    {S, S, S, S, S, U, S, S, U}, // $
+
+};
 
 /***********************************************************
  * 
@@ -64,6 +88,7 @@ Adrián Tulušák, xtulus00
         }                                                                       \
     }while(0);                                                                  \
 
+
 /**
  * 
  * Keď by bolo že a + 3 - func(argvs), 
@@ -99,9 +124,10 @@ int handle_expression(Data_t* data){
     Data_type to_push_type;
     Precedential_table_symbol to_push_symbol;
     Precedential_table_rule current_rule;
-    Symbol_item_t* tmp;
+    //Symbol_item_t* tmp;
 
     printf("\n");
+    print_current_stack(&stack);
 
     // initialize stack
     init_stack(&stack);
@@ -196,7 +222,7 @@ bool check_operations(Symbol_stack_t* stack, int to_pop, Precedential_table_symb
     Symbol_item_t* first_symbol = stack->top;
     Symbol_item_t* third_symbol = stack->top->next->next;
 
-    bool same_type = false;
+    bool same_type;
 
 
     // Computes what kinds of type will be the type after operation    
@@ -232,6 +258,10 @@ bool check_operations(Symbol_stack_t* stack, int to_pop, Precedential_table_symb
         return false;
     }
 
+    if(same_type){
+        ;
+    }
+    
     pop_count(to_pop);
     push_stack(stack, current_data, NON_TERMINAL);
     return true;
@@ -381,10 +411,11 @@ Precedential_table_symbol get_first_term(Symbol_stack_t* stack){
 
     while(!found){
         if(is_term(tmp->symbol)){
-            return tmp->symbol;
+            break;
         }
         tmp = tmp->next;
     }
+    return tmp->symbol;
 }
 
 /**
@@ -478,9 +509,9 @@ Data_type get_data_type(Data_t* data){ // TODO: search identifier from table
         return FLT;
     else if(data->token->token == TYPE_STRING)
         return STR;
-    else if(data->token->token == TYPE_IDENTIFIER){
+    //else if(data->token->token == TYPE_IDENTIFIER){
         // search the table to get the type
-    }
+    //}
     else
         return NIL;
 }
@@ -550,7 +581,7 @@ Precedential_table_index get_index(Precedential_table_symbol symbol){
         case(MEQ):
         case(MTN):
             return INDEX_RELATIONAL_OPERATION;
-        case(DOLLAR):
+        default:
             return INDEX_DOLLAR;
     }
 }
@@ -679,6 +710,7 @@ int insert_to_buffer(Symbol_list* list, Data_t* data){
         last_one->next = tmp;
         list->last = tmp;
     }
+    return 0;
 }
 
 /**

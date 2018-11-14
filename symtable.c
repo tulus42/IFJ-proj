@@ -12,7 +12,7 @@ Adrián Tulušák, xtulus00
   */
 
 
-#include "sym_table.h"
+#include "symtable.h"
 
 //tStackP s;
 tHTable local_ST;

@@ -25,7 +25,7 @@ typedef enum
   NILL,
   STRING,
   INTEGER,
-  FLT,
+  PRASATKO_S_PAPUCKAMI_FLT,
   FUNCTION,
 
 } Type_of_tHTItem;

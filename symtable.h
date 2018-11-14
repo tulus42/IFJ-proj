@@ -61,3 +61,4 @@ void htClearAll ( tHTable ptrht );
 int STlast_check();
 void htClearAlltables();
 void htClearlocal ();
+void iteminit(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc );

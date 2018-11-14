@@ -60,4 +60,4 @@ int check_define (char key[]);
 void htClearAll ( tHTable ptrht );
 int STlast_check();
 void htClearAlltables();
-void htClearlocal ()
+void htClearlocal ();

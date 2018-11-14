@@ -225,7 +225,7 @@ int check_define (char key[]) {
 		if (tmp->defined){
 			return param_defined;
 		}else{
-			return param_undefined
+			return param_undefined;
 		}			
 	}else{
 		return ((tmp->defined));
@@ -300,5 +300,5 @@ void htClearlocal () {
 			free(tmp);
 		}
 	}
-	htInit(ptrht);							//reinicializacia tabulky
+	htInit(local_ST);							//reinicializacia tabulky
 }

@@ -26,6 +26,8 @@ Adrián Tulušák, xtulus00
 #define OPERATION_TYPE_MISMATCH 4
 
 
+
+
 typedef enum{
     S,  // shift <
     R,  // reduce >
@@ -87,6 +89,10 @@ typedef struct {
     Symbol_item_t* first;
     Symbol_item_t* last;
 } Symbol_list;
+
+Symbol_stack_t stack;
+Symbol_list buffer;
+
 
 // DEBUG FUNCTIONS
 //void print_current_stack(Symbol_stack_t* stack);

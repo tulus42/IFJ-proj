@@ -12,11 +12,14 @@ Adrián Tulušák, xtulus00
 #define _POSIX_C_SOURCE 200809L
 #endif
 
+
+
 #include "error.h"
-#include "testing.h"
-
-
 #include "parser.h"
+#include "testing.h"
+#include "expression.h"
+#include "symtable.h"
+
 
 
 #define GET_TOKEN()                                                          \
@@ -27,7 +30,7 @@ Adrián Tulušák, xtulus00
     data->token->token == TYPE_INT || data->token->token == TYPE_FLOAT      \
     || data->token->token == TYPE_STRING || data->token->token == TYPE_IDENTIFIER 
 
-#define CHECK_AND_DO(__func__) \
+#define IF_N_OK_RETURN(__func__) \
     res = __func__; \
     if (res != SYN_OK) return(res);            
 
@@ -106,7 +109,7 @@ static int prog(Data_t* data){
         // ... ID_FUNC ...
         GET_TOKEN();
         save_id(&identifier, data);
-        printf("ID: %s\n", identifier.s);
+        //printf("ID: %s\n", identifier.s);
         /*
          * somehow check ID_FUNC in table
          */
@@ -118,8 +121,7 @@ static int prog(Data_t* data){
         
         // ... <params> ...
         GET_TOKEN();
-        if (params(data) != SYN_OK) 
-            return(ER_SYN);
+        IF_N_OK_RETURN(params(data));
         
         // ... ) ... - nevolame GET_TOKEN
         if (data->token->token != TYPE_RIGHT_BRACKET) 
@@ -130,20 +132,19 @@ static int prog(Data_t* data){
         if (data->token->token != TYPE_EOL) 
             return(ER_SYN);
         
-        printf("Checkpoint 1\n");
+        //printf("Checkpoint 1\n");
 
         // ... <statement> ...
         GET_TOKEN();
-        if (statement(data) != SYN_OK) 
-            return(ER_SYN);
+        IF_N_OK_RETURN(statement(data));
         
-        printf("Checkpoint 2\n");
+        //printf("Checkpoint 2\n");
 
         // ... END ...  - nevolame GET_TOKEN, pretoze sem sa vrati zo <statement> len ak uz token == END
         if (!(data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_END))
             return(ER_SYN);
 
-        printf("Checkpoint 3\n");
+        //printf("Checkpoint 3\n");
 
         // ... EOL || EOF ... 
         GET_TOKEN();
@@ -185,21 +186,20 @@ static int prog(Data_t* data){
 static int statement(Data_t* data) {
     printf("In <statement>, in_while_of_if: %d\n", data->in_while_or_if);
     printf("Token: %s\n", tokens[data->token->token]);
-    // printf("%s\n", data->token->attr.string->s);
+
     // <statement> -> IF <expression> THEN EOL <statements> ELSE EOL <statements> END EOL
     // ... IF ...
     if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_IF) {
         data->in_while_or_if++;
         // ... <expression> ...
-        GET_TOKEN();
+        
         printf("Check expression\n");
-        if (1/*__expression__*/) {                                   // TODO expression
-            ;
+        if (handle_expression(data) == EXPRESSION_OK) {                                   
+            printf("Spracoval som expression\n");
         } else 
-            return(ER_SYN);
+            return(ER_SYN);                     // TODO zmenit návratovú hodnotu       
         
         // ... THEN ...
-        GET_TOKEN();
         printf("Check THEN\n");
         if (data->token->token != TYPE_KEYWORD || data->token->attr.keyword != KEYWORD_THEN) {
             printf("ERR1\n");
@@ -217,10 +217,7 @@ static int statement(Data_t* data) {
         // ... <statements> ...
         GET_TOKEN();
         printf("Check next statement\n");
-        if (statement(data) != SYN_OK){
-            printf("ERR3\n");
-            return(ER_SYN);
-        }
+        IF_N_OK_RETURN(statement(data));
     
         // ... ELSE ... || ... EN rozsirenie - volitelna cast ELSE
         // ELSE
@@ -237,10 +234,7 @@ static int statement(Data_t* data) {
             // ... <statements> ...
             GET_TOKEN();
             printf("Check next statement\n");
-            if (statement(data) != SYN_OK){
-                printf("ERR5\n");
-                return(ER_SYN);
-            }
+            IF_N_OK_RETURN(statement(data));
         }
         
         // ... END ...  - nevolame get_token(), pretoze sem sa vrati zo <statement> len ak uz token == END
@@ -264,14 +258,12 @@ static int statement(Data_t* data) {
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_WHILE) {
         data->in_while_or_if++;
         // ... <expression> ...
-        GET_TOKEN();
-        if (1/*__expression__*/) {      // TODO expression
-            ;
+        if (handle_expression(data) == EXPRESSION_OK) {      // TODO expression
+            printf("Spracoval som expression\n");
         } else 
             return(ER_SYN);
         
         // ... DO ...
-        GET_TOKEN();
         if (data->token->token != TYPE_KEYWORD || data->token->attr.keyword != KEYWORD_DO)
             return(ER_SYN);
     
@@ -283,8 +275,7 @@ static int statement(Data_t* data) {
         // ... <statements> ...
         GET_TOKEN();
         printf("Check next statement\n");
-        if (statement(data) != SYN_OK)
-            return(ER_SYN);
+        IF_N_OK_RETURN(statement(data));
         
         // ... END ...  - nevolame get_token(), pretoze sem sa vrati zo <statement> len ak uz token == END
         if (!(data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_END))
@@ -305,8 +296,7 @@ static int statement(Data_t* data) {
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword > 8 && data->token->attr.keyword < 17) {
         printf("in <statement> -> <function>\n");
         // ... <function> ...
-        if (function(data) != SYN_OK)
-            return(ER_SYN);
+        IF_N_OK_RETURN(function(data));
 
         // ... EOL || EOF ... - token nepytame, bude vdaka nemu navratena <function>
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
@@ -361,9 +351,7 @@ static int statement(Data_t* data) {
            
             GET_TOKEN();
             //return(argvs(data));
-            if (argvs(data) != SYN_OK) {
-                return(ER_SYN);
-            }
+            IF_N_OK_RETURN(argvs(data));
             return(prog(data));
 
         } else {
@@ -413,12 +401,6 @@ static int statement(Data_t* data) {
     return(ER_SYN);
 }
 
-/*
-    if (get_token(data)) {
-
-    } else
-        return(ER_LEX);
-*/
 
 
 /* ****************************
@@ -432,15 +414,17 @@ static int declare(Data_t* data) {
     
     // <declare> -> = <expression>
     if (data->token->token == TYPE_IDENTIFIER) {
-
+        insert_to_buffer(&buffer, data);
+        clear_buffer(&buffer);
     } else
 
     // <declare> -> = ID_FUNC ( <argvs> )
     
     // <declare> -> = <function>
     if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword > 8 && data->token->attr.keyword < 17) {
-        if (function(data) != SYN_OK) {
-            return(ER_SYN);
+        res = function(data);
+        if (res != SYN_OK) {
+            return(res);
         } else
             return(prog(data));
     } else
@@ -520,9 +504,7 @@ static int argvs(Data_t* data) {
     if (data->token->token != TYPE_RIGHT_BRACKET) {
     
 
-        if (arg(data) != SYN_OK) {
-            return(ER_SYN);
-        }
+        IF_N_OK_RETURN(arg(data));
         return(SYN_OK);
 
     // ... ) ...
@@ -608,9 +590,7 @@ static int function(Data_t* data) {
 
         // nenulovy pocet argumentov - ak by nasledovala ")" alebo EOL/EOF -> ER_SYN
         if (IS_VALUE()) {
-            if (print(data) != SYN_OK) {
-                return(ER_SYN);
-            }
+            IF_N_OK_RETURN(print(data));
 
 
             // ... EOL || EOF ... - uz skontrolovany token v PRINT
@@ -1026,10 +1006,7 @@ static int print(Data_t* data) {
     if (data->token->token == TYPE_COMMA) {
         // ... ID ...
         GET_TOKEN();
-        int res;
-        res = print(data);
-        printf("end PRINT: %d\n", res);
-        return(res);
+        IF_N_OK_RETURN(print(data));
         //return(print(data));
     }
 
@@ -1080,6 +1057,13 @@ int start_parser(){
         free_string(&string);
     }
 
+    // inicializacia bufferu
+    init_buffer(&buffer);
+
+    // inicializacia tabulky symbolov
+    STinits();
+    
+
     //identifier = (char *)malloc(sizeof(char));
     allocate_string(&identifier);
 
@@ -1093,6 +1077,11 @@ int start_parser(){
 
     value(&our_data);
 
+    // odstránenie bufferu
+    clear_buffer(&buffer);
+
+    // odstránenie tabulky
+    htClearAlltables();
     
     free_string(&string);
     free(our_data.token);
@@ -1103,6 +1092,8 @@ int start_parser(){
     /*
     DeleteStack(s);
     */
+
+    printf("EXIT code: %d\n", res);
 
     if (our_data.in_while_or_if != 0)
         return(ER_SYN);

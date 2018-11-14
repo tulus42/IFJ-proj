@@ -104,8 +104,6 @@ int precedential_table[table_size][table_size] = {
 */
 
 
-Symbol_stack_t stack;
-Symbol_list buffer;
 bool finished = false;
 bool used_buffer = false;
 int return_code = EXPRESSION_OK;

@@ -180,6 +180,30 @@ char convert_from_hex(char hex[]){
 }
 
 /**
+ * Adds constant string to the end of dynamic string.
+ */
+bool add_const_string(string_t* string_ptr, const char *const_string)
+{
+    unsigned int const_str_length = (unsigned int) strlen(const_string);
+
+    if (string_ptr->current_size + const_str_length + 1 >= string_ptr->buffer_size)
+    {
+        unsigned int new_size = string_ptr->current_size + const_str_length + 1;
+        if (!(string_ptr->s = (char *) realloc(string_ptr->s, new_size)))
+        {
+            return false;
+        }
+        string_ptr->buffer_size = new_size;
+    }
+
+    string_ptr->current_size += const_str_length;
+    strcat(string_ptr->s, const_string);
+    string_ptr->s[string_ptr->current_size] = '\0';
+
+    return true;
+}
+
+/**
  * 
  */
 void remove_first_char(string_t* string_ptr){
@@ -193,6 +217,7 @@ void remove_first_char(string_t* string_ptr){
     }
     string_ptr->s[counter-1] = '\0';
 }
+
 
 /**
  * 

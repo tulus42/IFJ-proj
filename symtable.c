@@ -18,36 +18,9 @@ Adrián Tulušák, xtulus00
 tHTable local_ST;
 tHTable global_ST;
 
-#include "testing.h"
-
-void htPrintTable( tHTable ptrht ) {
-	//int maxlen = 0;
-	//int sumcnt = 0;
-	
-	printf ("------------HASH TABLE--------------\n");
-	for ( int i=0; i<HTSIZE; i++ ) {
-		if ((ptrht)[i]==NULL)
-		{
-			continue;
-		}
-		printf ("%i:",i);
-		//int cnt = 0;
-		tHTItem* ptr = (ptrht)[i];
-		while ( ptr != NULL ) {
-			printf (" (%s,%s)\n",ptr->key,Types_of_tHTItem[ptr->typ]);
-			//if ( ptr->ptrnext != NULL )
-			//	cnt++;
-			ptr = ptr->ptrnext;
-		}
-		//if (cnt > maxlen)
-		//	maxlen = cnt;
-		//sumcnt+=cnt;
-	}
-	printf ("koniec tabulky\n");
-}
 
 /**
- * Writes error to stderr, returns error type
+ * Writes error to stderr, returns error code
  */
 int sym_table_error(int error_code){
 	htClearAll(local_ST);
@@ -57,21 +30,11 @@ int sym_table_error(int error_code){
 	fprintf(stderr, "sym_table ERROR\n");
 return error_code;
 }
-/*
-int sym_table_error(tHTable s, int error_type){
-	free_string(s);
-	fprintf(stderr, "sym_table ERROR\n");
-return error_type;*/
 
 
-/*          -------
-** Rozptylovací funkce - jejím úkolem je zpracovat zadaný klíč a přidělit
-** mu index v rozmezí 0..HTSize-1.  V ideálním případě by mělo dojít
-** k rovnoměrnému rozptýlení těchto klíčů po celé tabulce.  V rámci
-** pokusů se můžete zamyslet nad kvalitou této funkce.  (Funkce nebyla
-** volena s ohledem na maximální kvalitu výsledku). }
+/*Funkcia vracia index tabulky na zaklade kluca
+**Funkcia je prebraná z 2. domácej úlohy IAL
 */
-
 int hashCode ( char key[] ) {
 	int retval = 1;
 	int keylen = strlen(key);
@@ -80,89 +43,89 @@ int hashCode ( char key[] ) {
 	return ( retval % HTSIZE );
 }
 
-/*
-** Inicializace tabulky s explicitně zřetězenými synonymy.  Tato procedura
-** se volá pouze před prvním použitím tabulky.
+
+/*Funkcia inicializuje kazdú položku tabuľky na NULL
+**Využíva sa len vo funkciách htInits() a htClearAll()
 */
 
 void htInit ( tHTable ptrht ) {
 
-	for (int i=0;i<HTSIZE;i++){		//cyklus nastavý kazdy prvok tabulky na NULL
+	for (int i=0;i<HTSIZE;i++){
 			(ptrht)[i]=NULL;
 		}
-return;
 }
 
-/* TRP s explicitně zřetězenými synonymy.
-** Vyhledání prvku v TRP ptrht podle zadaného klíče key.  Pokud je
-** daný prvek nalezen, vrací se ukazatel na daný prvek. Pokud prvek nalezen není, 
-** vrací se hodnota NULL.
-**
+/*
+** Funkcia inicializuje obe tabulky
 */
 void STinits(){
 	htInit(global_ST);
 	htInit(local_ST);
 }
 
+/* Hashovacia tabuľka s explicitne zreťazenými synonymami.
+** Vyhľadávanie prvku v hashovacej tabuľke ptrht podľa zadaného kľúča key. 
+** Ak je daný prvok nájdený, vracia pointer na daný prvok. 
+** Ak sa položka v tabuľke nenachádza funkcia vracia NULL.
+**
+*/
 tHTItem* htSearch ( tHTable ptrht, char key[] ) {
 
-	tHTItem *tmp=(ptrht)[hashCode(key)]; 	//zahashuje kluc
+	tHTItem *tmp=(ptrht)[hashCode(key)];
 
-	while (tmp){							//cyklus prehladáva zoznam na danom mieste v tabulke
+	while (tmp){							
 	
-		if (strcmp(tmp->key, key)==0){		//ak je item najdeny tak ho funkcia vrati
+		if (strcmp(tmp->key, key)==0){		
 			return tmp;
 		}
-		if (tmp->ptrnext==NULL){			//ak v zozname uz nie je ziadny dalsi item tak funkcia vrati NULL
+		if (tmp->ptrnext==NULL){			
 			return NULL;
 		}
 		else{
-			tmp=tmp->ptrnext;				//inak sa presunie na nasledujuci pointer
+			tmp=tmp->ptrnext;				
 		}
 	}
 return NULL;
 }
 
+/* Funkcia vkladá do zvolenej tabuľky ptrht položku key, ktorá má typ NILL
+** Pri chybe alokácie vracia hodnotu ER_INTERNAL
+** Pri pokuse o redefiniciu premennej vracia ER_SEM_VARIABLE
+** Inak vracia 0
+*/
 
 int def_ID( tHTable ptrht,char key[] ){
 
-	if (htSearch(ptrht,key)!=NULL){						//ak je item najdeny je to chyba
-		printf("key najdeny\n");
+	if (htSearch(ptrht,key)!=NULL){							//ak je položka nájdená jedná sa o ER_SEM_VARIABLE
 		
 		return sym_table_error(ER_SEM_VARIABLE);
  		 
  	}
  	else{
- 		printf("key nenajdeny\n");
- 		tHTItem *Ninsert = malloc(sizeof(tHTItem));	//ak nie je najdeny naalokuje si pamat pre dany item
- 		if (Ninsert==NULL){							//ak sa alokacia nepodarila tak funkcia skonci
+ 		tHTItem *Ninsert = malloc(sizeof(tHTItem));			//alokácia novej položky
+ 		if (Ninsert==NULL){								
  			return sym_table_error(ER_INTERNAL);
 
  		}
- 		printf("Ninsert ok\n");
  		
-		Ninsert->key = (char*) malloc((strlen(key)+2));
-		if (Ninsert->key==NULL){							//ak sa alokacia nepodarila tak funkcia skonci
+		Ninsert->key = (char*) malloc((strlen(key)+2));		//alokácia kľúča
+		if (Ninsert->key==NULL){							
  			return sym_table_error(ER_INTERNAL);
  		}
 
- 		strcpy(Ninsert->key,key);
- 		printf("nahratie kluca ok\n");
+ 		strcpy(Ninsert->key,key);							//inicializácia položky
  		Ninsert->typ=NILL;	
  		Ninsert->param_count=0;
  		Ninsert->defined=FALSE;						
- 		printf("typ ok\n");
- 		printf("som hash prvku : %d\n", hashCode(key));
- 		Ninsert->ptrnext=(ptrht)[hashCode(key)];	//prvok zaradime na zaciatok zoznamu
+ 		Ninsert->ptrnext=(ptrht)[hashCode(key)];			//prvok zaradime na zaciatok zoznamu
  		(ptrht)[hashCode(key)]=Ninsert;
- 		printf("hash ok\n");
  	}
 	return 0;
 }
 
-/*	!!! ak sa užívateľ snaží updatovať funkciu s rovnakým názvom a počtom parametrov nestane sa nič !!!
-
-
+/* Funkcia vkladá do zvolenej tabuľky ptrht celú vybranú položku item_ptr 
+** Ak je položka už v tabuľke aktualizuje jej typ 
+** v pripade FUNCTION môže preklopiť jej defined zložku
 */
 
 int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
@@ -172,8 +135,8 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
 	if (actual_item){													//ak je item najdeny aktuelizuje data
 		printf("item najdeny\n");
 		if ((item_ptr->typ==FUNCTION)&&(actual_item->typ==FUNCTION)){	//obe su funkcie
-			if (actual_item->param_count==item_ptr->param_count){
-				if (item_ptr->defined && !actual_item->defined){
+			if (actual_item->param_count==item_ptr->param_count){		//maju rovnaky pocet parametrov
+				if (item_ptr->defined && !actual_item->defined){		//item v tabzľke je nedefinovany a "pridávaný" item je definovany
 					actual_item->defined=item_ptr->defined;
 					return 0;
 				}
@@ -199,54 +162,54 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
  					break;
  		}
  	}
- 	else{
- 		printf("item nenajdeny ok\n");
- 		tHTItem *Ninsert = malloc(sizeof(tHTItem));	//ak nie je najdeny naalokuje si pamat pre dany item
- 		if (Ninsert==NULL){							//ak sa alokacia nepodarila tak funkcia skonci
- 			return sym_table_error(ER_INTERNAL);
- 		printf("new item alokacia ok\n");
- 		}
+ 	else{																//položka nie je v tabuľke
 
-		Ninsert->key = (char*) malloc((strlen((item_ptr->key))+2));
-		if (Ninsert->key==NULL){							//ak sa alokacia nepodarila tak funkcia skonci
+ 		tHTItem *Ninsert = malloc(sizeof(tHTItem));						//alokácia položky
+ 		if (Ninsert==NULL){							
  			return sym_table_error(ER_INTERNAL);
  		}
- 		printf("key alokacia ok\n");
 
- 		strcpy(Ninsert->key,item_ptr->key);
- 		printf("nahratie kluca ok\n");
- 		Ninsert->typ=item_ptr->typ;							//nahraju sa data
+		Ninsert->key = (char*) malloc((strlen((item_ptr->key))+2));		//alokácia kľúča
+		if (Ninsert->key==NULL){							
+ 			return sym_table_error(ER_INTERNAL);
+ 		}
+
+ 		strcpy(Ninsert->key,item_ptr->key);								//nahrajú sa kľúč a data
+ 		Ninsert->typ=item_ptr->typ;							
  		Ninsert->param_count=item_ptr->param_count;
  		Ninsert->defined=item_ptr->defined;		
- 		Ninsert->ptrnext=(ptrht)[hashCode(item_ptr->key)];	//prvok zaradime na zaciatok zoznamu
+ 		Ninsert->ptrnext=(ptrht)[hashCode(item_ptr->key)];				//prvok zaradime na zaciatok zoznamu
  		(ptrht)[hashCode(item_ptr->key)]=Ninsert;
  	}
  return 0;
 }
 
-
+/* Funkcia vyhľadáva v zvolenej tabuľke ptrht položku s kľúčom key
+** Ak je položka nájdená vracia ukazateľ na jej typ
+** Ak sa položka v tabuľke nenacjhádza vracia ukazateľ na NULL
+*/
 
 Type_of_tHTItem* get_type (tHTable ptrht,char key[]) {
-/*
-	printf("som v get_type\n");
-	printf("%s\n",key);
-	tHTItem *tmp=(htSearch(ptr,key));
-	//printf("%s\n",tmp->key);
-									
-	return (tmp->typ);
-	*/
+
 	printf("som v get_type\n");
 	printf("%s\n",key);
 	if (htSearch(ptrht,key)!=NULL){				//ak je item najdeny
-		return &(htSearch(ptrht,key))->typ;	//funkcia vrati data hladaneho itemu
+		return &(htSearch(ptrht,key))->typ;		//funkcia vrati typ hladaneho itemu
 	}
 	else{										//inak vrati NULL
 		return NULL;
 	}
 }
 
+/* Funkcia kontroluje či je funkcia s kľúčom key v globálnej tabuľke symbolov (global_ST) definovaná
+** Návratové hodnoty
+** NOT_FOUND==3
+** not_a_function==2
+** defined==FALSE==0
+** defined==TRUE==1
+*/
 
-int check_define (char key[]) {		//defined==TRUE==1 ; defined==FALSE==0; not_a_function==2; NOT_FOUND==3
+int check_define (char key[]) {
 
 	tHTItem *tmp = htSearch(global_ST,key);
 	if (tmp==NULL){
@@ -258,46 +221,44 @@ int check_define (char key[]) {		//defined==TRUE==1 ; defined==FALSE==0; not_a_f
 	}else{
 		return ((tmp->defined));
 	}								
-	
-	
 }
 
-
-
-/* TRP s explicitně zřetězenými synonymy.
-** Tato procedura zruší všechny položky tabulky, korektně uvolní prostor,
-** který tyto položky zabíraly, a uvede tabulku do počátečního stavu.
+/* Vyčistí tabuľku ptrht a reinicializuje ju
 */
 
 void htClearAll ( tHTable ptrht ) {
 
 
 
-	tHTItem *tmp; //pomocny pointer
-	for (int i=0;i<HTSIZE;i++){	//cyklus prechadza tabulkov
+	tHTItem *tmp;
+	for (int i=0;i<HTSIZE;i++){
 		
 		tmp=(ptrht)[i];
 
-		while((ptrht)[i]!=NULL){	//cyklus prechadza zoznamom
-			tmp=(ptrht)[i];		//postupne uvolni cely zoznam
+		while((ptrht)[i]!=NULL){
+			tmp=(ptrht)[i];
 			(ptrht)[i]=(ptrht)[i]->ptrnext;
 			free(tmp->key);
 			free(tmp);
 		}
 	}
-	htInit(ptrht);					//reinicializacia tabulky
+	htInit(ptrht);							//reinicializacia tabulky
 }
 
+/* Skontroluje či sú všetky funkcie v Globálnej tabuľke symbolov definovane
+** Ak narazí na nedefinovanú funkciu skončí s návratovou hodnotou ER_SEM_VARIABLE
+** Ak sú všetky funkcie definované vracia hodnotu 0
+*/
 
 int STlast_check(){
 
-	tHTItem *tmp; //pomocny pointer
+	tHTItem *tmp;
 	
-	for (int i=0;i<HTSIZE;i++){	//cyklus prechadza tabulkov
+	for (int i=0;i<HTSIZE;i++){	
 		
 		tmp=global_ST[i];
 
-		while(tmp!=NULL){	//cyklus prechadza zoznamom
+		while(tmp!=NULL){
 			printf("%s\n",tmp->key );
 			if ((tmp->typ==FUNCTION)&&(tmp->defined==FALSE)){
 				return sym_table_error(ER_SEM_VARIABLE);

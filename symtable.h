@@ -14,9 +14,13 @@ Adrián Tulušák, xtulus00
 
 
 #define HTSIZE 6421
-#define STACK_SIZE 30
 #define TRUE 1
 #define FALSE 0
+#define ST_OK 0
+#define NOT_FOUND 2
+#define param_defined 3
+#define param_undefined 4
+
 
 /*datové typy*/
 
@@ -56,4 +60,4 @@ int check_define (char key[]);
 void htClearAll ( tHTable ptrht );
 int STlast_check();
 void htClearAlltables();
-
+void htClearlocal ()

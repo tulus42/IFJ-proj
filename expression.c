@@ -8,7 +8,7 @@ Adrián Tulušák, xtulus00
 
 
 #include "error.h"
-//#include "testing.h"
+#include "symtable.h"
 #include "expression.h"
 
 
@@ -45,14 +45,6 @@ int precedential_table[table_size][table_size] = {
     if (get_next_token(data->token) != LEXER_OK)                                \
         return(ER_LEX)
 
-/**
- * Checks type mismatch in numerical operations
- */
-#define CHECK_NUMERICAL_OPERATIONS()                                            \
-    if(!check_operations(stack, to_pop, operand)){                              \
-        return_code = OPERATION_TYPE_MISMATCH;                                  \
-        return(false);                                                          \
-    }                                                                           \
 
 /**
  * 
@@ -61,7 +53,6 @@ int precedential_table[table_size][table_size] = {
     do{                                                                         \
         tmp = get_from_buffer(&buffer);                                         \
         to_push_symbol = tmp->symbol;                                           \
-        to_push_type = tmp->type;                                               \
         delete_first(&buffer);                                                  \
     }while(0);                                                                  \
 
@@ -70,7 +61,6 @@ int precedential_table[table_size][table_size] = {
  */
 #define SAVE_TOKEN()                                                            \
     do{                                                                         \
-        to_push_type = get_data_type(data);                                     \
         to_push_symbol = get_symbol_from_token(data);                           \
     }while(0);                                                                  \
 
@@ -86,6 +76,8 @@ int precedential_table[table_size][table_size] = {
         else{                                                                   \
             SAVE_SYMBOL();                                                      \
         }                                                                       \
+        if(return_code != EXPRESSION_OK)                                        \
+            return expression_error(&stack, &buffer, return_code);              \
     }while(0);                                                                  \
 
 
@@ -120,7 +112,6 @@ int return_code = EXPRESSION_OK;
 int handle_expression(Data_t* data){
     bool can_get_token = true;
     bool is_reduced = false;
-    Data_type to_push_type;
     Precedential_table_symbol to_push_symbol;
     Precedential_table_rule current_rule;
     Symbol_item_t* tmp;
@@ -129,8 +120,8 @@ int handle_expression(Data_t* data){
     init_stack(&stack);
 
     // stack contains : $
-    if(!push_stack(&stack, NIL, DOLLAR)){ // push dollar
-        return expression_error(&stack, ER_INTERNAL);
+    if(!push_stack(&stack, DOLLAR)){ // push dollar
+        return expression_error(&stack, &buffer, ER_INTERNAL);
     }
     
     GET_SYMBOL_OR_TOKEN();
@@ -145,24 +136,24 @@ int handle_expression(Data_t* data){
 
         if(current_rule == S){  // SHIFT rule
             can_get_token = true;
-            if(!add_after_first_terminal(&stack, NIL, START)){      // push start symbol after first terminal
-                return expression_error(&stack, ER_INTERNAL);
+            if(!add_after_first_terminal(&stack, START)){      // push start symbol after first terminal
+                return expression_error(&stack, &buffer, ER_INTERNAL);
             }
-            if(!push_stack(&stack, to_push_type, to_push_symbol)){ // push token symbol
-                return expression_error(&stack, ER_INTERNAL);
+            if(!push_stack(&stack, to_push_symbol)){ // push token symbol
+                return expression_error(&stack, &buffer, ER_INTERNAL);
             }
 
         }
         else if(current_rule == R){  // REDUCE rule
             can_get_token = false;                                  // don't get any new token
             if(!reduce_by_rule(&stack)){                             // reduce it
-                return expression_error(&stack, return_code);
+                return expression_error(&stack, &buffer, return_code);
             } 
         }
         else if(current_rule == E){  // EQUAL rule
             can_get_token = true;                                   // can get new token
-            if(!push_stack(&stack, to_push_type, to_push_symbol)){  // push token symbol
-                return expression_error(&stack, ER_INTERNAL);
+            if(!push_stack(&stack, to_push_symbol)){  // push token symbol
+                return expression_error(&stack, &buffer, ER_INTERNAL);
             }
         }
         else if(current_rule == U){  // UNDEFINED rule
@@ -172,12 +163,12 @@ int handle_expression(Data_t* data){
                 break;
             }
             else{
-                return expression_error(&stack, OTHER_SYNTACTICAL_ERRORS);
+                return expression_error(&stack, &buffer, OTHER_SYNTACTICAL_ERRORS);
             }    
         }
 
         if(can_get_token)
-            GET_SYMBOL_OR_TOKEN()
+            GET_SYMBOL_OR_TOKEN();
         //print_current_stack(&stack); // DEBUG
         
     }
@@ -190,76 +181,6 @@ int handle_expression(Data_t* data){
     return EXPRESSION_OK;
 }
 
-/**
- * Checks possible operations with strings
- */
-bool allowed_string_operations(Precedential_table_symbol symbol){
-    switch(symbol){
-        case PLUS:
-        case EQL:
-        case NEQ:
-        case LEQ:
-        case LTN:
-        case MEQ:
-        case MTN:
-            return true;
-        default:
-            return false;
-    }
-}
-
-/**
- * Checks types of operation and whether there is mismatch or no
- */
-bool check_operations(Symbol_stack_t* stack, int to_pop, Precedential_table_symbol operand){
-    Data_type current_data;
-    Symbol_item_t* first_symbol = stack->top;
-    Symbol_item_t* third_symbol = stack->top->next->next;
-
-    bool same_type;
-
-
-    // Computes what kinds of type will be the type after operation    
-    if(first_symbol->type == third_symbol->type){
-        if(first_symbol->type == INT){
-            same_type = true;
-            current_data = INT;
-        }
-        else if(first_symbol->type == FLT){
-            same_type = true;
-            current_data = FLT;
-            }
-        else if(first_symbol->type == STR){
-            if(allowed_string_operations(operand)){
-                same_type = true;
-                current_data = STR;
-            }
-            else{
-                return false;
-            }
-        }
-        else{
-            return false;
-        }
-    }
-    else if(first_symbol->type == INT && first_symbol->type == FLT){
-        current_data = FLT;
-    }
-    else if(first_symbol->type == FLT && first_symbol->type == INT){
-        current_data = FLT;
-    }
-    else{
-        return false;
-    }
-
-    if(same_type){
-        ;
-    }
-
-    pop_count(to_pop);
-    push_stack(stack, current_data, NON_TERMINAL);
-    return true;
-}
 
 /**
  * Reduce it by the rule
@@ -268,14 +189,13 @@ bool reduce_by_rule(Symbol_stack_t* stack){
     int count = count_to_reduce(stack);     // how many symbols are we reducing
     int to_pop = count + 1;                 // we have to pop the count + the start symbol
     Symbol_item_t* tmp_first = stack->top;  // first item from the stack
-    Data_type current_data_type = tmp_first->type;
     Precedential_table_symbol operand;
 
     // we are reducing 1 symbol
     if(count == 1){ // i -> E
         if(tmp_first->symbol == ID){
             pop_count(to_pop);
-            push_stack(stack, current_data_type, NON_TERMINAL);
+            push_stack(stack, NON_TERMINAL);
         }
     } // we are reducing 3 symbols
     else if(count == 3){
@@ -286,34 +206,44 @@ bool reduce_by_rule(Symbol_stack_t* stack){
         if(tmp_first->symbol == NON_TERMINAL && tmp_third->symbol == NON_TERMINAL){ // E X E
             operand = tmp_second->symbol;
             if(operand == PLUS){         // E + E
-                CHECK_NUMERICAL_OPERATIONS(); 
+                pop_count(to_pop);
+                push_stack(stack, NON_TERMINAL);
             }
             else if(operand == MINUS){   // E - E
-                CHECK_NUMERICAL_OPERATIONS();
+                pop_count(to_pop);
+                push_stack(stack, NON_TERMINAL);
             }
             else if(operand == MUL){     // E * E
-                CHECK_NUMERICAL_OPERATIONS();
+                pop_count(to_pop);
+                push_stack(stack, NON_TERMINAL);
             }
             else if(operand == DIV){     // E / E
-                CHECK_NUMERICAL_OPERATIONS();
+                pop_count(to_pop);
+                push_stack(stack, NON_TERMINAL);
             }
             else if(operand == EQL){     // E == E
-                CHECK_NUMERICAL_OPERATIONS();
+                pop_count(to_pop);
+                push_stack(stack, NON_TERMINAL);
             }
             else if(operand == NEQ){     // E != E
-                CHECK_NUMERICAL_OPERATIONS();
+                pop_count(to_pop);
+                push_stack(stack, NON_TERMINAL);
             }
             else if(operand == LEQ){     // E <= E
-                CHECK_NUMERICAL_OPERATIONS();
+                pop_count(to_pop);
+                push_stack(stack, NON_TERMINAL);
             }
             else if(operand == LTN){     // E < E
-                CHECK_NUMERICAL_OPERATIONS();
+                pop_count(to_pop);
+                push_stack(stack, NON_TERMINAL);
             }
             else if(operand == MEQ){     // E >= E
-                CHECK_NUMERICAL_OPERATIONS();
+                pop_count(to_pop);
+                push_stack(stack, NON_TERMINAL);
             }
             else if(operand == MTN){     // E > E
-                CHECK_NUMERICAL_OPERATIONS();
+                pop_count(to_pop);
+                push_stack(stack, NON_TERMINAL);
             }
             else{
                 return_code = OTHER_SYNTACTICAL_ERRORS;
@@ -323,9 +253,8 @@ bool reduce_by_rule(Symbol_stack_t* stack){
         else{ // the non_terminal is in brackets (E) -> E
             if(tmp_first->symbol == RIGHT_B && tmp_third->symbol == LEFT_B){
                 if(tmp_second->symbol == NON_TERMINAL){
-                    current_data_type = tmp_second->type;
                     pop_count(to_pop);
-                    push_stack(stack, current_data_type, NON_TERMINAL);
+                    push_stack(stack, NON_TERMINAL);
                 }
                 else{
                     return_code = OTHER_SYNTACTICAL_ERRORS;
@@ -350,7 +279,7 @@ bool reduce_by_rule(Symbol_stack_t* stack){
 /**
  * Adds symbol after first terminal symbol
  */
-bool add_after_first_terminal(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol){
+bool add_after_first_terminal(Symbol_stack_t* stack, Precedential_table_symbol symbol){
     bool found = false;
     Symbol_item_t* tmp = stack->top;
     Symbol_item_t* add_after;
@@ -360,8 +289,7 @@ bool add_after_first_terminal(Symbol_stack_t* stack, Data_type type, Precedentia
         return false;
     }
 
-    new_item->symbol = symbol;
-    new_item->type = type;    
+    new_item->symbol = symbol;    
     
     if(is_term(stack->top->symbol)){ // terminal is on top
         new_item->next = stack->top;
@@ -458,8 +386,9 @@ Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_ta
 /**
  * Returns error_type when comething goes wrong
  */
-int expression_error(Symbol_stack_t* stack, int error_type){
+int expression_error(Symbol_stack_t* stack, Symbol_list* list,  int error_type){
     free_stack(stack);
+    clear_buffer(list);
     printf("EXPRESSION ERROR!\n");
     return error_type;
 }
@@ -495,21 +424,26 @@ void print_current_stack(Symbol_stack_t* stack){ //
 */
 
 /**
- * Evaluates what data type of token
+ * 
  */
-Data_type get_data_type(Data_t* data){ // TODO: search identifier from table
-    if(data->token->token == TYPE_INT)
-        return INT;
-    else if(data->token->token == TYPE_FLOAT)
-        return FLT;
-    else if(data->token->token == TYPE_STRING)
-        return STR;
-    //else if(data->token->token == TYPE_IDENTIFIER){
-        // search the table to get the type
-    //}
-    else
-        return NIL;
+void check_sematics(Data_t* data){
+
+    // search in the table
+    if(data->in_definition == true){    // je fo funkcii - je lokálna
+        if(check_define(local_ST, data->token->attr.string->s)){
+            return_code = UNDEFINED_ID_EXPRESSION;
+            return;
+        }
+    }
+    else{
+        if(check_define(global_ST, data->token->attr.string->s)){
+            return_code = UNDEFINED_ID_EXPRESSION;
+            return;
+        }
+    }
+    return_code = EXPRESSION_OK;
 }
+
 
 /**
  * Returns symbol of precedential table from token 
@@ -531,7 +465,9 @@ Precedential_table_symbol get_symbol_from_token(Data_t* data){
         case(TYPE_INT):
         case(TYPE_STRING):
         case(TYPE_FLOAT):
+            return ID;
         case(TYPE_IDENTIFIER):
+            check_sematics(data);
             return ID;
         case(TYPE_EQ):
             return EQL;
@@ -597,7 +533,7 @@ void init_stack(Symbol_stack_t* stack){
 /**
  * Pushes symbol to stack
  */
-bool push_stack(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol){
+bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol){
     Symbol_item_t* new_item = malloc(sizeof(Symbol_item_t));
 
     if(new_item == NULL){
@@ -606,7 +542,6 @@ bool push_stack(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol
     else{
         new_item->next = stack->top;
         new_item->symbol = symbol;
-        new_item->type = type;
         stack->top = new_item;
         return true;
     }  
@@ -680,7 +615,6 @@ void clear_buffer(Symbol_list* list){
  */
 int insert_to_buffer(Symbol_list* list, Data_t* data){
     Precedential_table_symbol current_symbol = get_symbol_from_token(data);
-    Data_type type = get_data_type(data);
     Symbol_item_t* last_one;
 
     Symbol_item_t* tmp = malloc(sizeof(Symbol_item_t));
@@ -689,7 +623,6 @@ int insert_to_buffer(Symbol_list* list, Data_t* data){
     }
 
     tmp->symbol = current_symbol;
-    tmp->type = type;
     tmp->next = NULL;
 
     if(list->first == NULL && list->last == NULL){ // zero elements
@@ -745,7 +678,6 @@ bool is_empty(Symbol_list* list){
 
 /**
  * 
- 
 void print_buffer(Symbol_list* list){
     if(list->first == NULL){
         printf("BUFFER IS EMPTY\n\n");

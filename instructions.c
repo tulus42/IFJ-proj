@@ -178,12 +178,12 @@ bool gen_mainscope_end()
 
 void clear_code()
 {
-	dynamic_string_free(&code);
+	free_string(&code);
 }
 
 void flush_code(FILE *dst_file)
 {
-	fputs(code.str, dst_file);
+	fputs(code.s, dst_file);
 	clear_code();
 }
 
@@ -276,19 +276,19 @@ static bool gen_term_val(Token_t t)
 	switch (t.token)
 	{
 		case TYPE_INT:
-			sprintf(t_str, "%d", token.attr.integer);
+			sprintf(t_str, "%d", t.attr.integer);
 			ADD_CODE("int@"); 
 			ADD_CODE(t_str);
 			break;
 
 		case TYPE_FLOAT:
-			sprintf(t_str, "%g", token.attr.flt);
+			sprintf(t_str, "%g", t.attr.flt);
 			ADD_CODE("float@");
 			ADD_CODE(t_str);
 			break;
 
 		case TYPE_STRING:
-			for (int i = 0; (c = (unsigned char) (token.attr.string->s)[i]) != '\0'; i++)
+			for (int i = 0; (c = (unsigned char) (t.attr.string->s)[i]) != '\0'; i++)
 			{
 				if (c == '\\' || c == '#' || c <= 32 || !isprint(c))
 				{
@@ -307,7 +307,7 @@ static bool gen_term_val(Token_t t)
 
 		case TYPE_IDENTIFIER:
 			ADD_CODE("LF@");
-			ADD_CODE(token.attr.string->s);
+			ADD_CODE(t.attr.string->s);
 			break;
 
 		default:
@@ -322,10 +322,10 @@ static bool gen_term_val(Token_t t)
 bool gen_func_pass_param(Token_t t, int idx)
 {
 	ADD_CODE("DEFVAR TF@_");
-	ADD_CODE_INT(idx);
+	ADD_INT(idx);
 	ADD_CODE("\n");
 	ADD_CODE("MOVE TF@_");
-	ADD_CODE_INT(idx);
+	ADD_INT(idx);
 	ADD_CODE(" ");
 	if (!gen_term_val(t)) 
 		return false; 
@@ -678,7 +678,7 @@ bool gen_save_expr_res(char *var_id, Type_of_tHTItem val_type, Type_of_tHTItem r
 	{
 		ADD_INST("FLOAT2INTS");
 	}
-	else if (val_type ==  && r_type == INTEGER)
+	else if (val_type == PRASATKO_S_PAPUCKAMI_FLT && r_type == INTEGER)
 	{
 		ADD_INST("INT2FLOATS");
 	}

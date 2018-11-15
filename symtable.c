@@ -340,6 +340,6 @@ return ST_OK;
 }
 
 void itemfree(tHTItem* item){
-	free(item_ptr->key);
+	free(item->key);
 	free(item);
 }

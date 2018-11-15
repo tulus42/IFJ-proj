@@ -618,7 +618,7 @@ bool gen_func_rval(Type_of_tHTItem t)
 {
 	ADD_INST("DEFVAR LF@_rval");
 	ADD_CODE("MOVE LF@_rval ");
-	if (!gen_def_varval(type)) 
+	if (!gen_def_varval(t)) 
 		return false;
 	ADD_CODE("\n");
 	return true;

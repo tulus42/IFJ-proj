@@ -15,9 +15,32 @@ tHTable local_ST;
 tHTable global_ST;
 
 
+/* ladiaca funkcia pre ST*/
+
+
+void htPrintTable( tHTable ptrht ) {
+	
+	printf ("------------HASH TABLE--------------\n");
+	for ( int i=0; i<HTSIZE; i++ ) {
+		if ((ptrht)[i]==NULL)
+		{
+			continue;
+		}
+		printf ("%i:",i);
+		tHTItem* ptr = (ptrht)[i];
+		while ( ptr != NULL ) {
+			printf (" (%s,%s,%d)",ptr->key,Types_of_tHTItem[ptr->typ], ptr->defined);
+			ptr = ptr->ptrnext;
+		}
+		printf("\n");
+	}
+	printf ("koniec tabulky\n");
+}
+
 /**
  * Writes error to stderr, returns error code
  */
+
 int sym_table_error(int error_code){
 	htClearAll(local_ST);
 	//htInit(local_ST);

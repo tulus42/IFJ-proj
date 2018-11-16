@@ -14,12 +14,12 @@ Adrián Tulušák, xtulus00
 
 
 #define HTSIZE 6421
-#define TRUE 1
-#define FALSE 0
+#define FUNCTION_DEFINED 1
+#define FUNCTION_UNDEFINED 0
 #define ST_OK 0
 #define NOT_FOUND 2
-#define param_defined 3
-#define param_undefined 4
+#define PARAM_DEFINED 3
+#define PARAM_UNDEFINED 4
 
 
 /*datové typy*/

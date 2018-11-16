@@ -40,7 +40,7 @@ void htPrintTable( tHTable ptrht ) {
 		printf ("%i:",i);
 		tHTItem* ptr = (ptrht)[i];
 		while ( ptr != NULL ) {
-			printf (" (%s,%s,%s)\n",ptr->key, types_of_HTitem[ptr->typ], is_defined[ptr->defined]);
+			printf (" (%s,%s,%s,%d)\n",ptr->key, types_of_HTitem[ptr->typ], is_defined[ptr->defined],ptr->param_count);
 			ptr = ptr->ptrnext;
 		}
 		//printf("\n");
@@ -144,9 +144,9 @@ int def_ID( tHTable ptrht,char key[] ){
  		}
 
  		strcpy(Ninsert->key,key);							//inicializácia položky
- 		Ninsert->typ=NILL;	
+ 		Ninsert->typ=VAR;	
  		Ninsert->param_count=0;
- 		Ninsert->defined=false;						
+ 		Ninsert->defined=true;						
  		Ninsert->ptrnext=(ptrht)[hashCode(key)];			//prvok zaradime na zaciatok zoznamu
  		(ptrht)[hashCode(key)]=Ninsert;
  	}

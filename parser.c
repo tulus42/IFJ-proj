@@ -16,16 +16,52 @@ Adrián Tulušák, xtulus00
 
 #include "error.h"
 #include "parser.h"
-#include "testing.h"
 #include "expression.h"
 //#include "symtable.h"
 #include "instructions.h"
 
 
+const char* tokens[] = {
+	"TYPE_EOF", 
+	"TYPE_EOL", 
+	"TYPE_IDENTIFIER", 
+	"TYPE_KEYWORD",
 
-#define GET_TOKEN()                                                          \
-    if (get_next_token(data->token) != LEXER_OK)                             \
-        return(ER_LEX)
+	"TYPE_ASSIGN", // =
+	"TYPE_NEQ", // !=
+	"TYPE_LEQ", // <=
+	"TYPE_LTN", // <
+	"TYPE_MEQ", // >=
+	"TYPE_MTN", // >
+	"TYPE_EQ", // ==
+	
+	"TYPE_PLUS", // +
+	"TYPE_MINUS", //  -
+	"TYPE_MUL", // *
+	"TYPE_DIV", // /
+	"TYPE_QUESTION_MARK", // ?
+	"TYPE_COLON", // :
+
+	"TYPE_LEFT_BRACKET", // (
+	"TYPE_RIGHT_BRACKET", // )
+	"TYPE_COMMA", // ,
+
+	"TYPE_COMMENT", // #
+	"TYPE_COMMENT_START", // =begin 
+	"TYPE_COMMENT_END", // =end 
+
+	"TYPE_INT", 
+	"TYPE_FLOAT", 
+	"TYPE_STRING",
+};
+
+
+
+#define GET_TOKEN()   \
+    do {                                                       \
+        if (get_next_token(data->token) != LEXER_OK)                             \
+            return(ER_LEX); \
+    } while (data->token->token == TYPE_COMMENT);
 
 #define IS_VALUE()                                                           \
     data->token->token == TYPE_INT || data->token->token == TYPE_FLOAT      \
@@ -61,9 +97,11 @@ Adrián Tulušák, xtulus00
  */
 
 // premenna pre uchovanie ID z tokenu pre neskorsie ulozenie do TS
+string_t identifier_f;
 string_t identifier;
 
 int res;
+int params_cnt = 0;
 
 tHTItem tItem;
 
@@ -119,11 +157,10 @@ static int prog(Data_t* data){
 
         // ... ID_FUNC ...
         GET_TOKEN();
-        save_id(&identifier, data);
+        save_id(&identifier_f, data);
         //printf("ID: %s\n", identifier.s);
-        /*
-         * somehow check ID_FUNC in table
-         */
+        
+        
 
         // ... ( ...
         GET_TOKEN();
@@ -142,6 +179,17 @@ static int prog(Data_t* data){
         GET_TOKEN();
         if (data->token->token != TYPE_EOL) 
             return(ER_SYN);
+
+        // priradenie ID_FUNC do tabulky
+        itemupdate(&tItem, (&identifier_f)->s,  FUNCTION, true, params_cnt);
+        res = htInsert(global_ST, &tItem);
+        if (res != ST_OK) {
+            return(res);
+        }
+        params_cnt = 0;
+
+        htPrintTable(global_ST);
+
         
         //printf("Checkpoint 1\n");
 
@@ -205,10 +253,11 @@ static int statement(Data_t* data) {
         // ... <expression> ...
         
         printf("Check expression\n");
-        if (handle_expression(data) == EXPRESSION_OK) {                                   
+        res = handle_expression(data);
+        if (res == EXPRESSION_OK) {                                   
             printf("Spracoval som expression\n");
         } else 
-            return(ER_SYN);                     // TODO zmenit návratovú hodnotu       
+            return(res);                     // TODO zmenit návratovú hodnotu       
         
         // ... THEN ...
         printf("Check THEN\n");
@@ -269,10 +318,11 @@ static int statement(Data_t* data) {
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_WHILE) {
         data->in_while_or_if++;
         // ... <expression> ...
-        if (handle_expression(data) == EXPRESSION_OK) {      // TODO expression
+        res = handle_expression(data);
+        if (res == EXPRESSION_OK) {      // TODO expression
             printf("Spracoval som expression\n");
         } else 
-            return(ER_SYN);
+            return(res);
         
         // ... DO ...
         if (data->token->token != TYPE_KEYWORD || data->token->attr.keyword != KEYWORD_DO)
@@ -331,12 +381,26 @@ static int statement(Data_t* data) {
         // <statement> -> ID EOL || EOF 
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
             itemupdate(&tItem, (&identifier)->s,  VAR, false, 0);
-            res = htInsert(global_ST, &tItem);
-            printf("idetmInsert returned: %d\n", res);
+
+            // ak sme v DEF
+            if (data->in_definition == true) {
+                res = htInsert(local_ST, &tItem);
+                printf("idetmInsert returned: %d\n", res);
                 if (res != ST_OK) {
                     return(res);
                 }
-            htPrintTable(global_ST);
+                htPrintTable(local_ST);
+            
+            // ak sme na globalnej urovni
+            } else {
+                res = htInsert(global_ST, &tItem);
+                printf("idetmInsert returned: %d\n", res);
+                if (res != ST_OK) {
+                    return(res);
+                }
+                htPrintTable(global_ST);
+            }
+            
 
             return(prog(data));
         } else
@@ -349,12 +413,25 @@ static int statement(Data_t* data) {
             res = declare(data);
             if (res== SYN_OK) {
                 itemupdate(&tItem, (&identifier)->s, VAR, true, 0);
-                res = htInsert(global_ST, &tItem);
-                printf("idetmInsert returned: %d\n", res);
-                if (res != ST_OK) {
-                    return(res);
+
+                if (data->in_definition == true) {
+                    res = htInsert(local_ST, &tItem);
+                    printf("idetmInsert returned: %d\n", res);
+                    if (res != ST_OK) {
+                        return(res);
+                    }
+                    htPrintTable(local_ST);
+
+                } else {
+                    res = htInsert(global_ST, &tItem);
+                    printf("idetmInsert returned: %d\n", res);
+                    if (res != ST_OK) {
+                        return(res);
+                    }
+                    htPrintTable(global_ST);
                 }
-                htPrintTable(global_ST);
+            } else {
+                return(res);
             }
             return(prog(data));
         } else
@@ -447,12 +524,33 @@ static int declare(Data_t* data) {
         if (data->token->token == TYPE_IDENTIFIER) {
             // ... ID_FUNC ...
             if (check_define(global_ST, data->token->attr.string->s) == FUNCTION_DEFINED) {
-
+                
             } else
 
             // ... ID ... 
             if (check_define(global_ST, data->token->attr.string->s) == PARAM_DEFINED) {
+                GET_TOKEN();
 
+                // ak nasleduje operand, vyhodnosti expression
+                if (IS_OPERAND()) {
+                    insert_to_buffer(&buffer, data);
+                    res = handle_expression(data);
+                    if (res != EXPRESSION_OK) {
+                        clear_buffer(&buffer);
+                        return(res);
+                    }
+                    clear_buffer(&buffer);
+                    return(SYN_OK);
+
+                } else
+
+                // ... EOL || EOF ...
+                if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+                    clear_buffer(&buffer);
+                    return(SYN_OK);
+                }
+
+            // ak ID nie je definovane -> ERR
             } else {
                 clear_buffer(&buffer);
                 return(ER_SEM_VARIABLE);
@@ -484,6 +582,14 @@ static int declare(Data_t* data) {
 
         clear_buffer(&buffer);
         return(SYN_OK);
+    } else 
+
+    if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword > 8 && data->token->attr.keyword < 17) {
+        res = function(data);
+        if (res != SYN_OK) {
+            return(res);
+        } else
+            return(SYN_OK);
     }
 
 
@@ -537,6 +643,8 @@ static int params(Data_t* data) {
         printf("ID: %s\n",data->token->attr.string->s);
         int res;
         res = param(data);
+
+        htPrintTable(local_ST);
         printf("<params> return: %d\n", res);
         return(res);
         //return(param(data));
@@ -560,7 +668,15 @@ static int param(Data_t* data) {
      * somehow check ID in table
      * 
      **/
-    
+        params_cnt++;
+        save_id(&identifier, data);
+
+        res = def_ID(local_ST, (&identifier)->s);
+        if (res != ST_OK) {
+            return(res);
+        }
+
+
         GET_TOKEN();
         // ... , ...
         if (data->token->token == TYPE_COMMA) {
@@ -588,16 +704,16 @@ static int argvs(Data_t* data) {
     // ... <value> ...
 
     printf("in <argvs>\n");
-    if (data->token->token != TYPE_RIGHT_BRACKET) {
-    
-
-        IF_N_OK_RETURN(arg(data));
-        return(SYN_OK);
-
-    // ... ) ...
-    } else {
-        return(SYN_OK);
+     // ... ( ... - volitelna
+    if (data->token->token == TYPE_LEFT_BRACKET) {
+        data->in_bracket = true;
+        GET_TOKEN();
     }
+
+    IF_N_OK_RETURN(arg(data));
+    
+    
+    return(SYN_OK);
     // <argvs> -> ε
 }
 
@@ -1149,6 +1265,7 @@ int start_parser(){
 
     //identifier = (char *)malloc(sizeof(char));
     allocate_string(&identifier);
+    allocate_string(&identifier_f);
 
     // inicializacia tabulky symbolov
     STinits();
@@ -1182,6 +1299,7 @@ int start_parser(){
 
     //free(identifier);
     free_string(&identifier);
+    free_string(&identifier_f);
 
     /*
     DeleteStack(s);

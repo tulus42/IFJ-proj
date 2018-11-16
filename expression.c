@@ -11,6 +11,40 @@ Adrián Tulušák, xtulus00
 #include "symtable.h"
 #include "expression.h"
 
+const char* tokens_tmp[] = {
+	"TYPE_EOF", 
+	"TYPE_EOL", 
+	"TYPE_IDENTIFIER", 
+	"TYPE_KEYWORD",
+
+	"TYPE_ASSIGN", // =
+	"TYPE_NEQ", // !=
+	"TYPE_LEQ", // <=
+	"TYPE_LTN", // <
+	"TYPE_MEQ", // >=
+	"TYPE_MTN", // >
+	"TYPE_EQ", // ==
+	
+	"TYPE_PLUS", // +
+	"TYPE_MINUS", //  -
+	"TYPE_MUL", // *
+	"TYPE_DIV", // /
+	"TYPE_QUESTION_MARK", // ?
+	"TYPE_COLON", // :
+
+	"TYPE_LEFT_BRACKET", // (
+	"TYPE_RIGHT_BRACKET", // )
+	"TYPE_COMMA", // ,
+
+	"TYPE_COMMENT", // #
+	"TYPE_COMMENT_START", // =begin 
+	"TYPE_COMMENT_END", // =end 
+
+	"TYPE_INT", 
+	"TYPE_FLOAT", 
+	"TYPE_STRING",
+};
+
 
 /***********************************************************
  * 
@@ -95,6 +129,54 @@ int precedential_table[table_size][table_size] = {
  * 
 */
 
+const char* keyword[] = {
+	"KEYWORD_DEF",
+	"KEYWORD_DO",
+	"KEYWORD_ELSE",
+	"KEYWORD_END",
+	"KEYWORD_IF",
+	"KEYWORD_NOT",
+	"KEYWORD_NIL",
+	"KEYWORD_THEN",
+	"KEYWORD_WHILE",
+	"KEYWORD_PRINT",
+	"KEYWORD_INPUTS",
+	"KEYWORD_INPUTI",
+	"KEYWORD_INPUTF",
+	"KEYWORD_LENGTH",
+	"KEYWORD_SUBSTR",
+	"KEYWORD_ORD",
+	"KEYWORD_CHR",
+};
+
+const char* symbols[] = {
+	"PLUS",   // +
+    "MINUS",  // -
+    "MUL",    // *
+    "DIV",    // /
+    "LEFT_B", // (
+    "RIGHT_B", // )
+    "ID",     // i
+    "EQL",    // ==
+    "NEQ",   // !=
+    "LEQ",    // >=
+    "LTN",    // >
+    "MEQ",    // <=
+    "MTN",    // <
+    "DOLLAR",  // $
+	"E",
+    "START",
+    "IDIV"
+};
+
+const char* rules[] = {
+	"S",  // shift <
+    "R",  // reduce >
+    "E",  // equal =
+    "U" 
+};
+
+
 
 bool finished = false;
 bool used_buffer = false;
@@ -114,6 +196,7 @@ int handle_expression(Data_t* data){
     bool is_reduced = false;
     Precedential_table_symbol to_push_symbol;
     Precedential_table_rule current_rule;
+    return_code = EXPRESSION_OK;
     Symbol_item_t* tmp;
 
     // initialize stack
@@ -131,7 +214,9 @@ int handle_expression(Data_t* data){
     // When the rule is SHIFT or EQUAL, we can get new token
     // When the rule is REDUCE, we don't get any new tokens
     // UDEFINED symbolizes either gramatical error or succesfull reduction of expression 
-    while(!is_reduced){ 
+    while(!is_reduced){
+        //print_buffer(&buffer);
+        //print_current_stack(&stack); 
         current_rule = get_indexes_and_rule(&stack, to_push_symbol);  // get current rule
 
         if(current_rule == S){  // SHIFT rule
@@ -176,6 +261,7 @@ int handle_expression(Data_t* data){
     //print_token(data);
 
     // if we come here, the syntax and semantics were correct
+    is_reduced = false;
     clear_buffer(&buffer);
     free_stack(&stack);
     return EXPRESSION_OK;
@@ -393,17 +479,17 @@ int expression_error(Symbol_stack_t* stack, Symbol_list* list,  int error_type){
     return error_type;
 }
 
-/**
- * Debug functions
+
+ //* Debug functions
 
 void print_token(Data_t* data){
     if(data->token->token)
-        printf("%s\n", tokens[data->token->token]);
-}*/
+        printf("%s\n", tokens_tmp[data->token->token]);
+}
 
 /**
  * Debug functions
-
+*/
 void print_current_stack(Symbol_stack_t* stack){ // 
     if(stack->top == NULL){
         printf("STACK IS EMPTY\n\n");
@@ -421,27 +507,26 @@ void print_current_stack(Symbol_stack_t* stack){ //
         printf("\n");
     }
 }
-*/
 
 /**
  * 
  */
 void check_sematics(Data_t* data){
-
     // search in the table
     if(data->in_definition == true){    // je fo funkcii - je lokálna
-        if(check_define(local_ST, data->token->attr.string->s)){
-            return_code = UNDEFINED_ID_EXPRESSION;
+        if(check_define(local_ST, data->token->attr.string->s) == PARAM_DEFINED){
+            return_code = EXPRESSION_OK;
             return;
         }
     }
     else{
-        if(check_define(global_ST, data->token->attr.string->s)){
-            return_code = UNDEFINED_ID_EXPRESSION;
+        if(check_define(global_ST, data->token->attr.string->s) == PARAM_DEFINED){
+            return_code = EXPRESSION_OK;
             return;
         }
     }
-    return_code = EXPRESSION_OK;
+    return_code = UNDEFINED_ID_EXPRESSION;
+    
 }
 
 
@@ -678,6 +763,7 @@ bool is_empty(Symbol_list* list){
 
 /**
  * 
+ */
 void print_buffer(Symbol_list* list){
     if(list->first == NULL){
         printf("BUFFER IS EMPTY\n\n");
@@ -693,4 +779,4 @@ void print_buffer(Symbol_list* list){
     }
     printf("\n");
 }
-*/
+

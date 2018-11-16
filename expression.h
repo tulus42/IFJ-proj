@@ -87,9 +87,9 @@ Symbol_list buffer;
 
 
 // DEBUG FUNCTIONS
-//void print_current_stack(Symbol_stack_t* stack);
-//void print_token(Data_t* data);
-//void print_buffer(Symbol_list* list);
+void print_current_stack(Symbol_stack_t* stack);
+void print_token(Data_t* data);
+void print_buffer(Symbol_list* list);
 
 /***********************************************************
  * 

@@ -1,4 +1,3 @@
-
 /*
 IFJ 2018
 Adam Hostin, xhosti02
@@ -72,3 +71,4 @@ int iteminit(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc );
 void itemfree(tHTItem* item);
 int itemupdate(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc );
 void htPrintTable( tHTable ptrht );
+int check_param_cnt(char key[]);

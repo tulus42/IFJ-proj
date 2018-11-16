@@ -248,7 +248,7 @@ Type_of_tHTItem* get_type (tHTable ptrht,char key[]) {
 */
 
 int check_define (tHTable tab, char key[]) {
-	
+
 	tHTItem *tmp = htSearch(tab, key);
 	if (tmp==NULL){
 		return NOT_FOUND;
@@ -256,16 +256,16 @@ int check_define (tHTable tab, char key[]) {
 
 	if ((tmp->typ)!=FUNCTION){
 		if (tmp->defined){
-			return param_defined;
+			return PARAM_DEFINED;
 		}else{
-			return param_undefined;
+			return PARAM_UNDEFINED;
 		}			
 	}else{
 		if (tmp->defined)
 		{
-			return TRUE;
+			return FUNCTION_DEFINED;
 		}else
-			return FALSE;
+			return UNFUNCTION_DEFINED;
 	}								
 }
 

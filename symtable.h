@@ -30,6 +30,7 @@ typedef enum
   STRING,
   INTEGER,
   PRASATKO_S_PAPUCKAMI_FLT,
+  VAR,
   FUNCTION,
 
 } Type_of_tHTItem;
@@ -45,6 +46,12 @@ typedef enum
 } tHTItem;
 
 typedef tHTItem* tHTable[HTSIZE];
+
+tHTable local_ST;
+tHTable global_ST;
+
+
+
 
 /* Hlavičky funkcií. */
 

@@ -10,9 +10,20 @@ Adrián Tulušák, xtulus00
 
 #include "symtable.h"
 
-//tStackP s;
-tHTable local_ST;
-tHTable global_ST;
+
+const char* types_of_HTitem[] = {
+	"NILL",
+	"STRING",
+	"INTEGER",
+	"PRASATKO_S_PAPUCKAMI_FLT",
+	"VAR",
+	"FUNCTION",
+};
+
+const char* is_defined[] = {
+	"FALSE",
+	"TRUE",
+};
 
 
 /* ladiaca funkcia pre ST*/
@@ -29,12 +40,12 @@ void htPrintTable( tHTable ptrht ) {
 		printf ("%i:",i);
 		tHTItem* ptr = (ptrht)[i];
 		while ( ptr != NULL ) {
-			printf (" (%s,%s,%d)",ptr->key,Types_of_tHTItem[ptr->typ], ptr->defined);
+			printf (" (%s,%s,%s)\n",ptr->key, types_of_HTitem[ptr->typ], is_defined[ptr->defined]);
 			ptr = ptr->ptrnext;
 		}
-		printf("\n");
+		//printf("\n");
 	}
-	printf ("koniec tabulky\n");
+	printf ("------------koniec tabulky------------\n");
 }
 
 /**
@@ -160,10 +171,10 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
 				}
 			}
 		}
-		if (!item_ptr->defined){
+		if (item_ptr->defined == FALSE){
 			return sym_table_error(ER_SEM_VARIABLE);
 		}else{
-			actual_item->defined= item_ptr->defined;
+			actual_item->defined= TRUE;
 		}
 /*
  		switch(item_ptr->typ){
@@ -236,9 +247,9 @@ Type_of_tHTItem* get_type (tHTable ptrht,char key[]) {
 ** defined==TRUE==1
 */
 
-int check_define (char key[]) {
+int check_define (tHTable tab, char key[]) {
 
-	tHTItem *tmp = htSearch(global_ST,key);
+	tHTItem *tmp = htSearch(tab, key);
 	if (tmp==NULL){
 		return NOT_FOUND;
 	}
@@ -327,7 +338,6 @@ void htClearlocal () {
 
 int iteminit(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc ){
 
-	item=malloc(sizeof(tHTItem));						//alokácia položky
 	if (item==NULL){							
 		return sym_table_error(ER_INTERNAL);
 	}
@@ -346,13 +356,17 @@ return ST_OK;
 }
 
 int itemupdate(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc ){
-
+	printf("Checkpoint1\n");
 	free(item->key);
+	printf("Checkpoint2\n");
 	item->key = (char*) malloc((strlen(k)+2));
+	printf("Checkpoint3\n");
 	if (item->key==NULL){								//ak sa alokacia nepodarila tak funkcia skonci
+			printf("Checkpoint4\n");
 			return sym_table_error(ER_INTERNAL);
 	}
 
+	printf("Checkpoint5\n");
 	strcpy(item->key,k);
 	item->typ=t;	
 	item->param_count=pc;
@@ -364,5 +378,4 @@ return ST_OK;
 
 void itemfree(tHTItem* item){
 	free(item->key);
-	free(item);
 }

@@ -18,7 +18,8 @@ Adrián Tulušák, xtulus00
 #include "parser.h"
 #include "testing.h"
 #include "expression.h"
-#include "symtable.h"
+//#include "symtable.h"
+#include "instructions.h"
 
 
 
@@ -55,6 +56,8 @@ Adrián Tulušák, xtulus00
 string_t identifier;
 
 int res;
+
+tHTItem tItem;
 
 // forward declarations
 static int statement(Data_t* data);
@@ -309,9 +312,6 @@ static int statement(Data_t* data) {
     // <statement> -> ID_FUNC ( <argvs> ) EOL
     else if (data->token->token == TYPE_IDENTIFIER) {
 
-        // <statement> -> ID EOL
-        // <statement> -> ID <declare> EOL
-
 
         // if (ID_var) then:    ************************
         printf("in <statement> ID EOL/ID <declare>/ID_FUNC...\n");
@@ -319,19 +319,39 @@ static int statement(Data_t* data) {
         //*** somehow check ID in table
 
         GET_TOKEN();
-        // <statement> -> ID <declare> EOL
-        // ... = ...
-        if (data->token->token == TYPE_ASSIGN) {
-            return(declare(data));
-        } else
 
         // <statement> -> ID EOL || EOF 
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
-            /**
-             * check if ID in table
-             */
+            itemupdate(&tItem, (&identifier)->s,  VAR, FALSE, 0);
+            res = htInsert(global_ST, &tItem);
+            printf("idetmInsert returned: %d\n", res);
+                if (res != ST_OK) {
+                    return(res);
+                }
+            htPrintTable(global_ST);
+
             return(prog(data));
         } else
+
+
+
+        // <statement> -> ID <declare> EOL
+        // ... = ...
+        if (data->token->token == TYPE_ASSIGN) {
+            res = declare(data);
+            if (res== SYN_OK) {
+                itemupdate(&tItem, (&identifier)->s, VAR, TRUE, 0);
+                res = htInsert(global_ST, &tItem);
+                printf("idetmInsert returned: %d\n", res);
+                if (res != ST_OK) {
+                    return(res);
+                }
+                htPrintTable(global_ST);
+            }
+            return(res);
+        } else
+
+        
         
 
         // else if (ID_func) then :************************
@@ -397,7 +417,7 @@ static int statement(Data_t* data) {
 
 
 
-    printf("End <statemtnt>\n");
+    printf("End <statemtnt> with ERR\n");
     return(ER_SYN);
 }
 
@@ -993,7 +1013,7 @@ static int print(Data_t* data) {
 
     // ... ID ...
     if (data->token->token == TYPE_IDENTIFIER) {
-        /* chech in table */
+        /* check in table */
     } else
 
     // ... INT/FLT/STR ...
@@ -1060,12 +1080,15 @@ int start_parser(){
     // inicializacia bufferu
     init_buffer(&buffer);
 
-    // inicializacia tabulky symbolov
-    STinits();
-    
-
     //identifier = (char *)malloc(sizeof(char));
     allocate_string(&identifier);
+
+    // inicializacia tabulky symbolov
+    STinits();
+    iteminit(&tItem, "",  NILL, FALSE, 0);
+    
+
+    
 
     /*
     tstackP *s;
@@ -1077,11 +1100,15 @@ int start_parser(){
 
     value(&our_data);
 
+
+
+
     // odstránenie bufferu
     clear_buffer(&buffer);
 
     // odstránenie tabulky
     htClearAlltables();
+    itemfree(&tItem);
     
     free_string(&string);
     free(our_data.token);

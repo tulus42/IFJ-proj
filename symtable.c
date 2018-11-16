@@ -383,3 +383,15 @@ return ST_OK;
 void itemfree(tHTItem* item){
 	free(item->key);
 }
+
+/*
+*/
+
+int check_param_cnt(char key[]){
+
+
+	//NOT_FOUND kontrolovany parserom
+	//tHTItem *tmp = htSearch(global_ST, key);
+	return htSearch(global_ST, key)->param_count;
+
+}

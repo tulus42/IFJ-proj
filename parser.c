@@ -453,6 +453,9 @@ static int declare(Data_t* data) {
             // ... ID ... 
             if (check_define(global_ST, data->token->attr.string->s) == PARAM_DEFINED) {
 
+            } else {
+                clear_buffer(&buffer);
+                return(ER_SEM_VARIABLE);
             }
         } 
         // ... int/flt/str ...
@@ -464,19 +467,23 @@ static int declare(Data_t* data) {
                 insert_to_buffer(&buffer, data);
                 res = handle_expression(data);
                 if (res != EXPRESSION_OK) {
+                    clear_buffer(&buffer);
                     return(res);
                 }
+                clear_buffer(&buffer);
                 return(SYN_OK);
 
             } else
 
             // ... EOL || EOF ...
             if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+                clear_buffer(&buffer);
                 return(SYN_OK);
             }
         }
 
         clear_buffer(&buffer);
+        return(SYN_OK);
     }
 
 

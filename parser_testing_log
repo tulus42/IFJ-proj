@@ -14,3 +14,72 @@ Je funkčné (I hope):
 5. deklarácia premennej
 6. priradenie hodnoty premennej
 7. expressions (otestovať vo všetkých možných prípadoch)
+
+
+//////////////////////////////////
+//                              //
+//          TO_REPAIR           //
+//                              //
+//////////////////////////////////
+
+1. je schopné vypísať nedefinovanú premennú a
+CODE:
+def volaco (param1, param2)
+    print (2, a)
+end
+
+2. toto nefunguje, ale asi by malo - teda myslím, check pls
+CODE:
+def krasna_func(argv1)
+end
+
+def krajsia_func(argv1)
+end
+
+def najkrajsia_func()
+end
+
+argv1 = 42
+krasna_func(argv1)
+krajsia_func(argv1)
+
+3. toto mi tiez nepreslo, ale asi by už malo, nie?
+CODE:
+def krasna_func(argv1)
+
+end
+
+def krajsia_func(argv1)
+
+end
+
+def najkrajsia_func()
+
+end
+
+argv2 = 42
+krasna_func(argv2)
+krajsia_func(argv2)
+
+4.
+CODE:
+def my_func(param1)
+    print("Hello kids\n")
+    param1
+end
+
+a = 7*8*9*42
+my_func(a)
+
+//////////////////////////////////
+//                              //
+//          TESTED              //
+//                              //
+//////////////////////////////////
+
+1. volanie funkcie, ktorá nemá parametre s nejakým parametrom - OK
+2. prázdna funkcia - OK
+3. predanie parametrov premennou a funkciou - OK
+4. definícia, deklarácia a redefinícia premenných - OK
+5. zložitejší expression, expression s premennými, ktoré sú definované - OK
+6. expression s premennými, čo sú nedefinované - OK

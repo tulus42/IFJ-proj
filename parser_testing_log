@@ -1,0 +1,16 @@
+*** PARSER LOG ***
+
+***************
+Nie je funkčné:
+***************
+1. vzájomné rekurzívne volanie 2 funkcii
+
+***************
+Je funkčné (I hope):
+***************
+1. definícia funkcie (s nulovým aj nenulovým počtom params)
+2. volanie funkcie (s nulovým aj nenulovým počtom params)
+3. kontrola počtu parametrov funkcie a či boli deklarované
+5. deklarácia premennej
+6. priradenie hodnoty premennej
+7. expressions (otestovať vo všetkých možných prípadoch)

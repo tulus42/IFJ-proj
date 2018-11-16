@@ -146,7 +146,7 @@ int def_ID( tHTable ptrht,char key[] ){
  		strcpy(Ninsert->key,key);							//inicializácia položky
  		Ninsert->typ=NILL;	
  		Ninsert->param_count=0;
- 		Ninsert->defined=FALSE;						
+ 		Ninsert->defined=false;						
  		Ninsert->ptrnext=(ptrht)[hashCode(key)];			//prvok zaradime na zaciatok zoznamu
  		(ptrht)[hashCode(key)]=Ninsert;
  	}
@@ -171,10 +171,10 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
 				}
 			}
 		}
-		if (item_ptr->defined == FALSE){
+		if (item_ptr->defined == false){
 			return sym_table_error(ER_SEM_VARIABLE);
 		}else{
-			actual_item->defined= TRUE;
+			actual_item->defined= true;
 		}
 /*
  		switch(item_ptr->typ){
@@ -261,11 +261,11 @@ int check_define (tHTable tab, char key[]) {
 			return PARAM_UNDEFINED;
 		}			
 	}else{
-		if (tmp->defined)
+		if (tmp->defined) 
 		{
 			return FUNCTION_DEFINED;
-		}else
-			return UNFUNCTION_DEFINED;
+		}else 
+			return FUNCTION_UNDEFINED;
 	}								
 }
 
@@ -306,7 +306,7 @@ int STlast_check(){
 
 		while(tmp!=NULL){
 			printf("%s\n",tmp->key );
-			if ((tmp->typ==FUNCTION)&&(tmp->defined==FALSE)){
+			if ((tmp->typ==FUNCTION)&&(tmp->defined==false)){
 				return sym_table_error(ER_SEM_VARIABLE);
 			}
 			tmp=tmp->ptrnext;

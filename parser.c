@@ -33,7 +33,13 @@ Adrián Tulušák, xtulus00
 
 #define IF_N_OK_RETURN(__func__) \
     res = __func__; \
-    if (res != SYN_OK) return(res);            
+    if (res != SYN_OK) return(res);    
+
+#define IS_OPERAND() \
+    data->token->token == TYPE_PLUS ||data->token->token == TYPE_MINUS || data->token->token == TYPE_MUL \
+    || data->token->token == TYPE_DIV || data->token->token == TYPE_NEQ || data->token->token == TYPE_LEQ \
+    || data->token->token == TYPE_LTN || data->token->token == TYPE_MEQ || data->token->token == TYPE_MTN \
+    || data->token->token == TYPE_EQ        
 
 
 
@@ -49,6 +55,8 @@ Adrián Tulušák, xtulus00
  * prerobit Errorove vystupy
  *    - if (something() != SYN_OK)
  *          return(NAVRATOVA HODNOTA of something());
+ * 
+ * insert_to_buffer - return value - vyriešiť napr makrom
  * 
  */
 
@@ -322,7 +330,7 @@ static int statement(Data_t* data) {
 
         // <statement> -> ID EOL || EOF 
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
-            itemupdate(&tItem, (&identifier)->s,  VAR, FALSE, 0);
+            itemupdate(&tItem, (&identifier)->s,  VAR, false, 0);
             res = htInsert(global_ST, &tItem);
             printf("idetmInsert returned: %d\n", res);
                 if (res != ST_OK) {
@@ -340,7 +348,7 @@ static int statement(Data_t* data) {
         if (data->token->token == TYPE_ASSIGN) {
             res = declare(data);
             if (res== SYN_OK) {
-                itemupdate(&tItem, (&identifier)->s, VAR, TRUE, 0);
+                itemupdate(&tItem, (&identifier)->s, VAR, true, 0);
                 res = htInsert(global_ST, &tItem);
                 printf("idetmInsert returned: %d\n", res);
                 if (res != ST_OK) {
@@ -348,7 +356,7 @@ static int statement(Data_t* data) {
                 }
                 htPrintTable(global_ST);
             }
-            return(res);
+            return(prog(data));
         } else
 
         
@@ -431,7 +439,53 @@ static int declare(Data_t* data) {
 
     GET_TOKEN();
 
-    
+    // ak ID, ID_FUNC, int/flt/str
+    if (IS_VALUE()) {
+        insert_to_buffer(&buffer, data);
+
+        // ... ID, ID_FUNC ...
+        if (data->token->token == TYPE_IDENTIFIER) {
+            // ... ID_FUNC ...
+            if (check_define(global_ST, data->token->attr.string->s) == FUNCTION_DEFINED) {
+
+            } else
+
+            // ... ID ... 
+            if (check_define(global_ST, data->token->attr.string->s) == PARAM_DEFINED) {
+
+            }
+        } 
+        // ... int/flt/str ...
+        else {
+            GET_TOKEN();
+
+            // ak nasleduje operand, vyhodnosti expression
+            if (IS_OPERAND()) {
+                insert_to_buffer(&buffer, data);
+                res = handle_expression(data);
+                if (res != EXPRESSION_OK) {
+                    return(res);
+                }
+                return(SYN_OK);
+
+            } else
+
+            // ... EOL || EOF ...
+            if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+                return(SYN_OK);
+            }
+        }
+
+        clear_buffer(&buffer);
+    }
+
+
+
+
+
+    /*
+
+
     // <declare> -> = <expression>
     if (data->token->token == TYPE_IDENTIFIER) {
         insert_to_buffer(&buffer, data);
@@ -439,6 +493,11 @@ static int declare(Data_t* data) {
     } else
 
     // <declare> -> = ID_FUNC ( <argvs> )
+    if (data->token->token == TYPE_IDENTIFIER) {
+        if (check_define(global_ST, data->token->attr.string->s) == true) {
+            // vyhodnotenie funkcie
+        }
+    }
     
     // <declare> -> = <function>
     if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword > 8 && data->token->attr.keyword < 17) {
@@ -452,9 +511,10 @@ static int declare(Data_t* data) {
     // <declare> -> = <value>
     if (IS_VALUE()) {
         // prirad hodnotu a zmen typ premennej
-        return(prog(data));
+        
     }
 
+    */
     // <declare> -> ε
     return(ER_SYN);
 }
@@ -1085,7 +1145,7 @@ int start_parser(){
 
     // inicializacia tabulky symbolov
     STinits();
-    iteminit(&tItem, "",  NILL, FALSE, 0);
+    iteminit(&tItem, "",  NILL, false, 0);
     
 
     

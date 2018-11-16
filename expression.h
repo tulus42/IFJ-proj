@@ -23,7 +23,7 @@ Adrián Tulušák, xtulus00
 #define table_size 9
 #define EXPRESSION_OK 0
 #define OTHER_SYNTACTICAL_ERRORS 2
-#define OPERATION_TYPE_MISMATCH 4
+#define UNDEFINED_ID_EXPRESSION 3
 
 
 
@@ -67,16 +67,8 @@ typedef enum{
     IDIV
 } Precedential_table_symbol;
 
-typedef enum{
-    INT, // integer
-    FLT, // float
-    STR, // string
-    NIL, // nil
-} Data_type;
-
 typedef struct one_item{
     int symbol;
-    Data_type type;
     struct one_item* next;
 } Symbol_item_t;
 
@@ -105,25 +97,24 @@ Symbol_list buffer;
  * 
  **********************************************************/
 void pop_count(int n);
+void check_sematics(Data_t* data);
 
 bool allowed_string_operations(Precedential_table_symbol symbol);
 bool check_operations(Symbol_stack_t* stack, int to_pop, Precedential_table_symbol operand);
-bool add_after_first_terminal(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
+bool add_after_first_terminal(Symbol_stack_t* stack, Precedential_table_symbol symbol);
 bool reduce_by_rule(Symbol_stack_t* stack);
 bool is_term(Precedential_table_symbol symbol);
 bool check_plus(Symbol_stack_t* stack, int to_pop);
 
 int handle_expression(Data_t* data);
 int count_to_reduce(Symbol_stack_t* stack);
-int expression_error(Symbol_stack_t* stack, int error_type);
+int expression_error(Symbol_stack_t* stack, Symbol_list* list, int error_type);
 
 Precedential_table_symbol get_first_term(Symbol_stack_t* stack);
 Precedential_table_symbol get_symbol_from_token(Data_t* data);
 
 Precedential_table_rule get_indexes_and_rule(Symbol_stack_t* stack, Precedential_table_symbol symbol);
 Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_table_symbol columns);
-
-Data_type get_data_type(Data_t* data);
 
 Precedential_table_index get_index(Precedential_table_symbol symbol);
 
@@ -135,7 +126,7 @@ Precedential_table_index get_index(Precedential_table_symbol symbol);
 void init_stack(Symbol_stack_t* stack);
 void free_stack(Symbol_stack_t* stack);
 
-bool push_stack(Symbol_stack_t* stack, Data_type type, Precedential_table_symbol symbol);
+bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol);
 bool pop_stack(Symbol_stack_t* stack);
 
 /***********************************************************

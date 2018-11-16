@@ -169,6 +169,7 @@ static int prog(Data_t* data){
         
         // ... <params> ...
         GET_TOKEN();
+        params_cnt = 0;
         IF_N_OK_RETURN(params(data));
         
         // ... ) ... - nevolame GET_TOKEN
@@ -378,8 +379,20 @@ static int statement(Data_t* data) {
 
         GET_TOKEN();
 
+        // <statement> -> ID_FUNC 
+        if (check_define(global_ST, (&identifier)->s) == FUNCTION_DEFINED) {
+            
+
+            IF_N_OK_RETURN(argvs(data));
+
+            return(prog(data));
+
+        }
+
+
         // <statement> -> ID EOL || EOF 
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            
             itemupdate(&tItem, (&identifier)->s,  VAR, false, 0);
 
             // ak sme v DEF
@@ -639,6 +652,7 @@ static int declare(Data_t* data) {
 static int params(Data_t* data) {
     // <params> -> ID <param>
     // ... ID ...
+
     if (data->token->token == TYPE_IDENTIFIER) {
         printf("ID: %s\n",data->token->attr.string->s);
         int res;
@@ -703,6 +717,8 @@ static int argvs(Data_t* data) {
     // <argvs> -> <value> <arg>
     // ... <value> ...
 
+    params_cnt = 0;
+
     printf("in <argvs>\n");
      // ... ( ... - volitelna
     if (data->token->token == TYPE_LEFT_BRACKET) {
@@ -711,7 +727,10 @@ static int argvs(Data_t* data) {
     }
 
     IF_N_OK_RETURN(arg(data));
-    
+
+    if (params_cnt != check_param_cnt((&identifier)->s)) {
+        return(ER_SEM_PARAMETERS);
+    }
     
     return(SYN_OK);
     // <argvs> -> ε
@@ -727,11 +746,20 @@ static int arg(Data_t* data) {
 
     printf("<arg>\n");
     if (IS_VALUE()) {
+        params_cnt++;
         printf("in IS_VALUE\n");
-    /**
-     * somehow check ID in table
-     * 
-     **/
+    
+        if (data->token->token == TYPE_IDENTIFIER) {
+            if (data->in_definition == true) {
+                if (check_define(local_ST, data->token->attr.string->s) != PARAM_DEFINED) {
+                    return(ER_SEM_VARIABLE);
+                }
+            } else {
+                if (check_define(global_ST, data->token->attr.string->s) != PARAM_DEFINED) {
+                    return(ER_SEM_VARIABLE);
+                }
+            }
+        }
     
         GET_TOKEN();
         // ... , ...
@@ -740,12 +768,42 @@ static int arg(Data_t* data) {
             GET_TOKEN();
             return(arg(data));
         
-        } else
-        // ... ) ...
-        if (data->token->token == TYPE_RIGHT_BRACKET) {
-            return(argvs(data));
+        } else {
+            // ... ) ... - len ak bola pouzita "("
+            if (data->in_bracket == true) {
+                if (data->token->token == TYPE_RIGHT_BRACKET) {
+                    data->in_bracket = false;
+                    GET_TOKEN();
+                } else {
+                    return(ER_SYN);
+                }
+            }
+
+            // ... EOL || EOF ...
+            if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+                return(SYN_OK);
+            }
         }
+
     }
+
+
+    GET_TOKEN();
+        
+        // ... ) ... - len ak bola pouzita "("
+        if (data->in_bracket == true) {
+            if (data->token->token == TYPE_RIGHT_BRACKET) {
+                data->in_bracket = false;
+                GET_TOKEN();
+            } else {
+                return(ER_SYN);
+            }
+        }
+
+        // ... EOL || EOF ...
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            return(SYN_OK);
+        }
 
     return(ER_SYN);
 }

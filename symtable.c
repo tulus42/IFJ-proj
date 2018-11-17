@@ -178,8 +178,10 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
 		}
 		if (item_ptr->defined == false){
 			return sym_table_error(ER_SEM_VARIABLE);
-		}else{
+		}else if (actual_item == false) {
 			actual_item->defined= true;
+		} else {
+			return sym_table_error(ER_SEM_VARIABLE);
 		}
 /*
  		switch(item_ptr->typ){

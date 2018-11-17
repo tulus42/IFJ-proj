@@ -77,6 +77,15 @@ const char* tokens[] = {
     || data->token->token == TYPE_LTN || data->token->token == TYPE_MEQ || data->token->token == TYPE_MTN \
     || data->token->token == TYPE_EQ        
 
+#define CHECK_BOTH_TABLES() \
+    if (data->in_definition == true) { \
+        if (check_define(local_ST, data->token->attr.string->s) != PARAM_DEFINED) { \
+            return (ER_SEM_VARIABLE); \
+        } \
+    } else \
+        if (check_define(global_ST, data->token->attr.string->s) != PARAM_DEFINED) { \
+            return(ER_SEM_VARIABLE); \
+    } 
 
 
 /**
@@ -208,8 +217,11 @@ static int prog(Data_t* data){
 
         // ... EOL || EOF ... 
         GET_TOKEN();
-        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)   
+        if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            htClearlocal();
             return(prog(data));
+        }
+            
     } 
 
 
@@ -881,7 +893,8 @@ static int function(Data_t* data) {
 
         // ... ID ...
         if (data->token->token == TYPE_IDENTIFIER) {
-            // check ID in table - musi byt typu string
+            // check ID in table 
+            CHECK_BOTH_TABLES();
         
         } 
         
@@ -934,7 +947,8 @@ static int function(Data_t* data) {
 
         // ... ID ...
         if (data->token->token == TYPE_IDENTIFIER) {
-            // check ID in table - musi byt typu string
+            // check ID in table 
+            CHECK_BOTH_TABLES();
         
         } 
         
@@ -964,7 +978,8 @@ static int function(Data_t* data) {
 
         // ... ID ...
         if (data->token->token == TYPE_IDENTIFIER) {
-            // check ID in table - musi byt typu int
+            // check ID in table
+            CHECK_BOTH_TABLES();
         
         } 
         
@@ -994,7 +1009,8 @@ static int function(Data_t* data) {
 
         // ... ID ...
         if (data->token->token == TYPE_IDENTIFIER) {
-            // check ID in table - musi byt typu int
+            // check ID in table 
+            CHECK_BOTH_TABLES();
         
         } 
         
@@ -1048,7 +1064,8 @@ static int function(Data_t* data) {
 
         // ... ID ...
         if (data->token->token == TYPE_IDENTIFIER) {
-            // check ID in table - musi byt typu string
+            // check ID in table 
+            CHECK_BOTH_TABLES();
         
         } 
         
@@ -1078,8 +1095,9 @@ static int function(Data_t* data) {
 
         // ... ID ...
         if (data->token->token == TYPE_IDENTIFIER) {
-            // check ID in table - musi byt typu int
-        
+            // check ID in table
+            CHECK_BOTH_TABLES();
+
         } 
         
         // ak cokolvek ine -> nevyhovujuci parameter
@@ -1130,7 +1148,7 @@ static int function(Data_t* data) {
         // ... ID ...
         if (data->token->token == TYPE_IDENTIFIER) {
             // check ID in table - musi byt typu int
-        
+            CHECK_BOTH_TABLES();
         } 
         
         // ak cokolvek ine -> nevyhovujuci parameter
@@ -1254,7 +1272,9 @@ static int print(Data_t* data) {
 
     // ... ID ...
     if (data->token->token == TYPE_IDENTIFIER) {
-        /* check in table */
+        // check ID in table
+
+        CHECK_BOTH_TABLES();
     } else
 
     // ... INT/FLT/STR ...

@@ -172,6 +172,8 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
 					actual_item->defined=item_ptr->defined;
 					return ST_OK;
 				}
+			} else {
+				return(ER_SEM_PARAMETERS);
 			}
 		}
 		if (item_ptr->defined == false){

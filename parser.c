@@ -1344,10 +1344,10 @@ int start_parser(){
     int res;
     res = prog(&our_data);
 
-    printf("res = %d", res);
+    printf("res = %d\n", res);
     value(&our_data);
 
-    if (res != SYN_OK) {
+    if (res == SYN_OK) {
         res = STlast_check();
     }
     

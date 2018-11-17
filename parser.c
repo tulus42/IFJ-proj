@@ -147,9 +147,9 @@ int get_token(Data_t* data) {
         return(0);
 }
 
-/* ****************************
+/* ***************************************************************************************
  * <prog>
- * ***************************/
+ * ***************************************************************************************/
 static int prog(Data_t* data){
 
     GET_TOKEN();
@@ -252,9 +252,9 @@ static int prog(Data_t* data){
     return ER_SYN;
 }
 
-/* ****************************
+/* ***************************************************************************************
  * <statement>
- * ***************************/
+ * ***************************************************************************************/
 static int statement(Data_t* data) {
     printf("In <statement>, in_while_of_if: %d\n", data->in_while_or_if);
     printf("Token: %s\n", tokens[data->token->token]);
@@ -463,10 +463,11 @@ static int statement(Data_t* data) {
 
         
         
-
+        // VOLANIE FUNKCIE PRED JEJ DEFINICIOU
         // else if (ID_func) then :************************
         // <statement> -> ID_FUNC ( <argvs> )
-        if (data->token->token == TYPE_LEFT_BRACKET) {
+        if (data->token->token == TYPE_LEFT_BRACKET || IS_VALUE()) {
+            printf("in <volanie funkcie pred deklaraciou>\n");
             /******
              * check if ID_FUNC in table
              * if (in table) {
@@ -478,10 +479,21 @@ static int statement(Data_t* data) {
              *       return(ER_SYN);
              * }
              */
-           
-            GET_TOKEN();
-            //return(argvs(data));
-            IF_N_OK_RETURN(argvs(data));
+
+            if (check_define(global_ST, (&identifier)->s) != FUNCTION_DEFINED && check_define(global_ST, (&identifier)->s) != PARAM_DEFINED && data->in_definition == true) {
+                IF_N_OK_RETURN(argvs(data));
+                printf("Checkpoint 42\n");
+
+                itemupdate(&tItem, (&identifier)->s, FUNCTION, false, params_cnt);
+                res = htInsert(global_ST, &tItem);
+                if (res != ST_OK) {
+                    return(res);
+                }
+                htPrintTable(global_ST);
+            } else {
+                return(ER_SYN);
+            }
+
             return(prog(data));
 
         } else {
@@ -533,9 +545,9 @@ static int statement(Data_t* data) {
 
 
 
-/* ****************************
+/* ***************************************************************************************
  * <declare>
- * ***************************/
+ * ***************************************************************************************/
 static int declare(Data_t* data) {
     // <declare> =
 
@@ -618,49 +630,14 @@ static int declare(Data_t* data) {
     }
 
 
-
-
-
-    /*
-
-
-    // <declare> -> = <expression>
-    if (data->token->token == TYPE_IDENTIFIER) {
-        insert_to_buffer(&buffer, data);
-        clear_buffer(&buffer);
-    } else
-
-    // <declare> -> = ID_FUNC ( <argvs> )
-    if (data->token->token == TYPE_IDENTIFIER) {
-        if (check_define(global_ST, data->token->attr.string->s) == true) {
-            // vyhodnotenie funkcie
-        }
-    }
-    
-    // <declare> -> = <function>
-    if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword > 8 && data->token->attr.keyword < 17) {
-        res = function(data);
-        if (res != SYN_OK) {
-            return(res);
-        } else
-            return(prog(data));
-    } else
-
-    // <declare> -> = <value>
-    if (IS_VALUE()) {
-        // prirad hodnotu a zmen typ premennej
-        
-    }
-
-    */
     // <declare> -> ε
     return(ER_SYN);
 }
 
 
-/* ****************************
+/* ***************************************************************************************
  * <params>
- * ***************************/
+ * ***************************************************************************************/
 static int params(Data_t* data) {
     // <params> -> ID <param>
     // ... ID ...
@@ -722,9 +699,9 @@ static int param(Data_t* data) {
 }
 
 
-/* ****************************
+/* ***************************************************************************************
  * <argvs>
- * ***************************/
+ * ***************************************************************************************/
 static int argvs(Data_t* data) {
     // <argvs> -> <value> <arg>
     // ... <value> ...
@@ -740,23 +717,26 @@ static int argvs(Data_t* data) {
 
     IF_N_OK_RETURN(arg(data));
 
-    if (params_cnt != check_param_cnt((&identifier)->s)) {
-        return(ER_SEM_PARAMETERS);
+    if (check_define(global_ST, (&identifier)->s) == FUNCTION_DEFINED) {
+        if (params_cnt != check_param_cnt((&identifier)->s)) {
+            return(ER_SEM_PARAMETERS);
+        }
     }
+    
     
     return(SYN_OK);
     // <argvs> -> ε
 }
 
 
-/* ****************************
+/* ***************************************************************************************
  * <arg>
- * ***************************/
+ * ***************************************************************************************/
 static int arg(Data_t* data) {
     // <arg> -> , <value> <arg>
     // <arg> -> ε
 
-    printf("<arg>\n");
+    printf("in <arg>\n");
     if (IS_VALUE()) {
         params_cnt++;
         printf("in IS_VALUE\n");
@@ -772,7 +752,8 @@ static int arg(Data_t* data) {
                 }
             }
         }
-    
+
+        printf("in arg Checkpoint\n");
         GET_TOKEN();
         // ... , ...
         if (data->token->token == TYPE_COMMA) {
@@ -790,16 +771,17 @@ static int arg(Data_t* data) {
                     return(ER_SYN);
                 }
             }
-
+            
             // ... EOL || EOF ...
             if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+                printf("in arg Checkpoint2\n");
                 return(SYN_OK);
             }
         }
 
     }
 
-
+    
     GET_TOKEN();
         
         // ... ) ... - len ak bola pouzita "("
@@ -821,9 +803,9 @@ static int arg(Data_t* data) {
 }
 
 
-/* ****************************
+/* ***************************************************************************************
  * <value>
- * ***************************/
+ * ***************************************************************************************/
 
 static int value(Data_t* data) {
     // <value> -> INT_VALUE
@@ -843,9 +825,9 @@ static int value(Data_t* data) {
 }
 
 
-/* ****************************
+/* ***************************************************************************************
  * <function>
- * ***************************/
+ * ***************************************************************************************/
 static int function(Data_t* data) {
     printf("in <function>\n");
 
@@ -1262,11 +1244,11 @@ static int function(Data_t* data) {
     return(ER_SYN);
 }
 
-/* ****************************
+/* ***************************************************************************************
  * PRINT 
  * je rozpisany ako samostatna funkcia kvoli lubovolnemu poctu parametrov
  * pri kazdom dalsom parametri je rekurzivne volana znovu
- * ***************************/
+ * ***************************************************************************************/
 static int print(Data_t* data) {
     printf("in PRINT\n");
 
@@ -1323,9 +1305,11 @@ static bool init_struct(Data_t* data){
 }
 
 
-/**
+/*****************************************************************************************
+ * ***************************************************************************************
  * PARSER
- **/
+ * ***************************************************************************************
+ *****************************************************************************************/
 int start_parser(){
 
     Data_t our_data;
@@ -1360,9 +1344,13 @@ int start_parser(){
     int res;
     res = prog(&our_data);
 
+    printf("res = %d", res);
     value(&our_data);
 
-
+    if (res != SYN_OK) {
+        res = STlast_check();
+    }
+    
 
 
     // odstránenie bufferu

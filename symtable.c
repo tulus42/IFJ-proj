@@ -30,8 +30,11 @@ const char* is_defined[] = {
 
 
 void htPrintTable( tHTable ptrht ) {
-	
-	printf ("------------HASH TABLE--------------\n");
+	if (ptrht == global_ST)
+		printf ("------------HASH TABLE - GLOBAL-------------\n");
+	else
+		printf ("------------HASH TABLE - LOCAL-------------\n");
+
 	for ( int i=0; i<HTSIZE; i++ ) {
 		if ((ptrht)[i]==NULL)
 		{

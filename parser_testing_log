@@ -22,54 +22,7 @@ Je funkčné (I hope):
 //                              //
 //////////////////////////////////
 
-1. je schopné vypísať nedefinovanú premennú a
-CODE:
-def volaco (param1, param2)
-    print (2, a)
-end
 
-2. toto nefunguje, ale asi by malo - teda myslím, check pls
-CODE:
-def krasna_func(argv1)
-end
-
-def krajsia_func(argv1)
-end
-
-def najkrajsia_func()
-end
-
-argv1 = 42
-krasna_func(argv1)
-krajsia_func(argv1)
-
-3. toto mi tiez nepreslo, ale asi by už malo, nie?
-CODE:
-def krasna_func(argv1)
-
-end
-
-def krajsia_func(argv1)
-
-end
-
-def najkrajsia_func()
-
-end
-
-argv2 = 42
-krasna_func(argv2)
-krajsia_func(argv2)
-
-4.
-CODE:
-def my_func(param1)
-    print("Hello kids\n")
-    param1
-end
-
-a = 7*8*9*42
-my_func(a)
 
 //////////////////////////////////
 //                              //
@@ -83,3 +36,59 @@ my_func(a)
 4. definícia, deklarácia a redefinícia premenných - OK
 5. zložitejší expression, expression s premennými, ktoré sú definované - OK
 6. expression s premennými, čo sú nedefinované - OK
+
+
+//////////////////////////////////
+//                              //
+//         REPAIRED             //
+//                              //
+//////////////////////////////////
+
+1. je schopné vypísať nedefinovanú premennú a
+    CODE:
+    def volaco (param1, param2)
+        print (2, a)
+    end
+
+2. toto nefunguje, ale asi by malo - teda myslím, check pls
+    CODE:
+    def krasna_func(argv1)
+    end
+
+    def krajsia_func(argv1)
+    end
+
+    def najkrajsia_func()
+    end
+
+    argv1 = 42
+    krasna_func(argv1)
+    krajsia_func(argv1)
+
+3. toto mi tiez nepreslo, ale asi by už malo, nie?
+    CODE:
+    def krasna_func(argv1)
+
+    end
+
+    def krajsia_func(argv1)
+
+    end
+
+    def najkrajsia_func()
+
+    end
+
+    argv2 = 42
+    krasna_func(argv2)
+    krajsia_func(argv2)
+
+4.  Toto prejst nema. Je tam redefinicia param1 -> uz v parametri je "param1" definovana, nemoze byt znovu
+    CODE:
+    def my_func(param1)
+        print("Hello kids\n")
+        param1
+    end
+
+    a = 7*8*9*42
+    my_func(a)

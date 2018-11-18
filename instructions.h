@@ -62,7 +62,6 @@ bool gen_while_header(char *func_id, int l_idx, int deep);
 bool gen_while_start(char *func_id, int l_idx, int deep);
 bool gen_while_end(char *func_id, int l_idx, int deep);
 
-static bool gen_builtin_funcs();
 
 void clear_code(); // uvolni dyn. string s kodem
 void flush_code(FILE *dst_file); // vyflusne kod na zadany vystup a uvolni dyn. string s kodem

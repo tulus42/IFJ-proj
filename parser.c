@@ -169,7 +169,7 @@ static int prog(Data_t* data){
         save_id(&identifier_f, data);
         //printf("ID: %s\n", identifier.s);
         
-        
+        gen_func_start((&identifier_f)->s);
 
         // ... ( ...
         GET_TOKEN();
@@ -419,6 +419,9 @@ static int statement(Data_t* data) {
             // ak sme na globalnej urovni
             } else {
                 res = htInsert(global_ST, &tItem);
+
+                gen_var_declar((&identifier)->s);
+
                 printf("idetmInsert returned: %d\n", res);
                 if (res != ST_OK) {
                     return(res);
@@ -1178,6 +1181,7 @@ static int function(Data_t* data) {
                 return(ER_SYN);
             }
         }
+        gen_input((&identifier)->s, STRING);
 
         // ... EOL || EOF ...
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
@@ -1271,6 +1275,7 @@ static int print(Data_t* data) {
         GET_TOKEN();
         IF_N_OK_RETURN(print(data));
         //return(print(data));
+       // gen_print(); // if succes
     }
 
     // ... ) ... - volitelna

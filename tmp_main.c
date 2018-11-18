@@ -18,11 +18,15 @@ int main(){
     get_source(input_file);
 
     ;
-    
+
+    generator_start(); // kontrolovat succes
+
     parser_result = start_parser();
     if(parser_result == ER_SYN){
         return 1;
     }
     
+    flush_code(stdout);
+
     return 0;
 }

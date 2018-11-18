@@ -143,6 +143,62 @@ static bool generate_header()
 	return true;
 }
 
+static bool gen_type_check()
+{
+	ADD_INST("LABEL &type_check");
+	ADD_INST("PUSHFRAME");
+	ADD_INST("POPS GF@_aux_1");
+	ADD_INST("POPS GF@_aux_2");
+
+
+	ADD_INST("TYPE GF@_aux_1_type GF@_aux_1");
+	ADD_INST("TYPE GF@_aux_2_type GF@_aux_2");
+
+	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_1_type string@string");
+
+	ADD_INST("JUMPIFEQ &one_is_int GF@_aux_1_type string@int");
+	ADD_INST("JUMPIFEQ &one_is_flt GF@_aux_1_type string@float");
+
+	ADD_INST("LABEL &one_is_int");
+	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_2_type string@int");
+	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_2_type string@string");
+	ADD_INST("INT2FLOAT GF@_aux_1 GF@_aux_1");
+	ADD_INST("JUMP &type_check_true");
+
+	
+	ADD_INST("LABEL &one_is_flt");
+	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_2_type string@float");
+	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_2_type string@string");
+	ADD_INST("INT2FLOAT GF@_aux_2 GF@_aux_2");
+	ADD_INST("JUMP &type_check_true");
+
+	ADD_INST("LABEL &must_be_same");
+	ADD_INST("JUMPIFEQ &type_check_true GF@_aux_1_type GF@_aux_2_type");
+
+	ADD_INST("EXIT int@4");
+
+	ADD_INST("LABEL &type_check_true");
+
+	ADD_INST("PUSHS GF@_aux_2");
+	ADD_INST("PUSHS GF@_aux_1");
+
+	ADD_INST("POPFRAME");
+	ADD_INST("RETURN");
+
+	return true;
+
+}
+
+static bool gen_builtin_funcs()
+{
+	ADD_INST(FUNC_LEN);
+	ADD_INST(FUNC_SUBS);
+	ADD_INST(FUNC_ORD);
+	ADD_INST(FUNC_CHR);
+
+	return true;
+}
+
 bool generator_start()
 {
 	if (!allocate_string(&code)) return false;
@@ -156,15 +212,7 @@ bool generator_start()
 	return true;
 }
 
-static bool gen_builtin_funcs()
-{
-	ADD_INST(FUNC_LEN);
-	ADD_INST(FUNC_SUBS);
-	ADD_INST(FUNC_ORD);
-	ADD_INST(FUNC_CHR);
 
-	return true;
-}
 
 bool gen_mainscope_start()
 {
@@ -642,14 +690,7 @@ bool gen_func_rval()
 
 bool gen_func_rval_assign(char *var_id)
 {
-	if (val_type == INTEGER && r_type == PRASATKO_S_PAPUCKAMI_FLT)
-	{
-		ADD_INST("FLOAT2INT TF@_rval TF@_rval");
-	}
-	else if (val_type == PRASATKO_S_PAPUCKAMI_FLT && r_type == INTEGER)
-	{
-		ADD_INST("INT2FLOAT TF@_rval TF@_rval");
-	}
+
 
 	ADD_CODE("MOVE LF@");
 	ADD_CODE(var_id);
@@ -708,46 +749,4 @@ bool gen_save_expr_res(char *var_id, char *frame)
 	return true;
 }
 
-static bool gen_type_check()
-{
-	ADD_INST("LABEL &type_check");
-	ADD_INST("PUSHFRAME");
-	ADD_INST("POPS GF@_aux_1");
-	ADD_INST("POPS GF@_aux_2");
 
-
-	ADD_INST("TYPE GF@_aux_1_type GF@_aux_1");
-	ADD_INST("TYPE GF@_aux_2_type GF@_aux_2");
-
-	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_1_type string@string");
-
-	ADD_INST("JUMPIFEQ &one_is_int GF@_aux_1_type string@int");
-	ADD_INST("JUMPIFEQ &one_is_flt GF@_aux_1_type string@float");
-
-	ADD_INST("LABEL &one_is_int");
-	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_2_type string@int");
-	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_2_type string@string");
-	ADD_INST("INT2FLOAT GF@_aux_1 GF@_aux_1");
-	ADD_INST("JUMP &type_check_true");
-
-	
-	ADD_INST("LABEL &one_is_flt");
-	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_2_type string@float");
-	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_2_type string@string");
-	ADD_INST("INT2FLOAT GF@_aux_2 GF@_aux_2");
-	ADD_INST("JUMP &type_check_true");
-
-	ADD_INST("LABEL &must_be_same");
-	ADD_INST("JUMPIFEQ &type_check_true GF@_aux_1_type GF@_aux_2_type");
-
-	ADD_INST("EXIT int@4");
-
-	ADD_INST("LABEL &type_check_true");
-
-	ADD_INST("PUSHS GF@_aux_2");
-	ADD_INST("PUSHS GF@_aux_1");
-
-	ADD_INST("POPFRAME");
-	ADD_INST("RETURN");
-
-}

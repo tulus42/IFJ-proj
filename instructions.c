@@ -133,6 +133,12 @@ static bool generate_header()
 	ADD_INST("DEFVAR GF@_aux_2");
 	ADD_INST("DEFVAR GF@_aux_3");
 
+
+	ADD_INST("DEFVAR GF@_exp_res_type");
+	ADD_INST("DEFVAR GF@_aux_1_type");
+	ADD_INST("DEFVAR GF@_aux_2_type");
+	ADD_INST("DEFVAR GF@_aux_3_type");
+
 	ADD_INST("JUMP &&main");
 	return true;
 }
@@ -144,6 +150,8 @@ bool generator_start()
 	if (!generate_header()) return false;
 
 	if (!gen_builtin_funcs()) return false;
+
+	if (!gen_type_check()) return false;
 
 	return true;
 }
@@ -227,6 +235,17 @@ bool gen_func_param(char *param_id, int idx)
 	ADD_CODE(" LF@_");
 	ADD_INT(idx);
 	ADD_CODE("\n");
+
+	ADD_CODE("DEFVAR LF@");
+	ADD_CODE(param_id);
+	ADD_CODE("_type\n");
+	ADD_CODE("TYPE TF@");
+	ADD_CODE(param_id);
+	ADD_CODE("_type LF@");
+	ADD_CODE(param_id);
+	ADD_CODE("\n");
+
+
 	return true;
 }
 
@@ -236,29 +255,9 @@ bool gen_func_prep_for_params()
 	return true;
 }
 
-static bool gen_def_varval(Type_of_tHTItem t)
+static bool gen_def_varval()
 {
-	switch (t)
-	{
-		case INTEGER:
-			ADD_CODE("int@0");
-			break;
-
-		case PRASATKO_S_PAPUCKAMI_FLT:
-			ADD_CODE("float@0.0");
-			break;
-
-		case STRING:
-			ADD_CODE("string@");
-			break;
-
-		case NILL:
-			ADD_CODE("nil@nil");
-			break;
-
-		default:
-			return false;
-	}
+	ADD_CODE("nil@nil");
 
 	return true;
 }
@@ -330,6 +329,8 @@ bool gen_func_pass_param(Token_t t, int idx)
 	if (!gen_term_val(t)) 
 		return false; 
 	ADD_CODE("\n");
+
+
 	return true;
 }
 
@@ -350,16 +351,24 @@ bool gen_var_declar(char *var_id)
 	ADD_CODE("DEFVAR LF@");
 	ADD_CODE(var_id);
 	ADD_CODE("\n");
+
+	ADD_CODE("DEFVAR LF@");
+	ADD_CODE(var_id);
+	ADD_CODE("_type\n");
+
+	ADD_CODE("MOVE LF@");
+	ADD_CODE(var_id);
+	ADD_CODE("_type string@nil\n");
 	return true;
 }
 
 
-bool gen_var_defval(char *var_id, Type_of_tHTItem t)
+bool gen_var_defval(char *var_id)
 {
 	ADD_CODE("MOVE LF@");
 	ADD_CODE(var_id);
 	ADD_CODE(" ");
-	if (!gen_def_varval(t))
+	if (!gen_def_varval())
 		return false; 
 	ADD_CODE("\n");
 	return true;
@@ -380,40 +389,47 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 	switch (symb)
 	{
 		case PLUS:
+			ADD_INST("CALL &type_check");
 			ADD_INST("ADDS");
 			break;
 
 		case MINUS:
+			ADD_INST("CALL &type_check");
 			ADD_INST("SUBS");
 			break;
 
 		case MUL:
+			ADD_INST("CALL &type_check");
 			ADD_INST("MULS");
 			break;
 
 		case DIV:
+			ADD_INST("CALL &type_check");
 			ADD_INST("DIVS");
 			break;
 
-		case IDIV:
+	/*	case IDIV:
 			ADD_INST("POPS GF@_aux_1");
 			ADD_INST("INT2FLOATS");
 			ADD_INST("PUSHS GF@_aux_1");
 			ADD_INST("INT2FLOATS");
 			ADD_INST("DIVS");
 			ADD_INST("FLOAT2INTS");
-			break;
+			break; */
 
 		case EQL:
+			ADD_INST("CALL &type_check");
 			ADD_INST("EQS");
 			break;
 
 		case NEQ:
+			ADD_INST("CALL &type_check");
 			ADD_INST("EQS");
 			ADD_INST("NOTS");
 			break;
 
 		case LEQ:
+			ADD_INST("CALL &type_check");
 			ADD_INST("POPS GF@_aux_1");
 			ADD_INST("POPS GF@_aux_2");
 			ADD_INST("PUSHS GF@_aux_2");
@@ -426,10 +442,12 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 			break;
 
 		case LTN:
+			ADD_INST("CALL &type_check");
 			ADD_INST("LTS");
 			break;
 
 		case MEQ:
+			ADD_INST("CALL &type_check");
 			ADD_INST("POPS GF@_aux_1");
 			ADD_INST("POPS GF@_aux_2");
 			ADD_INST("PUSHS GF@_aux_2");
@@ -442,6 +460,7 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 			break;
 
 		case MTN:
+			ADD_INST("CALL &type_check");
 			ADD_INST("GTS");
 			break;
 
@@ -455,10 +474,10 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 
 bool generate_concat_stack_strings()
 {
-	ADD_INST("POPS GF@%tmp_op3");
-	ADD_INST("POPS GF@%tmp_op2");
-	ADD_INST("CONCAT GF@%tmp_op1 GF@%tmp_op2 GF@%tmp_op3");
-	ADD_INST("PUSHS GF@%tmp_op1");
+	ADD_INST("POPS GF@_aux_3");
+	ADD_INST("POPS GF@_aux_2");
+	ADD_INST("CONCAT GF@_aux_1 GF@_aux_2 GF@_aux_3");
+	ADD_INST("PUSHS GF@_aux_1");
 
 	return true;
 }
@@ -614,17 +633,14 @@ bool gen_while_end(char *func_id, int l_idx, int deep)
 	return true;
 }
 
-bool gen_func_rval(Type_of_tHTItem t)
+bool gen_func_rval()
 {
 	ADD_INST("DEFVAR LF@_rval");
-	ADD_CODE("MOVE LF@_rval ");
-	if (!gen_def_varval(t)) 
-		return false;
-	ADD_CODE("\n");
+
 	return true;
 }
 
-bool gen_func_rval_assign(char *var_id, Type_of_tHTItem val_type, Type_of_tHTItem r_type)
+bool gen_func_rval_assign(char *var_id)
 {
 	if (val_type == INTEGER && r_type == PRASATKO_S_PAPUCKAMI_FLT)
 	{
@@ -638,9 +654,17 @@ bool gen_func_rval_assign(char *var_id, Type_of_tHTItem val_type, Type_of_tHTIte
 	ADD_CODE("MOVE LF@");
 	ADD_CODE(var_id);
 	ADD_CODE(" TF@_rval\n");
+
+	ADD_CODE("TYPE LF@");
+	ADD_CODE(var_id);
+	ADD_CODE("_type TF@");
+	ADD_CODE(var_id);
+	ADD_CODE("\n");
+
 	return true;
 }
 
+/*
 bool gen_func_conv_param(Type_of_tHTItem one, Type_of_tHTItem two, int idx)
 {
 	if (one == PRASATKO_S_PAPUCKAMI_FLT && two == INTEGER)
@@ -660,7 +684,7 @@ bool gen_func_conv_param(Type_of_tHTItem one, Type_of_tHTItem two, int idx)
 		ADD_CODE("\n");
 	}
 	return true;
-}
+} */
 
 bool gen_concat_str()
 {
@@ -672,16 +696,8 @@ bool gen_concat_str()
 }
 
 
-bool gen_save_expr_res(char *var_id, Type_of_tHTItem val_type, Type_of_tHTItem r_type, char *frame)
+bool gen_save_expr_res(char *var_id, char *frame)
 {
-	if (val_type == INTEGER && r_type == PRASATKO_S_PAPUCKAMI_FLT)
-	{
-		ADD_INST("FLOAT2INTS");
-	}
-	else if (val_type == PRASATKO_S_PAPUCKAMI_FLT && r_type == INTEGER)
-	{
-		ADD_INST("INT2FLOATS");
-	}
 
 	ADD_CODE("POPS ");
 	ADD_CODE(frame);
@@ -690,4 +706,48 @@ bool gen_save_expr_res(char *var_id, Type_of_tHTItem val_type, Type_of_tHTItem r
 	ADD_CODE("\n");
 
 	return true;
+}
+
+static bool gen_type_check()
+{
+	ADD_INST("LABEL &type_check");
+	ADD_INST("PUSHFRAME");
+	ADD_INST("POPS GF@_aux_1");
+	ADD_INST("POPS GF@_aux_2");
+
+
+	ADD_INST("TYPE GF@_aux_1_type GF@_aux_1");
+	ADD_INST("TYPE GF@_aux_2_type GF@_aux_2");
+
+	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_1_type string@string");
+
+	ADD_INST("JUMPIFEQ &one_is_int GF@_aux_1_type string@int");
+	ADD_INST("JUMPIFEQ &one_is_flt GF@_aux_1_type string@float");
+
+	ADD_INST("LABEL &one_is_int");
+	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_2_type string@int");
+	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_2_type string@string");
+	ADD_INST("INT2FLOAT GF@_aux_1 GF@_aux_1");
+	ADD_INST("JUMP &type_check_true");
+
+	
+	ADD_INST("LABEL &one_is_flt");
+	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_2_type string@float");
+	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_2_type string@string");
+	ADD_INST("INT2FLOAT GF@_aux_2 GF@_aux_2");
+	ADD_INST("JUMP &type_check_true");
+
+	ADD_INST("LABEL &must_be_same");
+	ADD_INST("JUMPIFEQ &type_check_true GF@_aux_1_type GF@_aux_2_type");
+
+	ADD_INST("EXIT int@4");
+
+	ADD_INST("LABEL &type_check_true");
+
+	ADD_INST("PUSHS GF@_aux_2");
+	ADD_INST("PUSHS GF@_aux_1");
+
+	ADD_INST("POPFRAME");
+	ADD_INST("RETURN");
+
 }

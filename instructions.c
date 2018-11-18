@@ -11,6 +11,8 @@ Adrián Tulušák, xtulus00
 #include "dynamic_string.h"
 #include <ctype.h>
 
+// todo vestavene funkce typ kontrola + navrat
+
 #define ADD_INST(_inst)		\
 	if (!add_const_string(&code, (_inst "\n"))) return false 
 
@@ -250,6 +252,7 @@ bool gen_func_start(char *func_id)
 	ADD_CODE(func_id);
 	ADD_CODE("\n");
 	ADD_INST("PUSHFRAME");
+	ADD_INST("MOVE GF@_exp_res nil@nil");
 	return true;
 }
 
@@ -287,7 +290,7 @@ bool gen_func_param(char *param_id, int idx)
 	ADD_CODE("DEFVAR LF@");
 	ADD_CODE(param_id);
 	ADD_CODE("_type\n");
-	ADD_CODE("TYPE TF@");
+	ADD_CODE("TYPE LF@");
 	ADD_CODE(param_id);
 	ADD_CODE("_type LF@");
 	ADD_CODE(param_id);
@@ -531,8 +534,9 @@ bool generate_concat_stack_strings()
 }
 
 
-bool gen_input(char *var_id, Type_of_tHTItem t)
+bool gen_input(char *var_id, Type_of_tHTItem t, bool assign)
 {
+	// if assign + i do exp result
 	ADD_CODE("READ LF@");
 	ADD_CODE(var_id);
 	ADD_CODE(" ");
@@ -596,11 +600,10 @@ bool gen_sop2_2int()
 }
 
 
-static bool gen_label(char *func_id, int l_idx, int deep)
+static bool gen_label(int l_idx, int deep)
 {
 	ADD_CODE("LABEL &");
-	ADD_CODE(func_id);
-	ADD_CODE("_");
+
 	ADD_INT(deep);
 	ADD_CODE("_");
 	ADD_INT(l_idx);
@@ -609,11 +612,10 @@ static bool gen_label(char *func_id, int l_idx, int deep)
 }
 
 
-bool gen_if_start(char *func_id, int l_idx, int deep)
+bool gen_if_start(int l_idx, int deep)
 {
 	ADD_CODE("JUMPIFEQ &");
-	ADD_CODE(func_id);
-	ADD_CODE("_");
+
 	ADD_INT(deep);
 	ADD_CODE("_");
 	ADD_INT(l_idx);
@@ -622,42 +624,40 @@ bool gen_if_start(char *func_id, int l_idx, int deep)
 }
 
 
-bool gen_if_else(char *func_id, int l_idx, int deep)
+bool gen_if_else(int l_idx, int deep)
 {
 	ADD_CODE("JUMP &");
-	ADD_CODE(func_id);
-	ADD_CODE("_");
+
 	ADD_INT(deep);
 	ADD_CODE("_");
 	ADD_INT(l_idx + 1);
 	ADD_CODE("\n");
-	if (!gen_label(func_id, l_idx, deep))
+	if (!gen_label(l_idx, deep))
 		return false;
 	return true;
 }
 
 
-bool gen_if_end(char *func_id, int l_idx, int deep)
+bool gen_if_end(int l_idx, int deep)
 {
-	if (!gen_label(func_id, l_idx, deep))
+	if (!gen_label(l_idx, deep))
 		return false;
 	return true;
 }
 
 
-bool gen_while_header(char *func_id, int l_idx, int deep)
+bool gen_while_header(int l_idx, int deep)
 {
-	if (!gen_label(func_id, l_idx, deep))
+	if (!gen_label(l_idx, deep))
 		return false;
 	return true;
 }
 
 
-bool gen_while_start(char *func_id, int l_idx, int deep)
+bool gen_while_start(int l_idx, int deep)
 {
 	ADD_CODE("JUMPIFEQ &");
-	ADD_CODE(func_id);
-	ADD_CODE("_");
+
 	ADD_INT(deep);
 	ADD_CODE("_");
 	ADD_INT(l_idx);
@@ -667,16 +667,15 @@ bool gen_while_start(char *func_id, int l_idx, int deep)
 }
 
 
-bool gen_while_end(char *func_id, int l_idx, int deep)
+bool gen_while_end(int l_idx, int deep)
 {
 	ADD_CODE("JUMP &");
-	ADD_CODE(func_id);
-	ADD_CODE("_");
+
 	ADD_INT(deep);
 	ADD_CODE("_");
 	ADD_INT(l_idx - 1);
 	ADD_CODE("\n");
-	if (!gen_label(func_id, l_idx, deep))
+	if (!gen_label(l_idx, deep))
 		return false;
 	return true;
 }
@@ -698,7 +697,7 @@ bool gen_func_rval_assign(char *var_id)
 
 	ADD_CODE("TYPE LF@");
 	ADD_CODE(var_id);
-	ADD_CODE("_type TF@");
+	ADD_CODE("_type LF@");
 	ADD_CODE(var_id);
 	ADD_CODE("\n");
 
@@ -727,7 +726,7 @@ bool gen_func_conv_param(Type_of_tHTItem one, Type_of_tHTItem two, int idx)
 	return true;
 } */
 
-bool gen_concat_str()
+bool gen_concat_str() // konkatenace todo
 {
 	ADD_INST("POPS GF@_aux_3");
 	ADD_INST("POPS GF@_aux_2");

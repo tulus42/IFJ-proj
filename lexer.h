@@ -34,7 +34,7 @@ Adrián Tulušák, xtulus00
 #define STATE_COMMENT_START 513 // '=begin'
 #define STATE_INSIDE_BLOCK_COMMENT 514
 #define STATE_COMMENT_END 515 // '=end'
-#define STATE_STRING_LITERAL 516 // "xxxxxx"
+#define STATE_STRING 516 // "xxxxxx"
 #define STATE_BACKSLASH_LITERAL 517 // backslash
 #define STATE_HEX_NUM 518 // xx
 #define STATE_DECIMAL 519 // 5.42
@@ -106,7 +106,7 @@ typedef enum
 
 	TYPE_INT, 
 	TYPE_FLOAT, 
-	TYPE_STRING, /// STRING LITERAL
+	TYPE_STRING /// STRING LITERAL
 } Token_type;
 
 typedef struct
@@ -114,6 +114,19 @@ typedef struct
     Token_type token;
     Token_attr attr;
 } Token_t;
+
+typedef union{
+	char* tmp_string;
+	int tmp_integer; 
+	Keyword tmp_keyword; 
+	double tmp_flt; // float
+} Tmp_token_attr_t;
+
+typedef struct
+{
+	Token_type type_token;
+	Tmp_token_attr_t attr_token;
+} Tmp_Token_t;
 
 int lexer_error(string_t* string_ptr, int error_type);
 int lexer_succesful(string_t* string_ptr);

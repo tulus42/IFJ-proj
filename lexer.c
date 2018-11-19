@@ -237,7 +237,7 @@ int get_next_token(Token_t *token)
 					change_state(&current_status, STATE_EXCLAMATION_MARK);
 				}
 				else if(c == '"'){ // "
-					change_state(&current_status, STATE_STRING_LITERAL);
+					change_state(&current_status, STATE_STRING);
 				}
 				else if(c == '\n'){ // end of line token
 					token->token = TYPE_EOL;
@@ -456,10 +456,10 @@ int get_next_token(Token_t *token)
 				break;
 
 			// string literal enclosed in two double quotation marks
-			case(STATE_STRING_LITERAL):
+			case(STATE_STRING):
 				if(c == '"'){ // this is the end of string literal
 					token->token = TYPE_STRING;
-					//token->attr.string = string_ptr->s;
+					strcpy(token->attr.string->s, string_ptr->s);
 					return lexer_succesful(string_ptr);
 				}
 				else{
@@ -505,7 +505,7 @@ int get_next_token(Token_t *token)
 					change_state(&current_status, STATE_HEX_NUM);
 					break;
 				}
-				change_state(&current_status, STATE_STRING_LITERAL);
+				change_state(&current_status, STATE_STRING);
 				break;
 
 			// converts hex number to int, \xhh
@@ -533,7 +533,7 @@ int get_next_token(Token_t *token)
 				if(!add_char(string_ptr, converted)){ // adds it to string literal
 					return lexer_error(string_ptr, ER_INTERNAL);
 				}
-				change_state(&current_status, STATE_STRING_LITERAL); // go back to string literal state
+				change_state(&current_status, STATE_STRING); // go back to string literal state
 				break;
 
 			// first char was 0

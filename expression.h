@@ -67,9 +67,17 @@ typedef enum{
     IDIV
 } Precedential_table_symbol;
 
+typedef enum{
+    ON_GENERATOR_STACK,
+    INVALID_TOKEN,
+    VALID_TOKEN
+} Symbol_status;
+
 typedef struct one_item{
     int symbol;
     struct one_item* next;
+    Tmp_Token_t my_token;
+    Symbol_status current_status;
 } Symbol_item_t;
 
 
@@ -105,6 +113,9 @@ bool add_after_first_terminal(Symbol_stack_t* stack, Precedential_table_symbol s
 bool reduce_by_rule(Symbol_stack_t* stack);
 bool is_term(Precedential_table_symbol symbol);
 bool check_plus(Symbol_stack_t* stack, int to_pop);
+bool reduce_identifier(Symbol_item_t* tmp, int count, Symbol_stack_t* stack);
+bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack);
+bool push_reduced(int count, Symbol_stack_t* stack);
 
 int handle_expression(Data_t* data);
 int count_to_reduce(Symbol_stack_t* stack);
@@ -126,7 +137,8 @@ Precedential_table_index get_index(Precedential_table_symbol symbol);
 void init_stack(Symbol_stack_t* stack);
 void free_stack(Symbol_stack_t* stack);
 
-bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol);
+bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol, Data_t* data);
+bool push_no_token(Symbol_stack_t* stack, Precedential_table_symbol symbol);
 bool pop_stack(Symbol_stack_t* stack);
 
 /***********************************************************

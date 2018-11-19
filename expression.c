@@ -143,7 +143,6 @@ bool from_buffer = false;
     do{                                                                         \
         tmp = get_from_buffer(&buffer);                                         \
         to_push_symbol = tmp->symbol;                                           \
-        delete_first(&buffer);                                                  \
     }while(0);                                                                  \
 
 /**
@@ -199,7 +198,7 @@ bool from_buffer = false;
     else{\
         SAVE_SYMBOL();\
         from_lexer = false;\
-        from_lexer = true;\
+        from_buffer = true;\
     }   \
     if(return_code != EXPRESSION_OK)                                        \
             return expression_error(&stack, &buffer, return_code);              \
@@ -232,13 +231,12 @@ int return_code = EXPRESSION_OK;
  * Handles the epxression, get the first token an token that symbolizes end of expression 
  */
 int handle_expression(Data_t* data){
+    // my variables
     bool can_get_token = true;
     bool is_reduced = false;
     Precedential_table_symbol to_push_symbol;
     Precedential_table_rule current_rule;
-    return_code = EXPRESSION_OK;
     Symbol_item_t* tmp = NULL;
-    //tmp->my_token = buffer.first->my_token;
 
     
     // initialize stack
@@ -249,21 +247,16 @@ int handle_expression(Data_t* data){
         return expression_error(&stack, &buffer, ER_INTERNAL);
     }
 
-    //print_buffer(&buffer);
-    print_current_stack(&stack);
-
     GET_SYMBOL();
 
-    //print_buffer(&buffer);
+    print_buffer(&buffer);
     print_current_stack(&stack);
     
     // We iterate through all the tokens and check their syntax
     // When the rule is SHIFT or EQUAL, we can get new token
     // When the rule is REDUCE, we don't get any new tokens
     // UDEFINED symbolizes either gramatical error or succesfull reduction of expression 
-    while(!is_reduced){
-        //print_buffer(&buffer);
-        //print_current_stack(&stack); 
+    while(!is_reduced){ 
         current_rule = get_indexes_and_rule(&stack, to_push_symbol);  // get current rule
 
         if(current_rule == S){  // SHIFT rule
@@ -277,14 +270,14 @@ int handle_expression(Data_t* data){
 
         }
         else if(current_rule == R){  // REDUCE rule
-            can_get_token = false;                                  // don't get any new token
-            if(!reduce_by_rule(&stack)){                             // reduce it
+            can_get_token = false;                                      // don't get any new token
+            if(!reduce_by_rule(&stack)){                                // reduce it
                 return expression_error(&stack, &buffer, return_code);
             } 
         }
         else if(current_rule == E){  // EQUAL rule
             can_get_token = true;                                   // can get new token
-            if(!push_stack(&stack, to_push_symbol, data)){  // push token symbol
+            if(!push_stack(&stack, to_push_symbol, data)){          // push token symbol
                 return expression_error(&stack, &buffer, ER_INTERNAL);
             }
         }
@@ -304,12 +297,11 @@ int handle_expression(Data_t* data){
         }
 
         //print_current_stack(&stack); // DEBUG
-        //print_buffer(&buffer);
+        print_buffer(&buffer);
         print_current_stack(&stack);
         
     }
     printf("While has finished succesfully!\n"); // DEBUG
-    //print_token(data);
 
     // if we come here, the syntax and semantics were correct
     is_reduced = false;
@@ -319,7 +311,9 @@ int handle_expression(Data_t* data){
 }
 
 /**
- * 
+ * Pushes reduced expression like this : E x E
+ * We do not have to keep the token anymore as it is already 
+ * on generator stack
  */
 bool push_reduced(int count, Symbol_stack_t* stack){
     Symbol_item_t* new_thing = malloc(sizeof(Symbol_item_t));
@@ -337,7 +331,7 @@ bool push_reduced(int count, Symbol_stack_t* stack){
 }
 
 /**
- * 
+ * Reduces expression in brackets and copies it's current status
  */
 bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack){
     Symbol_item_t* new_thing = malloc(sizeof(Symbol_item_t));
@@ -791,19 +785,6 @@ bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol, Data_t*
     }  
 }
 
-/*
-tmp->my_token.type_token = data->token->token;                          \
-        tmp->my_token.attr_token.tmp_flt = data->token->attr.flt;               \
-        tmp->my_token.attr_token.tmp_integer = data->token->attr.integer;       \
-        tmp->my_token.attr_token.tmp_keyword = data->token->attr.keyword;       \
-        if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){ \
-            tmp->my_token.attr_token.tmp_string = (char *) malloc(strlen(data->token->attr.string->s) + 2); \
-            if(tmp->my_token.attr_token.tmp_string == NULL){    \
-                return ER_INTERNAL; \
-            }   \
-            strcpy(tmp->my_token.attr_token.tmp_string, data->token->attr.string->s);   \
-        }
-*/
 
 bool push_no_token(Symbol_stack_t* stack, Precedential_table_symbol symbol){
     Symbol_item_t* tmp = malloc(sizeof(Symbol_item_t));

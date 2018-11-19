@@ -39,7 +39,7 @@ bool gen_var_defval(char *var_id); // inicalizuje prom na vychozi nil
 
 
 bool gen_push(Token_t t); // vlozi token na zasobnik, prace s vyrazy
-bool gen_input(char *var_id, Type_of_tHTItem t); // načtení do promene, t urcuje typ, napr.  x=inputi() tak gen_input("x", INTEGER);
+bool gen_input(char *var_id, Type_of_tHTItem t, bool assign); // načtení do promene, t urcuje typ, napr.  x=inputi() tak gen_input("x", INTEGER);
 bool gen_print(); // tiskne vysledek expression
 
 // konverzni operace pro praci s vyrazy
@@ -53,14 +53,14 @@ bool gen_save_expr_res(char *var_id, char *frame); // frame = "LF" - funkce, "GF
 bool gen_stackop(Precedential_table_symbol symb); // provede operaci se dvema prom na vrcholu zasobniku, dle symbolu symb
 
 // prace s if
-bool gen_if_start(char *func_id, int l_idx, int deep);
-bool gen_if_else(char *func_id, int l_idx, int deep);
-bool gen_if_end(char *func_id, int l_idx, int deep);
+bool gen_if_start(int l_idx, int deep);
+bool gen_if_else(int l_idx, int deep);
+bool gen_if_end(int l_idx, int deep);
 
 // prace s while
-bool gen_while_header(char *func_id, int l_idx, int deep);
-bool gen_while_start(char *func_id, int l_idx, int deep);
-bool gen_while_end(char *func_id, int l_idx, int deep);
+bool gen_while_header(int l_idx, int deep);
+bool gen_while_start(int l_idx, int deep);
+bool gen_while_end(int l_idx, int deep);
 
 
 void clear_code(); // uvolni dyn. string s kodem

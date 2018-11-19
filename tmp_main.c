@@ -26,7 +26,10 @@ int main(){
         return 1;
     }
     
-    flush_code(stdout);
+    if(parser_result == SYN_OK){
+         flush_code(stdout);
+    }
+   
 
     return 0;
 }

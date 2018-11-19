@@ -111,6 +111,7 @@ string_t identifier;
 
 int res;
 int params_cnt = 0;
+int if_whlie_idx = 0;
 
 tHTItem tItem;
 
@@ -263,6 +264,8 @@ static int statement(Data_t* data) {
     // ... IF ...
     if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_IF) {
         data->in_while_or_if++;
+        if_whlie_idx +=2;
+        int this_if = if_whlie_idx;
         // ... <expression> ...
         
         printf("Check expression\n");
@@ -279,6 +282,7 @@ static int statement(Data_t* data) {
             return(ER_SYN);
         }
     
+        gen_if_start(this_if, data->in_while_or_if);
         // ... EOL ...
         GET_TOKEN();
         printf("Check EOL\n");
@@ -304,15 +308,23 @@ static int statement(Data_t* data) {
                 return(ER_SYN);
             }
           
+            gen_if_else(this_if, data->in_while_or_if);
             // ... <statements> ...
             GET_TOKEN();
             printf("Check next statement\n");
             IF_N_OK_RETURN(statement(data));
         }
+
+        else
+        { gen_if_else(this_if, data->in_while_or_if+1);}
+
+        
         
         // ... END ...  - nevolame get_token(), pretoze sem sa vrati zo <statement> len ak uz token == END
         if (!(data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_END))
             return(ER_SYN);
+
+        gen_if_end(this_if+1, data->in_while_or_if+1);
 
         // ... EOL || EOF ... 
         GET_TOKEN();
@@ -330,6 +342,10 @@ static int statement(Data_t* data) {
     // ... WHILE ...
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_WHILE) {
         data->in_while_or_if++;
+        if_whlie_idx +=2;
+        int this_while = if_whlie_idx;
+
+        gen_while_header(this_while, data->in_while_or_if);
         // ... <expression> ...
         res = handle_expression(data);
         if (res == EXPRESSION_OK) {      // TODO expression
@@ -345,6 +361,9 @@ static int statement(Data_t* data) {
         GET_TOKEN();
         if (data->token->token != TYPE_EOL)
             return(ER_SYN);
+
+       
+        gen_while_start(this_while+1, data->in_while_or_if);
         
         // ... <statements> ...
         GET_TOKEN();
@@ -354,6 +373,8 @@ static int statement(Data_t* data) {
         // ... END ...  - nevolame get_token(), pretoze sem sa vrati zo <statement> len ak uz token == END
         if (!(data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_END))
             return(ER_SYN);
+
+        gen_while_end(this_while+1, data->in_while_or_if+1);
 
         // ... EOL || EOF ... 
         GET_TOKEN();
@@ -394,8 +415,10 @@ static int statement(Data_t* data) {
         // <statement> -> ID_FUNC 
         if (check_define(global_ST, (&identifier)->s) == FUNCTION_DEFINED) {
             
-
+            gen_func_prep_for_params();
             IF_N_OK_RETURN(argvs(data));
+
+            gen_func_call((&identifier)->s);
 
             return(prog(data));
 
@@ -420,7 +443,7 @@ static int statement(Data_t* data) {
             } else {
                 res = htInsert(global_ST, &tItem);
 
-                gen_var_declar((&identifier)->s);
+                
 
                 printf("idetmInsert returned: %d\n", res);
                 if (res != ST_OK) {
@@ -428,6 +451,9 @@ static int statement(Data_t* data) {
                 }
                 htPrintTable(global_ST);
             }
+
+            gen_var_declar((&identifier)->s);
+            gen_var_defval((&identifier)->s);
             
 
             return(prog(data));
@@ -452,7 +478,7 @@ static int statement(Data_t* data) {
 
                 } else {
                     res = htInsert(global_ST, &tItem);
-                    printf("idetmInsert returned: %d\n", res);
+                    printf("itemInsert returned: %d\n", res);
                     if (res != ST_OK) {
                         return(res);
                     }
@@ -533,6 +559,11 @@ static int statement(Data_t* data) {
         if (data->in_definition == true) {
             if (data->token->attr.keyword == KEYWORD_END) {
                 data->in_definition = false;
+
+                gen_func_rval();
+                gen_func_ret((&identifier_f)->s);
+                gen_func_end((&identifier_f)->s);
+
                 printf("Return <statement>3\n");
                 return(SYN_OK);
             }
@@ -562,9 +593,21 @@ static int declare(Data_t* data) {
 
         // ... ID, ID_FUNC ...
         if (data->token->token == TYPE_IDENTIFIER) {
+            // TODO - pripad, ze sme v definici
+            save_id(&identifier_f, data);
+
             // ... ID_FUNC ...
             if (check_define(global_ST, data->token->attr.string->s) == FUNCTION_DEFINED) {
                 
+                gen_func_prep_for_params();
+                GET_TOKEN();
+
+                IF_N_OK_RETURN(argvs(data));
+                itemupdate(&tItem, (&identifier)->s, VAR, true, 0);
+                htInsert(global_ST, &tItem);
+
+                gen_func_call((&identifier_f)->s);
+                gen_func_rval_assign((&identifier)->s);
             } else
 
             // ... ID ... 
@@ -621,6 +664,8 @@ static int declare(Data_t* data) {
         }
 
         clear_buffer(&buffer);
+
+
         return(SYN_OK);
     } else 
 
@@ -676,6 +721,8 @@ static int param(Data_t* data) {
      **/
         params_cnt++;
         save_id(&identifier, data);
+
+        gen_func_param((&identifier)->s, params_cnt);
 
         res = def_ID(local_ST, (&identifier)->s);
         if (res != ST_OK) {
@@ -740,22 +787,27 @@ static int arg(Data_t* data) {
     // <arg> -> ε
 
     printf("in <arg>\n");
+    
+
     if (IS_VALUE()) {
         params_cnt++;
         printf("in IS_VALUE\n");
     
         if (data->token->token == TYPE_IDENTIFIER) {
+            printf("ID: %s\n", data->token->attr.string->s);
             if (data->in_definition == true) {
                 if (check_define(local_ST, data->token->attr.string->s) != PARAM_DEFINED) {
                     return(ER_SEM_VARIABLE);
                 }
             } else {
                 if (check_define(global_ST, data->token->attr.string->s) != PARAM_DEFINED) {
+                    printf("TU SOM SPADOL\n");
                     return(ER_SEM_VARIABLE);
                 }
             }
         }
 
+        gen_func_pass_param(*(data->token), params_cnt);
         printf("in arg Checkpoint\n");
         GET_TOKEN();
         // ... , ...
@@ -1181,7 +1233,9 @@ static int function(Data_t* data) {
                 return(ER_SYN);
             }
         }
-        gen_input((&identifier)->s, STRING);
+
+        // true == priradzujeme funkciu premennej  TODO
+        gen_input((&identifier)->s, STRING, true);
 
         // ... EOL || EOF ...
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
@@ -1210,6 +1264,8 @@ static int function(Data_t* data) {
             }
         }
 
+        gen_input((&identifier)->s, INTEGER, true);
+
         // ... EOL || EOF ...
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
             return(SYN_OK);
@@ -1237,6 +1293,7 @@ static int function(Data_t* data) {
             }
         }
 
+        gen_input((&identifier)->s, PRASATKO_S_PAPUCKAMI_FLT, true);
         // ... EOL || EOF ...
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
             return(SYN_OK);

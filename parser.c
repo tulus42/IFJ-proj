@@ -91,11 +91,6 @@ const char* tokens[] = {
 /**
  * TODO: 
  * 
- * vyriešiť situáciu "func ()/func param" - bez zátvoriek
- * dorobiť kontrolu premenných a funkcií v tabulke symbolov
- *    - zmenit typ premennej po priradeni
- * 
- * urobiť <declare>
  * 
  * prerobit Errorove vystupy
  *    - if (something() != SYN_OK)
@@ -108,6 +103,7 @@ const char* tokens[] = {
 // premenna pre uchovanie ID z tokenu pre neskorsie ulozenie do TS
 string_t identifier_f;
 string_t identifier;
+string_t identifier_declare;
 
 int res;
 int params_cnt = 0;
@@ -405,10 +401,10 @@ static int statement(Data_t* data) {
     else if (data->token->token == TYPE_IDENTIFIER) {
 
 
-        // if (ID_var) then:    ************************
         printf("in <statement> ID EOL/ID <declare>/ID_FUNC...\n");
         save_id(&identifier, data);
-        //*** somehow check ID in table
+        save_id(&identifier_declare, data);
+        
 
         GET_TOKEN();
 
@@ -416,6 +412,7 @@ static int statement(Data_t* data) {
         if (check_define(global_ST, (&identifier)->s) == FUNCTION_DEFINED) {
             
             gen_func_prep_for_params();
+
             IF_N_OK_RETURN(argvs(data));
 
             gen_func_call((&identifier)->s);
@@ -466,7 +463,7 @@ static int statement(Data_t* data) {
         if (data->token->token == TYPE_ASSIGN) {
             res = declare(data);
             if (res== SYN_OK) {
-                itemupdate(&tItem, (&identifier)->s, VAR, true, 0);
+                itemupdate(&tItem, (&identifier_declare)->s, VAR, true, 0);
 
                 if (data->in_definition == true) {
                     res = htInsert(local_ST, &tItem);
@@ -584,6 +581,7 @@ static int statement(Data_t* data) {
  * ***************************************************************************************/
 static int declare(Data_t* data) {
     // <declare> =
+    data->in_declare = true;
 
     GET_TOKEN();
 
@@ -594,7 +592,8 @@ static int declare(Data_t* data) {
         // ... ID, ID_FUNC ...
         if (data->token->token == TYPE_IDENTIFIER) {
             // TODO - pripad, ze sme v definici
-            save_id(&identifier_f, data);
+            save_id(&identifier, data);
+            printf("ID1: %s\nID2: %s\nID3: %s\n", identifier_f.s,identifier.s,identifier_declare.s);
 
             // ... ID_FUNC ...
             if (check_define(global_ST, data->token->attr.string->s) == FUNCTION_DEFINED) {
@@ -603,11 +602,14 @@ static int declare(Data_t* data) {
                 GET_TOKEN();
 
                 IF_N_OK_RETURN(argvs(data));
-                itemupdate(&tItem, (&identifier)->s, VAR, true, 0);
+                itemupdate(&tItem, (&identifier_declare)->s, VAR, true, 0);
+                printf("ID1: %s\nID2: %s\n", identifier_f.s,identifier.s);
                 htInsert(global_ST, &tItem);
 
-                gen_func_call((&identifier_f)->s);
-                gen_func_rval_assign((&identifier)->s);
+                gen_func_call((&identifier)->s);
+                gen_func_rval_assign((&identifier_declare)->s);
+                printf("ID1: %s\nID2: %s\n", identifier_f.s,identifier.s);
+
             } else
 
             // ... ID ... 
@@ -623,6 +625,7 @@ static int declare(Data_t* data) {
                         return(res);
                     }
                     clear_buffer(&buffer);
+                    data->in_declare = false;
                     return(SYN_OK);
 
                 } else
@@ -630,6 +633,7 @@ static int declare(Data_t* data) {
                 // ... EOL || EOF ...
                 if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
                     clear_buffer(&buffer);
+                    data->in_declare = false;
                     return(SYN_OK);
                 }
 
@@ -652,6 +656,7 @@ static int declare(Data_t* data) {
                     return(res);
                 }
                 clear_buffer(&buffer);
+                data->in_declare = false;
                 return(SYN_OK);
 
             } else
@@ -659,6 +664,7 @@ static int declare(Data_t* data) {
             // ... EOL || EOF ...
             if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
                 clear_buffer(&buffer);
+                data->in_declare = false;
                 return(SYN_OK);
             }
         }
@@ -670,11 +676,14 @@ static int declare(Data_t* data) {
     } else 
 
     if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword > 8 && data->token->attr.keyword < 17) {
+        
         res = function(data);
         if (res != SYN_OK) {
             return(res);
-        } else
+        } else {
+            data->in_declare = false;
             return(SYN_OK);
+        }
     }
 
 
@@ -1235,10 +1244,11 @@ static int function(Data_t* data) {
         }
 
         // true == priradzujeme funkciu premennej  TODO
-        gen_input((&identifier)->s, STRING, true);
+        gen_input((&identifier)->s, STRING, data->in_declare);
 
         // ... EOL || EOF ...
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            data->in_declare = false;
             return(SYN_OK);
         }
 
@@ -1264,10 +1274,11 @@ static int function(Data_t* data) {
             }
         }
 
-        gen_input((&identifier)->s, INTEGER, true);
+        gen_input((&identifier)->s, INTEGER, data->in_declare);
 
         // ... EOL || EOF ...
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            data->in_declare = false;
             return(SYN_OK);
         }
 
@@ -1293,9 +1304,10 @@ static int function(Data_t* data) {
             }
         }
 
-        gen_input((&identifier)->s, PRASATKO_S_PAPUCKAMI_FLT, true);
+        gen_input((&identifier)->s, PRASATKO_S_PAPUCKAMI_FLT, data->in_declare);
         // ... EOL || EOF ...
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            data->in_declare = false;
             return(SYN_OK);
         }
 
@@ -1362,6 +1374,7 @@ static bool init_struct(Data_t* data){
     data->in_bracket = false;
     data->in_while_or_if = 0;
     data->in_definition = false;
+    data->in_declare = false;
 
     return true;
 }
@@ -1390,6 +1403,7 @@ int start_parser(){
     //identifier = (char *)malloc(sizeof(char));
     allocate_string(&identifier);
     allocate_string(&identifier_f);
+    allocate_string(&identifier_declare);
 
     // inicializacia tabulky symbolov
     STinits();
@@ -1428,6 +1442,7 @@ int start_parser(){
     //free(identifier);
     free_string(&identifier);
     free_string(&identifier_f);
+    free_string(&identifier_declare);
 
     /*
     DeleteStack(s);

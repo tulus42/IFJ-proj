@@ -1,0 +1,10 @@
+def kek()
+    zobzob = pepe
+end
+
+def pepe()
+    inputs
+end
+
+lol = kek
+print lol

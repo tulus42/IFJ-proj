@@ -255,8 +255,8 @@ int handle_expression(Data_t* data){
 
     GET_SYMBOL();
 
-    //print_buffer(&buffer);
-    //print_current_stack(&stack);
+    print_buffer(&buffer);
+    print_current_stack(&stack);
     
     // We iterate through all the tokens and check their syntax
     // When the rule is SHIFT or EQUAL, we can get new token
@@ -303,8 +303,8 @@ int handle_expression(Data_t* data){
             GET_SYMBOL();
         }
 
-        //print_current_stack(&stack); // DEBUG
-        //print_current_stack(&stack);
+        print_current_stack(&stack); // DEBUG
+        print_current_stack(&stack);
         
     }
     gen_save_expr_res();
@@ -811,7 +811,7 @@ bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol, Data_t*
                 if(tmp->my_token.attr_token.tmp_string == NULL){
                     return ER_INTERNAL;
                 } 
-                strcpy(tmp->my_token.attr_token.tmp_string, data->token->attr.string->s);
+                strcpy(tmp->my_token.attr_token.tmp_string, stack_top->my_token.attr_token.tmp_string);
             }
             delete_first(&buffer);
         }
@@ -997,7 +997,12 @@ void print_buffer(Symbol_list* list){
     Symbol_item_t* tmp = list->first;
     printf("BUFFER CONTAINS:\n");
     while(tmp != NULL){
-        printf("%d : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token]);
+        if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){
+            printf("%d : %s : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token], tmp->my_token.attr_token.tmp_string);
+        }
+        else{
+            printf("%d : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token]);
+        }
         counter++;
         tmp = tmp->next;
     }

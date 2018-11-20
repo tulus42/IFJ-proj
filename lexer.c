@@ -459,7 +459,7 @@ int get_next_token(Token_t *token)
 			case(STATE_STRING):
 				if(c == '"'){ // this is the end of string literal
 					token->token = TYPE_STRING;
-					strcpy(token->attr.string->s, string_ptr->s);
+					copy_string_content(token->attr.string, string_ptr);
 					return lexer_succesful(string_ptr);
 				}
 				else{

@@ -36,6 +36,7 @@ void free_string(string_t* string_ptr);
 void clear_string_content(string_t* string_ptr);
 void remove_first_char(string_t* string_ptr);
 void copy_string_content(string_t* dest, string_t* source);
+void copy_my_string(char dest[], char src[], int length);
 
 char convert_from_hex(char hex[]);
 

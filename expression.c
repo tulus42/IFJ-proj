@@ -180,11 +180,12 @@ bool from_buffer = false;
         tmp->my_token.attr_token.tmp_integer = data->token->attr.integer;       \
         tmp->my_token.attr_token.tmp_keyword = data->token->attr.keyword;       \
         if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){ \
-            tmp->my_token.attr_token.tmp_string = (char *) malloc((data->token->attr.string->current_size) + 2); \
+            length = data->token->attr.string->current_size;                     \
+            tmp->my_token.attr_token.tmp_string = (char *) malloc(length); \
             if(tmp->my_token.attr_token.tmp_string == NULL){    \
                 return ER_INTERNAL; \
             }   \
-            strcpy(tmp->my_token.attr_token.tmp_string, data->token->attr.string->s);   \
+            copy_my_string(tmp->my_token.attr_token.tmp_string, data->token->attr.string->s, length);   \
         }                                                                       \
     }while(0);                                                                  \
 
@@ -242,6 +243,7 @@ int handle_expression(Data_t* data){
     bool is_reduced = false;
     Precedential_table_symbol to_push_symbol;
     Precedential_table_rule current_rule;
+    int length;
     Symbol_item_t* tmp = NULL;
 
     
@@ -341,6 +343,7 @@ bool push_reduced(int count, Symbol_stack_t* stack){
  */
 bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack, bool preserve_token){
     Symbol_item_t* new_thing = malloc(sizeof(Symbol_item_t));
+    int length;
 
     if(new_thing == NULL){
         return false;
@@ -354,11 +357,12 @@ bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack, bool 
         new_thing->my_token.attr_token.tmp_integer = tmp->my_token.attr_token.tmp_integer;       
         new_thing->my_token.attr_token.tmp_keyword = tmp->my_token.attr_token.tmp_keyword;       
         if(new_thing->my_token.type_token == TYPE_STRING || new_thing->my_token.type_token == TYPE_IDENTIFIER){
-            new_thing->my_token.attr_token.tmp_string = (char *) malloc(strlen(tmp->my_token.attr_token.tmp_string) + 2);
+            length = strlen(tmp->my_token.attr_token.tmp_string);
+            new_thing->my_token.attr_token.tmp_string = (char *) malloc(length);
             if(new_thing->my_token.attr_token.tmp_string == NULL){
                 return ER_INTERNAL;
             } 
-        strcpy(tmp->my_token.attr_token.tmp_string, tmp->my_token.attr_token.tmp_string);
+            copy_my_string(new_thing->my_token.attr_token.tmp_string, tmp->my_token.attr_token.tmp_string, length);
         }
     }
     // we pop it
@@ -377,6 +381,7 @@ bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack, bool 
  */
 bool reduce_identifier(Symbol_item_t* tmp, int count, Symbol_stack_t* stack){
     Symbol_item_t* new_thing = malloc(sizeof(Symbol_item_t));
+    int length;
 
     if(new_thing == NULL){
         return false;
@@ -388,11 +393,12 @@ bool reduce_identifier(Symbol_item_t* tmp, int count, Symbol_stack_t* stack){
     new_thing->my_token.attr_token.tmp_integer = tmp->my_token.attr_token.tmp_integer;       
     new_thing->my_token.attr_token.tmp_keyword = tmp->my_token.attr_token.tmp_keyword;       
     if(new_thing->my_token.type_token == TYPE_STRING || new_thing->my_token.type_token == TYPE_IDENTIFIER){
-        new_thing->my_token.attr_token.tmp_string = (char *) malloc(strlen(tmp->my_token.attr_token.tmp_string) + 2);
+        length = strlen(tmp->my_token.attr_token.tmp_string);
+        new_thing->my_token.attr_token.tmp_string = (char *) malloc(length);
             if(new_thing->my_token.attr_token.tmp_string == NULL){
                 return ER_INTERNAL;
             } 
-        strcpy(new_thing->my_token.attr_token.tmp_string, tmp->my_token.attr_token.tmp_string);
+        copy_my_string(new_thing->my_token.attr_token.tmp_string, tmp->my_token.attr_token.tmp_string, length);
     }
 
     // we pop it
@@ -423,6 +429,7 @@ bool reduce_by_rule(Symbol_stack_t* stack){
                 gen_push(tmp_first->my_token);
                 // push it to generetar
             }
+            printf("Vysiel som z generovania\n");
             tmp_first->current_status = ON_GENERATOR_STACK;
             reduce_identifier(tmp_first, to_pop, stack);
         }
@@ -787,6 +794,7 @@ void init_stack(Symbol_stack_t* stack){
 bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol, Data_t* data){
     Symbol_item_t* tmp = malloc(sizeof(Symbol_item_t));
     Symbol_item_t* stack_top;
+    int length;
 
     if(tmp == NULL){
         return false;
@@ -807,11 +815,12 @@ bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol, Data_t*
             tmp->my_token.attr_token.tmp_integer = stack_top->my_token.attr_token.tmp_integer;       
             tmp->my_token.attr_token.tmp_keyword = stack_top->my_token.attr_token.tmp_keyword;       
             if(tmp->my_token.type_token == TYPE_STRING || stack_top->my_token.type_token == TYPE_IDENTIFIER){
-                tmp->my_token.attr_token.tmp_string = (char *) malloc(strlen(stack_top->my_token.attr_token.tmp_string) + 2);
+                int length = strlen(stack_top->my_token.attr_token.tmp_string);
+                tmp->my_token.attr_token.tmp_string = (char *) malloc(length);
                 if(tmp->my_token.attr_token.tmp_string == NULL){
                     return ER_INTERNAL;
                 } 
-                strcpy(tmp->my_token.attr_token.tmp_string, stack_top->my_token.attr_token.tmp_string);
+                copy_my_string(tmp->my_token.attr_token.tmp_string, stack_top->my_token.attr_token.tmp_string, length);
             }
             delete_first(&buffer);
         }
@@ -917,6 +926,7 @@ void clear_buffer(Symbol_list* list){
 int insert_to_buffer(Symbol_list* list, Data_t* data){
     Precedential_table_symbol current_symbol = get_symbol_from_token(data);
     Symbol_item_t* last_one;
+    int length;
 
     Symbol_item_t* tmp = malloc(sizeof(Symbol_item_t));
     if(tmp == NULL){

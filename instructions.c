@@ -356,7 +356,7 @@ static bool gen_term_val(Tmp_Token_t t)
 			break;
 
 		case TYPE_IDENTIFIER:
-			ADD_CODE("LF@");
+			ADD_CODE("LF@a");
 			ADD_CODE(t.attr_token.tmp_string);
 			break;
 
@@ -482,7 +482,7 @@ bool gen_var_defval(char *var_id)
 
 bool gen_push(Tmp_Token_t t)
 {
-	ADD_CODE("PUSHS");
+	ADD_CODE("PUSHS ");
 	if (!gen_term_val(t))
 	 return false;
 	ADD_CODE("\n");
@@ -495,21 +495,25 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 	switch (symb)
 	{
 		case PLUS:
+			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
 			ADD_INST("ADDS");
 			break;
 
 		case MINUS:
+			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
 			ADD_INST("SUBS");
 			break;
 
 		case MUL:
+			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
 			ADD_INST("MULS");
 			break;
 
 		case DIV:
+			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
 			ADD_INST("DIVS");
 			break;
@@ -524,17 +528,20 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 			break; */
 
 		case EQL:
+			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
 			ADD_INST("EQS");
 			break;
 
 		case NEQ:
+			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
 			ADD_INST("EQS");
 			ADD_INST("NOTS");
 			break;
 
 		case LEQ:
+			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
 			ADD_INST("POPS GF@_aux_1");
 			ADD_INST("POPS GF@_aux_2");
@@ -548,11 +555,13 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 			break;
 
 		case LTN:
+			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
 			ADD_INST("LTS");
 			break;
 
 		case MEQ:
+			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
 			ADD_INST("POPS GF@_aux_1");
 			ADD_INST("POPS GF@_aux_2");
@@ -566,6 +575,7 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 			break;
 
 		case MTN:
+			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
 			ADD_INST("GTS");
 			break;
@@ -791,16 +801,26 @@ bool gen_concat_str() // konkatenace todo
 }
 
 
-bool gen_save_expr_res(char *var_id, char *frame)
+bool gen_assign(char *var_id)
 {
 
-	ADD_CODE("POPS ");
-	ADD_CODE(frame);
+
+	ADD_CODE("MOVE LF");
 	ADD_CODE("@");
 	ADD_CODE(var_id);
+	ADD_CODE(" GF@_exp_res");
 	ADD_CODE("\n");
+
 
 	return true;
 }
 
+
+bool gen_save_expr_res()
+{
+
+	ADD_INST("POPS GF@_exp_res");
+
+	return true;
+}
 

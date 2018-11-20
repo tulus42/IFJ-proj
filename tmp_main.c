@@ -27,7 +27,10 @@ int main(){
     }
     
     if(parser_result == SYN_OK){
-         flush_code(stdout);
+        FILE *f;
+        f = fopen("/home/adrian/Plocha/Škola/IFJ/IFJ/tmp_output", "w");
+         flush_code(f);
+        fclose(f);
     }
    
 

@@ -36,6 +36,7 @@ bool gen_func_rval_assign(char *var_id); // prirazeni do promene co vraci funkce
 
 bool gen_var_declar(char *var_id); // deklarace promenne
 bool gen_var_defval(char *var_id); // inicalizuje prom na vychozi nil
+bool gen_assign(char *var_id); // prirad z expres res do prom var
 
 
 bool gen_push(Tmp_Token_t t); // vlozi token na zasobnik, prace s vyrazy
@@ -49,7 +50,7 @@ bool gen_sop2_2flt();
 bool gen_sop2_2int();
 
 bool gen_concat_str(); // konkatenace dvou promenych (string) na vrcholu
-bool gen_save_expr_res(char *var_id, char *frame); // frame = "LF" - funkce, "GF" - main, veme promenou z vrcholu zasobniku a ulozi ji do promenne var
+bool gen_save_expr_res(); // frame = "LF" - funkce, "GF" - main, veme promenou z vrcholu zasobniku a ulozi ji do promenne var
 bool gen_stackop(Precedential_table_symbol symb); // provede operaci se dvema prom na vrcholu zasobniku, dle symbolu symb
 
 // prace s if

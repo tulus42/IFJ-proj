@@ -1,0 +1,158 @@
+.IFJcode18
+DEFVAR GF@_exp_res
+DEFVAR GF@_aux_1
+DEFVAR GF@_aux_2
+DEFVAR GF@_aux_3
+DEFVAR GF@_exp_res_type
+DEFVAR GF@_aux_1_type
+DEFVAR GF@_aux_2_type
+DEFVAR GF@_aux_3_type
+JUMP &&main
+
+ LABEL &length
+ PUSHFRAME
+ DEFVAR LF@_rval
+ STRLEN LF@_rval LF@_0
+ POPFRAME
+ RETURN
+
+ LABEL &substr
+ PUSHFRAME
+ DEFVAR LF@_rval
+ MOVE LF@_rval string@
+ DEFVAR LF@str_len
+ CREATEFRAME
+ DEFVAR TF@_0
+ MOVE TF@_0 LF@_0
+ CALL &length
+ MOVE LF@str_len TF@_rval
+ DEFVAR LF@ret_cond
+ LT LF@ret_cond LF@str_len int@0
+ JUMPIFEQ &substr&return LF@ret_cond bool@true
+ EQ LF@ret_cond LF@str_len int@0
+ JUMPIFEQ &substr&return LF@ret_cond bool@true
+ LT LF@ret_cond LF@_1 int@0
+ JUMPIFEQ &substr&return LF@ret_cond bool@true
+ EQ LF@ret_cond LF@_1 int@0
+ JUMPIFEQ &substr&return LF@ret_cond bool@true
+ GT LF@ret_cond LF@_1 LF@str_len
+ JUMPIFEQ &substr&return LF@ret_cond bool@true
+ EQ LF@ret_cond LF@_2 int@0
+ JUMPIFEQ &substr&return LF@ret_cond bool@true
+ DEFVAR LF@max_n
+ MOVE LF@max_n LF@str_len
+ SUB LF@max_n LF@max_n LF@_1
+ ADD LF@max_n LF@max_n int@1
+ DEFVAR LF@edit_n_cond
+ LT LF@edit_n_cond LF@_2 int@0
+ JUMPIFEQ &substr&edit_n LF@edit_n_cond bool@true
+ GT LF@edit_n_cond LF@_2 LF@max_n
+ JUMPIFEQ &substr&edit_n LF@edit_n_cond bool@true
+ JUMP &substr&process
+ LABEL &substr&edit_n
+ MOVE LF@_2 LF@max_n
+ LABEL &substr&process
+ DEFVAR LF@index
+ MOVE LF@index LF@_1
+ SUB LF@index LF@index int@1
+ DEFVAR LF@char
+ DEFVAR LF@process_loop_cond
+ LABEL &substr&process_loop
+ GETCHAR LF@char LF@_0 LF@index
+ CONCAT LF@_rval LF@_rval LF@char
+ ADD LF@index LF@index int@1
+ SUB LF@_2 LF@_2 int@1
+ GT LF@process_loop_cond LF@_2 int@0
+ JUMPIFEQ &substr&process_loop LF@process_loop_cond bool@true
+ LABEL &substr&return
+ POPFRAME
+ RETURN
+
+ LABEL &ord
+ PUSHFRAME
+ DEFVAR LF@_rval
+ MOVE LF@_rval int@0
+ DEFVAR LF@cond_length
+ LT LF@cond_length LF@_1 int@1
+ JUMPIFEQ &ord&return LF@cond_length bool@true
+ DEFVAR LF@str_len
+ CREATEFRAME
+ DEFVAR TF@_0
+ MOVE TF@_0 LF@_0
+ CALL &length
+ MOVE LF@str_len TF@_rval
+ GT LF@cond_length LF@_1 LF@str_len
+ JUMPIFEQ &ord&return LF@cond_length bool@true
+ SUB LF@_1 LF@_1 int@1
+ STRI2INT LF@_rval LF@_0 LF@_1
+ LABEL &ord&return
+ POPFRAME
+ RETURN
+
+ LABEL &chr
+ PUSHFRAME
+ DEFVAR LF@_rval
+ MOVE LF@_rval string@
+ DEFVAR LF@cond_range
+ LT LF@cond_range LF@_0 int@0
+ JUMPIFEQ &chr&return LF@cond_range bool@true
+ GT LF@cond_range LF@_0 int@255
+ JUMPIFEQ &chr&return LF@cond_range bool@true
+ INT2CHAR LF@_rval LF@_0
+ LABEL &chr&return
+ POPFRAME
+ RETURN
+LABEL &type_check
+PUSHFRAME
+POPS GF@_aux_1
+POPS GF@_aux_2
+TYPE GF@_aux_1_type GF@_aux_1
+TYPE GF@_aux_2_type GF@_aux_2
+JUMPIFEQ &must_be_same GF@_aux_1_type string@string
+JUMPIFEQ &one_is_int GF@_aux_1_type string@int
+JUMPIFEQ &one_is_flt GF@_aux_1_type string@float
+LABEL &one_is_int
+JUMPIFEQ &must_be_same GF@_aux_2_type string@int
+JUMPIFEQ &must_be_same GF@_aux_2_type string@string
+INT2FLOAT GF@_aux_1 GF@_aux_1
+JUMP &type_check_true
+LABEL &one_is_flt
+JUMPIFEQ &must_be_same GF@_aux_2_type string@float
+JUMPIFEQ &must_be_same GF@_aux_2_type string@string
+INT2FLOAT GF@_aux_2 GF@_aux_2
+JUMP &type_check_true
+LABEL &must_be_same
+JUMPIFEQ &type_check_true GF@_aux_1_type GF@_aux_2_type
+EXIT int@4
+LABEL &type_check_true
+PUSHS GF@_aux_2
+PUSHS GF@_aux_1
+POPFRAME
+RETURN
+LABEL &&main
+CREATEFRAME
+PUSHFRAME
+PUSHS int@2
+PUSHS int@5
+CREATEFRAME
+CALL &type_check
+MULS
+POPS GF@_exp_res
+DEFVAR LF@a
+DEFVAR LF@a_type
+MOVE LF@a_type string@nil
+PUSHS int@2
+PUSHS int@2
+CREATEFRAME
+CALL &type_check
+ADDS
+POPS GF@_exp_res
+WRITE GF@_exp_res
+PUSHS string@\010ahoj\010
+POPS GF@_exp_res
+WRITE GF@_exp_res
+PUSHS LF@a
+POPS GF@_exp_res
+WRITE GF@_exp_res
+POPFRAME
+CLEARS

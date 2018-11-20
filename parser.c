@@ -467,6 +467,7 @@ static int statement(Data_t* data) {
             res = declare(data);
             if (res== SYN_OK) {
                 itemupdate(&tItem, (&identifier_declare)->s, VAR, true, 0);
+                gen_var_declar(identifier_declare.s);
 
                 if (data->in_definition == true) {
                     res = htInsert(local_ST, &tItem);
@@ -622,11 +623,15 @@ static int declare(Data_t* data) {
                 // ak nasleduje operand, vyhodnosti expression
                 if (IS_OPERAND()) {
                     insert_to_buffer(&buffer, data);
+
                     res = handle_expression(data);
                     if (res != EXPRESSION_OK) {
                         clear_buffer(&buffer);
                         return(res);
                     }
+
+                    gen_assign(identifier_declare.s);
+
                     clear_buffer(&buffer);
                     data->in_declare = false;
                     return(SYN_OK);
@@ -1335,10 +1340,11 @@ static int print(Data_t* data) {
     printf("in PRINT\n");
 
 
-    while (data->token->token != TYPE_COMMA || data->token->token != TYPE_EOL || data->token->token != TYPE_EOF) {
+    while (data->token->token != TYPE_COMMA && data->token->token != TYPE_EOL && data->token->token != TYPE_EOF) {
         if (data->in_bracket == true && data->token->token == TYPE_RIGHT_BRACKET) {
             break;
         }
+        printf("<pritn> in while\n");
         
         insert_to_buffer(&buffer, data);
 
@@ -1363,7 +1369,9 @@ static int print(Data_t* data) {
     }
 
     */
+    printf("into epression\n");
     handle_expression(data);
+    gen_print();
     // ... , ...
     if (data->token->token == TYPE_COMMA) {
         // ... ID ...
@@ -1443,8 +1451,12 @@ int start_parser(){
     FrameStackInit(s);
     */
 
+    gen_mainscope_start();
+
     int res;
     res = prog(&our_data);
+
+    gen_mainscope_end();
 
     printf("res = %d\n", res);
     value(&our_data);

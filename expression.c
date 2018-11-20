@@ -249,7 +249,7 @@ int handle_expression(Data_t* data){
 
     GET_SYMBOL();
 
-    print_current_stack(&stack);
+    //print_current_stack(&stack);
     
     // We iterate through all the tokens and check their syntax
     // When the rule is SHIFT or EQUAL, we can get new token
@@ -296,7 +296,7 @@ int handle_expression(Data_t* data){
         }
 
         //print_current_stack(&stack); // DEBUG
-        print_current_stack(&stack);
+        //print_current_stack(&stack);
         
     }
     printf("While has finished succesfully!\n"); // DEBUG

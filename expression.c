@@ -179,7 +179,7 @@ bool from_buffer = false;
         tmp->my_token.attr_token.tmp_integer = data->token->attr.integer;       \
         tmp->my_token.attr_token.tmp_keyword = data->token->attr.keyword;       \
         if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){ \
-            tmp->my_token.attr_token.tmp_string = (char *) malloc(strlen(data->token->attr.string->s) + 2); \
+            tmp->my_token.attr_token.tmp_string = (char *) malloc((data->token->attr.string->current_size) + 2); \
             if(tmp->my_token.attr_token.tmp_string == NULL){    \
                 return ER_INTERNAL; \
             }   \
@@ -249,7 +249,6 @@ int handle_expression(Data_t* data){
 
     GET_SYMBOL();
 
-    print_buffer(&buffer);
     print_current_stack(&stack);
     
     // We iterate through all the tokens and check their syntax
@@ -297,14 +296,12 @@ int handle_expression(Data_t* data){
         }
 
         //print_current_stack(&stack); // DEBUG
-        print_buffer(&buffer);
         print_current_stack(&stack);
         
     }
     printf("While has finished succesfully!\n"); // DEBUG
 
     // if we come here, the syntax and semantics were correct
-    is_reduced = false;
     clear_buffer(&buffer);
     free_stack(&stack);
     return EXPRESSION_OK;
@@ -333,7 +330,7 @@ bool push_reduced(int count, Symbol_stack_t* stack){
 /**
  * Reduces expression in brackets and copies it's current status
  */
-bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack){
+bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack, bool preserve_token){
     Symbol_item_t* new_thing = malloc(sizeof(Symbol_item_t));
 
     if(new_thing == NULL){
@@ -341,6 +338,20 @@ bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack){
     }
     new_thing->current_status = tmp->current_status;
 
+    if(preserve_token){
+        new_thing->current_status = tmp->current_status;
+        new_thing->my_token.type_token = tmp->my_token.type_token;                          
+        new_thing->my_token.attr_token.tmp_flt = tmp->my_token.attr_token.tmp_flt;               
+        new_thing->my_token.attr_token.tmp_integer = tmp->my_token.attr_token.tmp_integer;       
+        new_thing->my_token.attr_token.tmp_keyword = tmp->my_token.attr_token.tmp_keyword;       
+        if(new_thing->my_token.type_token == TYPE_STRING || new_thing->my_token.type_token == TYPE_IDENTIFIER){
+            new_thing->my_token.attr_token.tmp_string = (char *) malloc(strlen(tmp->my_token.attr_token.tmp_string) + 2);
+            if(new_thing->my_token.attr_token.tmp_string == NULL){
+                return ER_INTERNAL;
+            } 
+        strcpy(tmp->my_token.attr_token.tmp_string, tmp->my_token.attr_token.tmp_string);
+        }
+    }
     // we pop it
     pop_count(count);
 
@@ -372,7 +383,7 @@ bool reduce_identifier(Symbol_item_t* tmp, int count, Symbol_stack_t* stack){
             if(new_thing->my_token.attr_token.tmp_string == NULL){
                 return ER_INTERNAL;
             } 
-        strcpy(tmp->my_token.attr_token.tmp_string, tmp->my_token.attr_token.tmp_string);
+        strcpy(new_thing->my_token.attr_token.tmp_string, tmp->my_token.attr_token.tmp_string);
     }
 
     // we pop it
@@ -394,6 +405,7 @@ bool reduce_by_rule(Symbol_stack_t* stack){
     int to_pop = count + 1;                 // we have to pop the count + the start symbol
     Symbol_item_t* tmp_first = stack->top;  // first item from the stack
     Precedential_table_symbol operand;
+    bool preserve_token = false;
 
     // we are reducing 1 symbol
     if(count == 1){ // i -> E
@@ -454,7 +466,10 @@ bool reduce_by_rule(Symbol_stack_t* stack){
         else{ // the non_terminal is in brackets (E) -> E
             if(tmp_first->symbol == RIGHT_B && tmp_third->symbol == LEFT_B){
                 if(tmp_second->symbol == NON_TERMINAL){
-                    reduce_brackets(tmp_second, to_pop, stack);
+                    if(tmp_second->current_status == VALID_TOKEN){
+                        preserve_token = true;
+                    }
+                    reduce_brackets(tmp_second, to_pop, stack, preserve_token);
                 }
                 else{
                     return_code = OTHER_SYNTACTICAL_ERRORS;
@@ -677,7 +692,7 @@ Precedential_table_symbol get_symbol_from_token(Data_t* data){
         case(TYPE_FLOAT):
             return ID;
         case(TYPE_IDENTIFIER):
-            //check_sematics(data);
+            check_sematics(data);
             return ID;
         case(TYPE_EQ):
             return EQL;

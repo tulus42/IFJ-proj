@@ -114,7 +114,7 @@ bool reduce_by_rule(Symbol_stack_t* stack);
 bool is_term(Precedential_table_symbol symbol);
 bool check_plus(Symbol_stack_t* stack, int to_pop);
 bool reduce_identifier(Symbol_item_t* tmp, int count, Symbol_stack_t* stack);
-bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack);
+bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack, bool preserve_token);
 bool push_reduced(int count, Symbol_stack_t* stack);
 
 int handle_expression(Data_t* data);

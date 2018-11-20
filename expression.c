@@ -10,6 +10,7 @@ Adrián Tulušák, xtulus00
 #include "error.h"
 #include "symtable.h"
 #include "expression.h"
+#include "instructions.h"
 
 const char* tokens_tmp[] = {
 	"TYPE_EOF", 
@@ -205,7 +206,7 @@ bool from_buffer = false;
 
 
 #define GENERATE_EXPRESSION() \
-    gen_push(operand);        \
+    gen_stackop(operand);        \
 
 
 /**

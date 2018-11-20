@@ -20,6 +20,10 @@ Adrián Tulušák, xtulus00
 #define PARAM_DEFINED 3
 #define PARAM_UNDEFINED 4
 
+#ifndef SYMTABLE_H
+#define SYMTABLE_H
+
+
 
 /*datové typy*/
 
@@ -72,3 +76,5 @@ void itemfree(tHTItem* item);
 int itemupdate(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc );
 void htPrintTable( tHTable ptrht );
 int check_param_cnt(char key[]);
+
+#endif

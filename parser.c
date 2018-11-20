@@ -98,6 +98,7 @@ const char* tokens[] = {
  * 
  * insert_to_buffer - return value - vyriešiť napr makrom
  * 
+ * generovanie - --------------||------------------ (opakovací symbol (ak by si nahodou nepochopil))
  */
 
 // premenna pre uchovanie ID z tokenu pre neskorsie ulozenie do TS
@@ -108,6 +109,8 @@ string_t identifier_declare;
 int res;
 int params_cnt = 0;
 int if_whlie_idx = 0;
+
+Tmp_Token_t tmp;
 
 tHTItem tItem;
 
@@ -684,6 +687,12 @@ static int declare(Data_t* data) {
             data->in_declare = false;
             return(SYN_OK);
         }
+    } else 
+
+    if (data->token->token == TYPE_LEFT_BRACKET) {
+        res = handle_expression(data);
+        data->in_declare = false;
+        return(SYN_OK);
     }
 
 
@@ -1325,6 +1334,22 @@ static int function(Data_t* data) {
 static int print(Data_t* data) {
     printf("in PRINT\n");
 
+
+    while (data->token->token != TYPE_COMMA || data->token->token != TYPE_EOL || data->token->token != TYPE_EOF) {
+        if (data->in_bracket == true && data->token->token == TYPE_RIGHT_BRACKET) {
+            break;
+        }
+        
+        insert_to_buffer(&buffer, data);
+
+        GET_TOKEN();
+    }
+
+
+    if (data->token->token == TYPE_COMMA || data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+        insert_to_buffer(&buffer, data);
+    }
+    /*
     // ... ID ...
     if (data->token->token == TYPE_IDENTIFIER) {
         // check ID in table
@@ -1334,10 +1359,11 @@ static int print(Data_t* data) {
 
     // ... INT/FLT/STR ...
     if (IS_VALUE()) {
-
+        
     }
 
-    GET_TOKEN();
+    */
+    handle_expression(data);
     // ... , ...
     if (data->token->token == TYPE_COMMA) {
         // ... ID ...

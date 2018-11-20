@@ -464,7 +464,16 @@ static int statement(Data_t* data) {
         // <statement> -> ID <declare> EOL
         // ... = ...
         if (data->token->token == TYPE_ASSIGN) {
-            gen_var_declar(identifier_declare.s);
+            if (data->in_definition == true) {
+                if (check_define(local_ST, identifier_declare.s) != PARAM_DEFINED) {
+                    gen_var_declar(identifier_declare.s);
+                }
+            } else {
+                if (check_define(global_ST, identifier_declare.s) != PARAM_DEFINED) {
+                    gen_var_declar(identifier_declare.s);
+                }
+            }
+            
             res = declare(data);
             if (res== SYN_OK) {
                 itemupdate(&tItem, (&identifier_declare)->s, VAR, true, 0);
@@ -997,6 +1006,8 @@ static int function(Data_t* data) {
     // <function> -> SUBSTR ( s, i, n ) EOL
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_SUBSTR) {
         printf("in <function> SUBSTR\n");
+
+        gen_func_prep_for_params(); 
         
         GET_TOKEN();
 
@@ -1026,6 +1037,7 @@ static int function(Data_t* data) {
         else {
             return(ER_SEM_TYPE);
         }
+        gen_func_pass_param(*(data->token), 0);
 
         GET_TOKEN();
 
@@ -1057,7 +1069,7 @@ static int function(Data_t* data) {
         else {
             return(ER_SEM_TYPE);
         }
-
+        gen_func_pass_param(*(data->token), 1);
         GET_TOKEN();
 
         // ... , ...
@@ -1089,6 +1101,7 @@ static int function(Data_t* data) {
             return(ER_SEM_TYPE);
         }
 
+        gen_func_pass_param(*(data->token), 2);
         GET_TOKEN();
 
 
@@ -1104,6 +1117,10 @@ static int function(Data_t* data) {
 
         // ... EOL || EOF ...
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            gen_func_call("substr");
+            if (data->in_declare == true) {
+                gen_func_rval_assign(identifier_declare.s);
+            }
             return(SYN_OK);
         }
 
@@ -1114,6 +1131,8 @@ static int function(Data_t* data) {
     // <function> -> ORD ( s, i ) EOL
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_ORD) {
         printf("in <function> ORD\n");
+
+        gen_func_prep_for_params(); 
         
         GET_TOKEN();
 
@@ -1143,6 +1162,8 @@ static int function(Data_t* data) {
         else {
             return(ER_SEM_TYPE);
         }
+
+        gen_func_pass_param(*(data->token), 0);
 
         GET_TOKEN();
 
@@ -1175,6 +1196,8 @@ static int function(Data_t* data) {
             return(ER_SEM_TYPE);
         }
 
+        gen_func_pass_param(*(data->token), 1);
+
         GET_TOKEN();
 
 
@@ -1190,6 +1213,10 @@ static int function(Data_t* data) {
 
         // ... EOL || EOF ...
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            gen_func_call("ord");
+            if (data->in_declare == true) {
+                gen_func_rval_assign(identifier_declare.s);
+            }
             return(SYN_OK);
         }
 
@@ -1200,6 +1227,8 @@ static int function(Data_t* data) {
     // <function> -> CHR ( i ) EOL
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_CHR) {
         printf("in <function> CHR\n");
+
+        gen_func_prep_for_params(); 
        
         GET_TOKEN();
 
@@ -1226,6 +1255,8 @@ static int function(Data_t* data) {
             return(ER_SEM_TYPE);
         }
 
+        gen_func_pass_param(*(data->token), 0);
+
         GET_TOKEN();
 
 
@@ -1241,6 +1272,10 @@ static int function(Data_t* data) {
 
         // ... EOL || EOF ...
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            gen_func_call("chr");
+            if (data->in_declare == true) {
+                gen_func_rval_assign(identifier_declare.s);
+            }
             return(SYN_OK);
         }
 

@@ -248,6 +248,9 @@ void flush_code(FILE *dst_file)
 bool gen_func_start(char *func_id)
 {
 
+	ADD_CODE("JUMP &endof_");
+	ADD_CODE(func_id);
+	ADD_CODE("\n");
 	ADD_CODE("LABEL &");
 	ADD_CODE(func_id);
 	ADD_CODE("\n");
@@ -265,6 +268,9 @@ bool gen_func_end(char *func_id)
 	ADD_CODE("_return\n");
 	ADD_INST("POPFRAME");
 	ADD_INST("RETURN");
+	ADD_CODE("LABEL &endof_");
+	ADD_CODE(func_id);
+	ADD_CODE("\n");
 	return true;
 }
 
@@ -332,7 +338,7 @@ static bool gen_term_val(Tmp_Token_t t)
 			break;
 
 		case TYPE_FLOAT:
-			sprintf(t_str, "%g", t.attr_token.tmp_flt);
+			sprintf(t_str, "%a", t.attr_token.tmp_flt);
 			ADD_CODE("float@");
 			ADD_CODE(t_str);
 			break;
@@ -387,7 +393,7 @@ static bool gen_term_val_classic(Token_t t)
 			break;
 
 		case TYPE_FLOAT:
-			sprintf(t_str, "%g", t.attr.flt);
+			sprintf(t_str, "%a", t.attr.flt);
 			ADD_CODE("float@");
 			ADD_CODE(t_str);
 			break;

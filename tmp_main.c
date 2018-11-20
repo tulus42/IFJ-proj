@@ -10,6 +10,7 @@ Adrián Tulušák, xtulus00
 
 #include "parser.h"
 #include "error.h"
+#include "instructions.h"
 
 
 int main(){
@@ -23,6 +24,7 @@ int main(){
 
     parser_result = start_parser();
     if(parser_result == ER_SYN){
+        clear_code();
         return 1;
     }
     
@@ -31,6 +33,9 @@ int main(){
         f = fopen("/home/adrian/Plocha/Škola/IFJ/IFJ/tmp_output", "w");
          flush_code(f);
         fclose(f);
+    }else
+    {
+        clear_code();
     }
    
 

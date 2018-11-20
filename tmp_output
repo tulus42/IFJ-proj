@@ -132,27 +132,66 @@ RETURN
 LABEL &&main
 CREATEFRAME
 PUSHFRAME
-PUSHS int@2
-PUSHS int@5
+PUSHS string@Zadej\010
+POPS GF@_exp_res
+WRITE GF@_exp_res
+DEFVAR LF@a
+DEFVAR LF@a_type
+MOVE LF@a_type string@nil
+PUSHS LF@a
+PUSHS float@0.5
+CREATEFRAME
+CALL &type_check
+LTS
+POPS GF@_exp_res
+JUMPIFEQ &1_2 GF@_exp_res bool@false
+PUSHS string@Faktor\010
+POPS GF@_exp_res
+WRITE GF@_exp_res
+JUMP &1_3
+LABEL &1_2
+DEFVAR LF@vysl
+DEFVAR LF@vysl_type
+MOVE LF@vysl_type string@nil
+LABEL &2_4
+PUSHS LF@a
+PUSHS int@0
+CREATEFRAME
+CALL &type_check
+GTS
+POPS GF@_exp_res
+JUMPIFEQ &2_5 GF@_exp_res bool@false
+DEFVAR LF@vysl
+DEFVAR LF@vysl_type
+MOVE LF@vysl_type string@nil
+PUSHS LF@vysl
+PUSHS LF@a
 CREATEFRAME
 CALL &type_check
 MULS
 POPS GF@_exp_res
+MOVE LF@vysl GF@_exp_res
 DEFVAR LF@a
 DEFVAR LF@a_type
 MOVE LF@a_type string@nil
-PUSHS int@2
-PUSHS int@2
+PUSHS LF@a
+PUSHS float@42.11
 CREATEFRAME
 CALL &type_check
-ADDS
+SUBS
+POPS GF@_exp_res
+MOVE LF@a GF@_exp_res
+JUMP &2_4
+LABEL &2_5
+PUSHS string@Vysledek\032je:\032
 POPS GF@_exp_res
 WRITE GF@_exp_res
-PUSHS string@\010ahoj\010
+PUSHS LF@vysl
 POPS GF@_exp_res
 WRITE GF@_exp_res
-PUSHS LF@a
+PUSHS string@\010
 POPS GF@_exp_res
 WRITE GF@_exp_res
+LABEL &1_3
 POPFRAME
 CLEARS

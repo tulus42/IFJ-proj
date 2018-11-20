@@ -464,10 +464,11 @@ static int statement(Data_t* data) {
         // <statement> -> ID <declare> EOL
         // ... = ...
         if (data->token->token == TYPE_ASSIGN) {
+            gen_var_declar(identifier_declare.s);
             res = declare(data);
             if (res== SYN_OK) {
                 itemupdate(&tItem, (&identifier_declare)->s, VAR, true, 0);
-                gen_var_declar(identifier_declare.s);
+                
 
                 if (data->in_definition == true) {
                     res = htInsert(local_ST, &tItem);
@@ -665,6 +666,7 @@ static int declare(Data_t* data) {
                 }
                 clear_buffer(&buffer);
                 data->in_declare = false;
+                gen_assign(identifier_declare.s);
                 return(SYN_OK);
 
             } else
@@ -936,6 +938,8 @@ static int function(Data_t* data) {
     // <function> -> LENGTH ( <argvs> ) EOL
     else if (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_LENGTH) {
         printf("in <function> LENGTH\n");
+
+        gen_func_prep_for_params(); 
         
         GET_TOKEN();
 
@@ -958,10 +962,12 @@ static int function(Data_t* data) {
         
         } 
         
+        
         // ak cokolvek ine -> nevyhovujuci parameter
         else {
             return(ER_SEM_TYPE);
         }
+        gen_func_pass_param(*(data->token), 0);
 
         GET_TOKEN();
         
@@ -977,6 +983,10 @@ static int function(Data_t* data) {
 
         // ... EOL || EOF ...
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+            gen_func_call("length");
+            if (data->in_declare == true) {
+                gen_func_rval_assign(identifier_declare.s);
+            }
             return(SYN_OK);
         }
 

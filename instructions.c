@@ -356,7 +356,7 @@ static bool gen_term_val(Tmp_Token_t t)
 			break;
 
 		case TYPE_IDENTIFIER:
-			ADD_CODE("LF@a");
+			ADD_CODE("LF@");
 			ADD_CODE(t.attr_token.tmp_string);
 			break;
 

@@ -314,7 +314,7 @@ static bool gen_def_varval()
 }
 
 
-static bool gen_term_val(Token_t t)
+static bool gen_term_val(Tmp_Token_t t)
 {
 	unsigned char c;
 	char t_str[41];
@@ -323,22 +323,22 @@ static bool gen_term_val(Token_t t)
 	if (!allocate_string(&tmp_str))
 		return false;
 
-	switch (t.token)
+	switch (t.type_token)
 	{
 		case TYPE_INT:
-			sprintf(t_str, "%d", t.attr.integer);
+			sprintf(t_str, "%d", t.attr_token.tmp_integer);
 			ADD_CODE("int@"); 
 			ADD_CODE(t_str);
 			break;
 
 		case TYPE_FLOAT:
-			sprintf(t_str, "%g", t.attr.flt);
+			sprintf(t_str, "%g", t.attr_token.tmp_flt);
 			ADD_CODE("float@");
 			ADD_CODE(t_str);
 			break;
 
 		case TYPE_STRING:
-			for (int i = 0; (c = (unsigned char) (t.attr.string->s)[i]) != '\0'; i++)
+			for (int i = 0; (c = (unsigned char) (t.attr_token.tmp_string)[i]) != '\0'; i++)
 			{
 				if (c == '\\' || c == '#' || c <= 32 || !isprint(c))
 				{
@@ -357,7 +357,7 @@ static bool gen_term_val(Token_t t)
 
 		case TYPE_IDENTIFIER:
 			ADD_CODE("LF@");
-			ADD_CODE(t.attr.string->s);
+			ADD_CODE(t.attr_token.tmp_string);
 			break;
 
 		default:
@@ -369,7 +369,7 @@ static bool gen_term_val(Token_t t)
 	return true;
 }
 
-bool gen_func_pass_param(Token_t t, int idx)
+bool gen_func_pass_param(Tmp_Token_t t, int idx)
 {
 	ADD_CODE("DEFVAR TF@_");
 	ADD_INT(idx);
@@ -425,7 +425,7 @@ bool gen_var_defval(char *var_id)
 	return true;
 }
 
-bool gen_push(Token_t t)
+bool gen_push(Tmp_Token_t t)
 {
 	ADD_CODE("PUSHS");
 	if (!gen_term_val(t))

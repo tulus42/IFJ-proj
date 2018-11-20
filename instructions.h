@@ -28,7 +28,7 @@ bool gen_func_end(char *func_id); // konec funkce, dec 5
 bool gen_func_call(char *func_id); // volani funkce, call 3
 bool gen_func_param(char *param_id, int idx); // vytvori promenou pro parametr s indexem idx, dec 2
 bool gen_func_prep_for_params(); // generuje kod na pripravu predani parametru, call1
-bool gen_func_pass_param(Token_t, int idx); // ulozeni parametru do promene, call2
+bool gen_func_pass_param(Tmp_Token_t t, int idx); // ulozeni parametru do promene, call2
 bool gen_func_ret(char *func_id); // return, dec 4
 bool gen_func_rval(); // deklarace navratove prom, dec 3
 bool gen_func_rval_assign(char *var_id); // prirazeni do promene co vraci funkce, call 4
@@ -38,7 +38,7 @@ bool gen_var_declar(char *var_id); // deklarace promenne
 bool gen_var_defval(char *var_id); // inicalizuje prom na vychozi nil
 
 
-bool gen_push(Token_t t); // vlozi token na zasobnik, prace s vyrazy
+bool gen_push(Tmp_Token_t t); // vlozi token na zasobnik, prace s vyrazy
 bool gen_input(char *var_id, Type_of_tHTItem t, bool assign); // načtení do promene, t urcuje typ, napr.  x=inputi() tak gen_input("x", INTEGER);
 bool gen_print(); // tiskne vysledek expression
 

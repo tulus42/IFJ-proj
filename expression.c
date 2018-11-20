@@ -255,14 +255,16 @@ int handle_expression(Data_t* data){
 
     GET_SYMBOL();
 
-    //print_current_stack(&stack);
+    print_buffer(&buffer);
+    print_current_stack(&stack);
     
     // We iterate through all the tokens and check their syntax
     // When the rule is SHIFT or EQUAL, we can get new token
     // When the rule is REDUCE, we don't get any new tokens
     // UDEFINED symbolizes either gramatical error or succesfull reduction of expression 
-    while(!is_reduced){ 
+    while(!is_reduced){
         current_rule = get_indexes_and_rule(&stack, to_push_symbol);  // get current rule
+
 
         if(current_rule == S){  // SHIFT rule
             can_get_token = true;
@@ -301,8 +303,8 @@ int handle_expression(Data_t* data){
             GET_SYMBOL();
         }
 
-        //print_current_stack(&stack); // DEBUG
-        //print_current_stack(&stack);
+        print_current_stack(&stack); // DEBUG
+        print_current_stack(&stack);
         
     }
     printf("While has finished succesfully!\n"); // DEBUG
@@ -416,6 +418,11 @@ bool reduce_by_rule(Symbol_stack_t* stack){
     // we are reducing 1 symbol
     if(count == 1){ // i -> E
         if(tmp_first->symbol == ID){
+            if(tmp_first->current_status == VALID_TOKEN){
+                gen_push(tmp_first->my_token);
+                // push it to generetar
+            }
+            tmp_first->current_status = ON_GENERATOR_STACK;
             reduce_identifier(tmp_first, to_pop, stack);
         }
     } // we are reducing 3 symbols

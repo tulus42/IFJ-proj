@@ -247,6 +247,14 @@ static int prog(Data_t* data){
         return res;
         //return(statement(data));  - pouzijeme toto, ale kvoli debuggingu je to rozpisane
     }
+
+    else if (IS_VALUE()) {
+        res = handle_expression(data);
+        if (res != EXPRESSION_OK) {
+            return(res);
+        }
+        return(prog(data));
+    }
     
         
     return ER_SYN;
@@ -707,6 +715,9 @@ static int declare(Data_t* data) {
 
     if (data->token->token == TYPE_LEFT_BRACKET) {
         res = handle_expression(data);
+        if (res != EXPRESSION_OK) {
+            return(res);
+        }
         data->in_declare = false;
         return(SYN_OK);
     }
@@ -867,11 +878,11 @@ static int arg(Data_t* data) {
                 return(SYN_OK);
             }
         }
-
+        GET_TOKEN();
     }
 
     
-    GET_TOKEN();
+    
         
         // ... ) ... - len ak bola pouzita "("
         if (data->in_bracket == true) {
@@ -1397,8 +1408,8 @@ static int print(Data_t* data) {
     }
 
 
-    if (data->token->token == TYPE_COMMA || data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
-        insert_to_buffer(&buffer, data);
+    if (data->token->token == TYPE_COMMA || data->token->token == TYPE_EOL || data->token->token == TYPE_EOF || (data->in_bracket == true && data->token->token == TYPE_RIGHT_BRACKET)) {
+        insert_stop(&buffer);
     }
     /*
     // ... ID ...
@@ -1415,7 +1426,13 @@ static int print(Data_t* data) {
 
     */
     printf("into epression\n");
-    handle_expression(data);
+
+    res = handle_expression(data);
+    if (res != EXPRESSION_OK) {
+        return(res);
+    }
+    clear_buffer(&buffer);
+
     gen_print();
     // ... , ...
     if (data->token->token == TYPE_COMMA) {

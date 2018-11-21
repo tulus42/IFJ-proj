@@ -127,6 +127,8 @@ Adrián Tulušák, xtulus00
 
 string_t code;
 
+int auxcat = 1;
+
 static bool generate_header()
 {
 	ADD_INST(".IFJcode18");
@@ -498,12 +500,47 @@ bool gen_push(Tmp_Token_t t)
 
 bool gen_stackop(Precedential_table_symbol symb) // rules?
 {
+
+	auxcat++;
 	switch (symb)
 	{
 		case PLUS:
 			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
+			ADD_CODE("JUMPIFEQ &cat");
+
+
+			ADD_INT(auxcat);
+			ADD_CODE("GF@_aux_1_type string@string")
+			ADD_CODE("\n");
+
+			ADD_CODE("JUMP &adds");
+
+			ADD_CODE("LABEL &cat");
+
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
+
+			ADD_INST("POPS GF@_aux_1");
+			ADD_INST("POPS GF@_aux_2");
+			ADD_INST("CONCAT GF@_aux_1 GF@_aux_1 GF@_aux_2");
+			ADD_INST("PUSHS GF@_aux_1");
+
+			ADD_CODE("JUMP &notadds");
+
+
+			ADD_CODE("LABEL &adds");
+
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
+
+
 			ADD_INST("ADDS");
+
+			ADD_CODE("LABEL &notadds");
+
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
 			break;
 
 		case MINUS:

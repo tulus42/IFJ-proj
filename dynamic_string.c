@@ -188,7 +188,7 @@ bool add_const_string(string_t* string_ptr, const char *const_string)
 
     if (string_ptr->current_size + const_str_length + 1 >= string_ptr->buffer_size)
     {
-        unsigned int new_size = string_ptr->current_size + const_str_length + 1;
+        unsigned int new_size = string_ptr->current_size + const_str_length + 10;
         if (!(string_ptr->s = (char *) realloc(string_ptr->s, new_size)))
         {
             return false;

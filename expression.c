@@ -238,8 +238,8 @@ int handle_expression(Data_t* data){
 
     GET_SYMBOL();
 
-    //print_buffer(&buffer);
-    //print_current_stack(&stack);
+    print_buffer(&buffer);
+    print_current_stack(&stack);
     
     // We iterate through all the tokens and check their syntax
     // When the rule is SHIFT or EQUAL, we can get new token
@@ -293,8 +293,8 @@ int handle_expression(Data_t* data){
             GET_SYMBOL();
         }
 
-        //print_buffer(&buffer); // DEBUG
-        //print_current_stack(&stack);
+        print_buffer(&buffer); // DEBUG
+        print_current_stack(&stack);
         
     }
     gen_save_expr_res();
@@ -429,54 +429,54 @@ bool reduce_by_rule(Symbol_stack_t* stack){
         // first and third symbols are nonterminals, so we just check the second operand to make sure the grammar is correct
         if(tmp_first->symbol == NON_TERMINAL && tmp_third->symbol == NON_TERMINAL){ // E X E
             if(tmp_first->current_status == VALID_TOKEN){
-                //gen_push(tmp_first->my_token);
+                gen_push(tmp_first->my_token);
                 // push it to generetar
             }
 
             if(tmp_third->current_status == VALID_TOKEN){
-                //gen_push(tmp_first->my_token);
+                gen_push(tmp_first->my_token);
                 // push it to generator
             }
 
             operand = tmp_second->symbol;
             if(operand == PLUS){         // E + E
-                //GENERATE_EXPRESSION();
+                GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == MINUS){   // E - E
-                //GENERATE_EXPRESSION();
+                GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == MUL){     // E * E
-                //GENERATE_EXPRESSION();
+                GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == DIV){     // E / E
-                //GENERATE_EXPRESSION();
+                GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == EQL){     // E == E
-                //GENERATE_EXPRESSION();
+                GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == NEQ){     // E != E
-                //GENERATE_EXPRESSION();
+                GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == LEQ){     // E <= E
-                //GENERATE_EXPRESSION();
+                GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == LTN){     // E < E
-                //GENERATE_EXPRESSION();
+                GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == MEQ){     // E >= E
-                //GENERATE_EXPRESSION();
+                GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == MTN){     // E > E
-                //GENERATE_EXPRESSION();
+                GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else{

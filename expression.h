@@ -117,6 +117,7 @@ bool reduce_identifier(Symbol_item_t* tmp, int count, Symbol_stack_t* stack);
 bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack, bool preserve_token);
 bool push_reduced(int count, Symbol_stack_t* stack);
 
+int insert_stop(Symbol_list* list);
 int handle_expression(Data_t* data);
 int count_to_reduce(Symbol_stack_t* stack);
 int expression_error(Symbol_stack_t* stack, Symbol_list* list, int error_type);

@@ -67,26 +67,6 @@ int precedential_table[table_size][table_size] = {
 
 };
 
-const char* keyword[] = {
-	"KEYWORD_DEF",
-	"KEYWORD_DO",
-	"KEYWORD_ELSE",
-	"KEYWORD_END",
-	"KEYWORD_IF",
-	"KEYWORD_NOT",
-	"KEYWORD_NIL",
-	"KEYWORD_THEN",
-	"KEYWORD_WHILE",
-	"KEYWORD_PRINT",
-	"KEYWORD_INPUTS",
-	"KEYWORD_INPUTI",
-	"KEYWORD_INPUTF",
-	"KEYWORD_LENGTH",
-	"KEYWORD_SUBSTR",
-	"KEYWORD_ORD",
-	"KEYWORD_CHR",
-};
-
 const char* symbols[] = {
 	"PLUS",   // +
     "MINUS",  // -
@@ -186,6 +166,7 @@ bool from_buffer = false;
                 return ER_INTERNAL; \
             }   \
             copy_my_string(tmp->my_token.attr_token.tmp_string, data->token->attr.string->s, length);   \
+            tmp->my_token.attr_token.tmp_string[length] = '\0'; \
         }                                                                       \
     }while(0);                                                                  \
 
@@ -292,9 +273,16 @@ int handle_expression(Data_t* data){
         }
         else if(current_rule == U){  // UNDEFINED rule
             Precedential_table_symbol last_symbol = get_first_term(&stack);
-            to_push_symbol = get_symbol_from_token(data);
-            if(finished && last_symbol == DOLLAR && to_push_symbol == DOLLAR){ // we are at the and reduced everything succesfully
-                break;
+            if(is_empty(&buffer)){
+                to_push_symbol = get_symbol_from_token(data);
+                if(finished && last_symbol == DOLLAR && to_push_symbol == DOLLAR){ // we are at the and reduced everything succesfully
+                    break;
+                }
+            }
+            else if(!is_empty(&buffer)){
+                if(finished && last_symbol == DOLLAR && buffer.first->symbol == DOLLAR){
+                    break;
+                }
             }
             else{
                 return expression_error(&stack, &buffer, OTHER_SYNTACTICAL_ERRORS);
@@ -305,7 +293,7 @@ int handle_expression(Data_t* data){
             GET_SYMBOL();
         }
 
-        //print_current_stack(&stack); // DEBUG
+        //print_buffer(&buffer); // DEBUG
         //print_current_stack(&stack);
         
     }
@@ -429,7 +417,7 @@ bool reduce_by_rule(Symbol_stack_t* stack){
                 gen_push(tmp_first->my_token);
                 // push it to generetar
             }
-            printf("Vysiel som z generovania\n");
+            //rintf("Vysiel som z generovania\n");
             tmp_first->current_status = ON_GENERATOR_STACK;
             reduce_identifier(tmp_first, to_pop, stack);
         }
@@ -441,54 +429,54 @@ bool reduce_by_rule(Symbol_stack_t* stack){
         // first and third symbols are nonterminals, so we just check the second operand to make sure the grammar is correct
         if(tmp_first->symbol == NON_TERMINAL && tmp_third->symbol == NON_TERMINAL){ // E X E
             if(tmp_first->current_status == VALID_TOKEN){
-                gen_push(tmp_first->my_token);
+                //gen_push(tmp_first->my_token);
                 // push it to generetar
             }
 
             if(tmp_third->current_status == VALID_TOKEN){
-                gen_push(tmp_first->my_token);
+                //gen_push(tmp_first->my_token);
                 // push it to generator
             }
 
             operand = tmp_second->symbol;
             if(operand == PLUS){         // E + E
-                GENERATE_EXPRESSION();
+                //GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == MINUS){   // E - E
-                GENERATE_EXPRESSION();
+                //GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == MUL){     // E * E
-                GENERATE_EXPRESSION();
+                //GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == DIV){     // E / E
-                GENERATE_EXPRESSION();
+                //GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == EQL){     // E == E
-                GENERATE_EXPRESSION();
+                //GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == NEQ){     // E != E
-                GENERATE_EXPRESSION();
+                //GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == LEQ){     // E <= E
-                GENERATE_EXPRESSION();
+                //GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == LTN){     // E < E
-                GENERATE_EXPRESSION();
+                //GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == MEQ){     // E >= E
-                GENERATE_EXPRESSION();
+                //GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else if(operand == MTN){     // E > E
-                GENERATE_EXPRESSION();
+                //GENERATE_EXPRESSION();
                 push_reduced(to_pop, stack);
             }
             else{
@@ -810,19 +798,26 @@ bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol, Data_t*
         }
         else if(from_buffer){
             stack_top = get_from_buffer(&buffer);
+            if(stack_top->current_status == VALID_TOKEN){
             tmp->my_token.type_token = stack_top->my_token.type_token;                          
             tmp->my_token.attr_token.tmp_flt = stack_top->my_token.attr_token.tmp_flt;               
             tmp->my_token.attr_token.tmp_integer = stack_top->my_token.attr_token.tmp_integer;       
             tmp->my_token.attr_token.tmp_keyword = stack_top->my_token.attr_token.tmp_keyword;       
             if(tmp->my_token.type_token == TYPE_STRING || stack_top->my_token.type_token == TYPE_IDENTIFIER){
-                int length = strlen(stack_top->my_token.attr_token.tmp_string);
+                int length = strlen(stack_top->my_token.attr_token.tmp_string) + 2;
                 tmp->my_token.attr_token.tmp_string = (char *) malloc(length);
                 if(tmp->my_token.attr_token.tmp_string == NULL){
                     return ER_INTERNAL;
                 } 
                 copy_my_string(tmp->my_token.attr_token.tmp_string, stack_top->my_token.attr_token.tmp_string, length);
+                }
+            }
+            else if(stack_top->current_status == INVALID_TOKEN){
+                tmp->current_status = stack_top->current_status;
+                tmp->symbol = stack_top->symbol;
             }
             delete_first(&buffer);
+
         }
         
         if(symbol != DOLLAR){
@@ -936,8 +931,14 @@ int insert_to_buffer(Symbol_list* list, Data_t* data){
     tmp->symbol = current_symbol;
     tmp->next = NULL;
 
-    REMEMBER_TOKEN();
-    tmp->current_status = VALID_TOKEN;
+    if(current_symbol != DOLLAR){
+        REMEMBER_TOKEN();
+        tmp->current_status = VALID_TOKEN;
+    }
+    else{
+        tmp->current_status = INVALID_TOKEN;
+    }
+    
     
     if(list->first == NULL && list->last == NULL){ // zero elements
         list->first = tmp;
@@ -954,6 +955,36 @@ int insert_to_buffer(Symbol_list* list, Data_t* data){
     }
     
     return 0;
+}
+
+/**
+ * 
+ */
+int insert_stop(Symbol_list* list){
+    Precedential_table_symbol stop_sign = DOLLAR;
+    Symbol_item_t* last_one;
+
+    Symbol_item_t* tmp = malloc(sizeof(Symbol_item_t));
+    if(tmp == NULL){
+        return ER_INTERNAL;
+    }
+
+    tmp->symbol = stop_sign;
+    tmp->next = NULL;
+
+    if(list->first == NULL && list->last == NULL){ // zero elements
+        list->first = tmp;
+        list->last = tmp;
+    }
+    else if(list->first != NULL && list->first == list->last){ // one element
+        list->last = tmp;
+        list->first->next = tmp;
+    }
+    else{   // more elements
+        last_one = list->last;
+        last_one->next = tmp;
+        list->last = tmp;
+    }
 }
 
 /**

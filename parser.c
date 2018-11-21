@@ -248,8 +248,13 @@ static int prog(Data_t* data){
         //return(statement(data));  - pouzijeme toto, ale kvoli debuggingu je to rozpisane
     }
 
+    // ... INT/FLT/STR ...
     else if (IS_VALUE()) {
+        insert_to_buffer(&buffer, data);
+
         res = handle_expression(data);
+
+        clear_buffer(&buffer);
         if (res != EXPRESSION_OK) {
             return(res);
         }

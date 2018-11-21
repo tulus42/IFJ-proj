@@ -1,4 +1,2 @@
-a = length "abc"
-b = 2*5
 
-print "\nahoj\njiuhuihuihiuiuguigguiguiguigui"
+print 2, 2, 3

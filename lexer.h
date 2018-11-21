@@ -14,6 +14,8 @@ Adrián Tulušák, xtulus00
 #ifndef LEXER
 #define LEXER
 
+
+
 #define LEXER_OK 0
 
 // add keywords
@@ -43,6 +45,9 @@ Adrián Tulušák, xtulus00
 #define STATE_BINARY_NUM 522
 #define STATE_OCTAL_NUM 523
 #define STATE_HEXADECIMAL_NUM 525
+#define STATE_EXPECT_COMMENT 526
+#define STATE_EXPECT_NEWLINE 527
+#define STATE_INVALID_END 528
 
 typedef enum
 {

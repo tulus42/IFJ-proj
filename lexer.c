@@ -21,7 +21,7 @@ Adrián Tulušák, xtulus00
 FILE* source;
 char* string_content;
 string_t* dynamic_string;
-
+static int token_counter = 0;
 
 /*
 TODO: 
@@ -136,6 +136,7 @@ int lexer_error(string_t* string_ptr, int error_type){
  * Frees string when succesful
  */
 int lexer_succesful(string_t* string_ptr){
+	token_counter++;
 	free_string(string_ptr);
 	return LEXER_OK;
 }
@@ -155,7 +156,7 @@ int get_next_token(Token_t *token)
 	/* Used variables */
 	int current_status = STATE_START; // current state is start
 	int registered_input; // counts how many chars have been entered for '=begin' and '=end'
-
+	bool end_of_comment = false;
 	
 	token->attr.string = dynamic_string;
 	
@@ -175,6 +176,7 @@ int get_next_token(Token_t *token)
 	}
 
 	clear_string_content(token->attr.string);
+
 
 	while(true){
 		char c = getc(source); // read characters one by one
@@ -240,8 +242,9 @@ int get_next_token(Token_t *token)
 					change_state(&current_status, STATE_STRING);
 				}
 				else if(c == '\n'){ // end of line token
-					token->token = TYPE_EOL;
-					return lexer_succesful(string_ptr);
+					change_state(&current_status, STATE_EXPECT_COMMENT);
+					//token->token = TYPE_EOL;
+					//return lexer_succesful(string_ptr);
 				}
 				else if(isdigit(c)){ // [0-9]
 					if(c == '0'){ // number starts with 0, therefore it can be 0 or 0.XXXX, but not 0XXX, X is [1-9]
@@ -275,6 +278,20 @@ int get_next_token(Token_t *token)
 				else{ // non-acceptable char
 					printf("Som tu v chare\n");
 					return lexer_error(string_ptr, ER_LEX);
+				}
+				break;
+
+			case(STATE_EXPECT_COMMENT):
+				if(c == '='){
+					if(!add_char(string_ptr, c)){
+							return lexer_error(string_ptr, ER_INTERNAL);
+					}
+					change_state(&current_status, STATE_COMMENT_START);
+				}
+				else{
+					ungetc(c, source);
+					token->token = TYPE_EOL;
+					return lexer_succesful(string_ptr);
 				}
 				break;
 
@@ -338,13 +355,18 @@ int get_next_token(Token_t *token)
 					return lexer_succesful(string_ptr);
 				}
 				else if(isalpha(c) && c == 'b'){ // =b; expesting it to be '=begin'
-					if(!add_char(string_ptr, '=')){
-						return lexer_error(string_ptr, ER_INTERNAL);
+					if(token_counter == 0){
+						if(!add_char(string_ptr, '=')){
+							return lexer_error(string_ptr, ER_INTERNAL);
+						}
+						if(!add_char(string_ptr, c)){
+							return lexer_error(string_ptr, ER_INTERNAL);
+						} // use dynamic string, store b
+						change_state(&current_status, STATE_COMMENT_START);	// go to state that checks whether it is start of block comment
 					}
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					} // use dynamic string, store b
-					change_state(&current_status, STATE_COMMENT_START);	// go to state that checks whether it is start of block comment
+					else{
+						return lexer_error(string_ptr, ER_LEX);
+					}
 				}
 				else{ // =
 					token->token = TYPE_ASSIGN;
@@ -370,27 +392,60 @@ int get_next_token(Token_t *token)
 
 				if(check_comment_begin(registered_input, string_ptr)){
 					if(registered_input == strlen("=begin")){ // it is '=begin'
-						clear_string_content(string_ptr);
-						change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
+						end_of_comment = false;
+						change_state(&current_status, STATE_EXPECT_NEWLINE);
 					}
 				}
 				else{
-					// Not matching - has to remove the first '=' and save the string ?? TODO
-					token->token = TYPE_ASSIGN;
-					remove_first_char(string_ptr);
-					printf("%s\n", string_ptr->s);
-					change_state(&current_status, STATE_NEXT_CHARS);
-					break;
+					return lexer_error(string_ptr, ER_LEX);
 				}
 				break;
+
+			case(STATE_INVALID_END):
+				if(!add_char(string_ptr, c)){
+						return lexer_error(string_ptr, ER_INTERNAL);
+				}
+				registered_input = strlen(string_ptr->s);
+				if(check_comment_end(registered_input, string_ptr)){ // it is '=end'
+					if(registered_input == strlen("=end")){
+						end_of_comment = true;
+						return lexer_error(string_ptr, ER_LEX);
+					}
+				}
+				else{
+					change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
+				}
+				break;
+
 
 			// waits for =, everything inside the block comment is ignored
 			case(STATE_INSIDE_BLOCK_COMMENT):
 				if(c == '='){
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					clear_string_content(string_ptr);
+					ungetc(c, source);
+					change_state(&current_status, STATE_INVALID_END);	
+				}
+				else if(c == '\n'){
+					clear_string_content(string_ptr);
 					change_state(&current_status, STATE_COMMENT_END);
+				}
+				break;
+
+			case(STATE_EXPECT_NEWLINE):
+				if(end_of_comment){
+					if(c == ' ' || c == '\n' || c == EOF){
+						ungetc(c, source);
+						token->token = TYPE_COMMENT;
+						return lexer_succesful(string_ptr);
+					}
+				}
+				else{
+					if(c == '\n'){
+						change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
+					}
+					else{
+						return lexer_error(string_ptr, ER_LEX);
+					}
 				}
 				break;
 
@@ -402,8 +457,8 @@ int get_next_token(Token_t *token)
 				registered_input = strlen(string_ptr->s);
 				if(check_comment_end(registered_input, string_ptr)){ // it is '=end'
 					if(registered_input == strlen("=end")){
-						token->token = TYPE_COMMENT;
-						return lexer_succesful(string_ptr);
+						end_of_comment = true;
+						change_state(&current_status, STATE_EXPECT_NEWLINE);
 					}
 				}
 				else{

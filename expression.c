@@ -985,6 +985,7 @@ int insert_stop(Symbol_list* list){
         last_one->next = tmp;
         list->last = tmp;
     }
+    return 0;
 }
 
 /**

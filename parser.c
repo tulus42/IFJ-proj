@@ -250,6 +250,7 @@ static int prog(Data_t* data){
 
     // ... INT/FLT/STR ...
     else if (IS_VALUE()) {
+        printf("in <prog> IS VALUE\n");
         insert_to_buffer(&buffer, data);
 
         res = handle_expression(data);
@@ -640,13 +641,18 @@ static int declare(Data_t* data) {
             } else
 
             // ... ID ... 
-            if (check_define(global_ST, data->token->attr.string->s) == PARAM_DEFINED) {
+            if ((data->in_definition == false && check_define(global_ST, identifier.s) == PARAM_DEFINED) ||
+                (data->in_definition == true && check_define(local_ST, identifier.s) == PARAM_DEFINED)) {
+                
+                
+                insert_to_buffer(&buffer, data);
+                
                 GET_TOKEN();
+
 
                 // ak nasleduje operand, vyhodnosti expression
                 if (IS_OPERAND()) {
-                    insert_to_buffer(&buffer, data);
-
+                    
                     res = handle_expression(data);
                     if (res != EXPRESSION_OK) {
                         clear_buffer(&buffer);
@@ -663,6 +669,12 @@ static int declare(Data_t* data) {
 
                 // ... EOL || EOF ...
                 if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+                    insert_stop(&buffer);
+                    
+                    res = handle_expression(data);
+                    if (res != EXPRESSION_OK) {
+                        return(res);
+                    }
                     clear_buffer(&buffer);
                     data->in_declare = false;
                     return(SYN_OK);
@@ -695,6 +707,12 @@ static int declare(Data_t* data) {
 
             // ... EOL || EOF ...
             if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
+                insert_stop(&buffer);
+                    
+                res = handle_expression(data);
+                if (res != EXPRESSION_OK) {
+                    return(res);
+                }
                 clear_buffer(&buffer);
                 data->in_declare = false;
                 return(SYN_OK);

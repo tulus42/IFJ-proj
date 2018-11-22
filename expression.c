@@ -238,8 +238,8 @@ int handle_expression(Data_t* data){
 
     GET_SYMBOL();
 
-    print_buffer(&buffer);
-    print_current_stack(&stack);
+    //print_buffer(&buffer);
+    //print_current_stack(&stack);
     
     // We iterate through all the tokens and check their syntax
     // When the rule is SHIFT or EQUAL, we can get new token
@@ -301,8 +301,8 @@ int handle_expression(Data_t* data){
     printf("While has finished succesfully!\n"); // DEBUG
 
     // if we come here, the syntax and semantics were correct
-    clear_buffer(&buffer);
-    free_stack(&stack);
+    //clear_buffer(&buffer);
+    //free_stack(&stack);
     return EXPRESSION_OK;
 }
 
@@ -674,6 +674,8 @@ void print_current_stack(Symbol_stack_t* stack){ //
  */
 void check_sematics(Data_t* data){
     // search in the table
+    printf("Kontrolujem sématiku v expression\n");
+
     if(data->in_definition == true){    // je fo funkcii - je lokálna
         if(check_define(local_ST, data->token->attr.string->s) == PARAM_DEFINED){
             return_code = EXPRESSION_OK;
@@ -686,6 +688,7 @@ void check_sematics(Data_t* data){
             return;
         }
     }
+    printf("Nenasiel som v tabuľke - EXPRESSION\n");
     return_code = UNDEFINED_ID_EXPRESSION;
     
 }
@@ -841,6 +844,7 @@ bool push_no_token(Symbol_stack_t* stack, Precedential_table_symbol symbol){
         tmp->next = stack->top;
         tmp->symbol = symbol;
         tmp->current_status = INVALID_TOKEN;
+        tmp->my_token.type_token = TYPE_EOL;
         stack->top = tmp;
         return true;
     }
@@ -919,6 +923,12 @@ void clear_buffer(Symbol_list* list){
  * 
  */
 int insert_to_buffer(Symbol_list* list, Data_t* data){
+    if(data->token->token == TYPE_STRING || data->token->token == TYPE_IDENTIFIER){
+         printf("Dám do buffera %s : %s\n", tokens_tmp[data->token->token], data->token->attr.string->s);
+    }
+    else{
+        printf("Dám do buffera %s\n", tokens_tmp[data->token->token]);
+    }
     Precedential_table_symbol current_symbol = get_symbol_from_token(data);
     Symbol_item_t* last_one;
     int length;

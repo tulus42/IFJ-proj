@@ -630,9 +630,14 @@ static int declare(Data_t* data) {
                 GET_TOKEN();
 
                 IF_N_OK_RETURN(argvs(data));
-                itemupdate(&tItem, (&identifier_declare)->s, VAR, true, 0);
-                printf("ID1: %s\nID2: %s\n", identifier_f.s,identifier.s);
-                htInsert(global_ST, &tItem);
+                //itemupdate(&tItem, (&identifier_declare)->s, VAR, true, 0);
+                //printf("ID1: %s\nID2: %s\n", identifier_f.s,identifier.s);
+                //if (data->in_definition == true) {
+                //    htInsert(local_ST, &tItem);    
+                //} else {
+                //    htInsert(global_ST, &tItem);
+                //}
+                
 
                 gen_func_call((&identifier)->s);
                 gen_func_rval_assign((&identifier_declare)->s);
@@ -644,9 +649,20 @@ static int declare(Data_t* data) {
             if ((data->in_definition == false && check_define(global_ST, identifier.s) == PARAM_DEFINED) ||
                 (data->in_definition == true && check_define(local_ST, identifier.s) == PARAM_DEFINED)) {
                 
-                
-                insert_to_buffer(&buffer, data);
-                
+                res = handle_expression(data);
+                if (res != EXPRESSION_OK) {
+                    clear_buffer(&buffer);
+                    return(res);
+                }
+
+                gen_assign(identifier_declare.s);
+
+                clear_buffer(&buffer);
+                data->in_declare = false;
+                return(SYN_OK);
+
+
+                /*
                 GET_TOKEN();
 
 
@@ -676,9 +692,11 @@ static int declare(Data_t* data) {
                         return(res);
                     }
                     clear_buffer(&buffer);
+
+                    gen_assign(identifier_declare.s);
                     data->in_declare = false;
                     return(SYN_OK);
-                }
+                }*/
 
             // ak ID nie je definovane -> ERR
             } else {
@@ -688,8 +706,20 @@ static int declare(Data_t* data) {
         } 
         // ... int/flt/str ...
         else {
-            GET_TOKEN();
 
+            res = handle_expression(data);
+            if (res != EXPRESSION_OK) {
+                clear_buffer(&buffer);
+                return(res);
+            }
+
+            gen_assign(identifier_declare.s);
+
+            clear_buffer(&buffer);
+            data->in_declare = false;
+            return(SYN_OK);
+
+            /*
             // ak nasleduje operand, vyhodnosti expression
             if (IS_OPERAND()) {
                 insert_to_buffer(&buffer, data);
@@ -714,9 +744,11 @@ static int declare(Data_t* data) {
                     return(res);
                 }
                 clear_buffer(&buffer);
+
+                gen_assign(identifier_declare.s);
                 data->in_declare = false;
                 return(SYN_OK);
-            }
+            }*/
         }
 
         clear_buffer(&buffer);

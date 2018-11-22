@@ -377,7 +377,8 @@ int get_next_token(Token_t *token)
 
 			// line commentary # I am a comment
 			case(STATE_LINE_COMMENTARY):
-				if(c == '\n'){ // waits for the end of line char
+				if(c == '\n' || c == EOF){ // waits for the end of line char
+					ungetc(c, source);
 					token->token = TYPE_COMMENT; // the entire line is comment
 					return lexer_succesful(string_ptr);
 				}

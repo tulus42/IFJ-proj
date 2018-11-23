@@ -293,8 +293,8 @@ int handle_expression(Data_t* data){
             GET_SYMBOL();
         }
 
-        print_buffer(&buffer); // DEBUG
-        print_current_stack(&stack);
+        //print_buffer(&buffer); // DEBUG
+        //print_current_stack(&stack);
         
     }
     gen_save_expr_res();
@@ -687,6 +687,10 @@ void check_sematics(Data_t* data){
             return_code = EXPRESSION_OK;
             return;
         }
+    }
+    if(check_define(global_ST, data->token->attr.string->s) == FUNCTION_DEFINED){
+        return_code = EXPRESSION_OK;
+        return;
     }
     printf("Nenasiel som v tabuľke - EXPRESSION\n");
     return_code = UNDEFINED_ID_EXPRESSION;

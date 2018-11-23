@@ -42,6 +42,13 @@ Adrián Tulušák, xtulus00
 #define FUNC_SUBS													\
 	"\n LABEL &substr"												\
 	"\n PUSHFRAME"													\
+	"\n DEFVAR LF@_rval_type"        \
+	"\n TYPE LF@_rval_type LF@_0"               \
+	"\n JUMPIFNEQ &substrexit LF@_rval_type string@string"	\
+	"\n TYPE LF@_rval_type LF@_1"               \
+	"\n JUMPIFNEQ &substrexit LF@_rval_type string@int"	\
+	"\n TYPE LF@_rval_type LF@_2"               \
+	"\n JUMPIFNEQ &substrexit LF@_rval_type string@int"	\
 	"\n DEFVAR LF@_rval"											\
 	"\n MOVE LF@_rval string@"										\
 	"\n DEFVAR LF@str_len"											\
@@ -90,11 +97,18 @@ Adrián Tulušák, xtulus00
 	"\n JUMPIFEQ &substr&process_loop LF@process_loop_cond bool@true" \
 	"\n LABEL &substr&return"										\
 	"\n POPFRAME"													\
-	"\n RETURN"														
+	"\n RETURN"			\
+	"\n LABEL &substrexit"	    \
+	"\n EXIT int@4"	 												
 
 #define FUNC_ORD											\
 	"\n LABEL &ord"											\
 	"\n PUSHFRAME"											\
+	"\n DEFVAR LF@_rval_type"        \
+	"\n TYPE LF@_rval_type LF@_0"               \
+	"\n JUMPIFNEQ &ordexit LF@_rval_type string@string"	\
+	"\n TYPE LF@_rval_type LF@_1"               \
+	"\n JUMPIFNEQ &ordexit LF@_rval_type string@int"	\
 	"\n DEFVAR LF@_rval"									\
 	"\n MOVE LF@_rval int@0"								\
 	"\n DEFVAR LF@cond_length"								\
@@ -112,11 +126,16 @@ Adrián Tulušák, xtulus00
 	"\n STRI2INT LF@_rval LF@_0 LF@_1"						\
 	"\n LABEL &ord&return"									\
 	"\n POPFRAME"											\
-	"\n RETURN"												
+	"\n RETURN"					\
+	"\n LABEL &ordexit"	    \
+	"\n EXIT int@4"	 	
 
 #define FUNC_CHR										\
 	"\n LABEL &chr"										\
 	"\n PUSHFRAME"										\
+	"\n DEFVAR LF@_rval_type"        \
+	"\n TYPE LF@_rval_type LF@_0"               \
+	"\n JUMPIFNEQ &chrexit LF@_rval_type string@int"	\
 	"\n DEFVAR LF@_rval"								\
 	"\n MOVE LF@_rval string@"							\
 	"\n DEFVAR LF@cond_range"							\
@@ -127,7 +146,9 @@ Adrián Tulušák, xtulus00
 	"\n INT2CHAR LF@_rval LF@_0"						\
 	"\n LABEL &chr&return"								\
 	"\n POPFRAME"										\
-	"\n RETURN"
+	"\n RETURN"											\
+	"\n LABEL &chrexit"	    							\
+	"\n EXIT int@4"
 
 
 string_t code;

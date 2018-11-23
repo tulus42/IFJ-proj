@@ -1,13 +1,13 @@
 # Program 1: Vypocet faktorialu (iterativne)
-print "Zadej\n"
-a = 3.0
-if a < 0.5 then
+print "vypocet faktorialu\n"
+a = inputi
+if a < 0 then
     print "Faktor\n"
 else
-    vysl = 1
+    vysl = 1 +0
     while a > 0 do
         vysl = vysl * a
-        a = a - 42.11
+        a = a - 1
     end
     print "Vysledek je: ", vysl, "\n"
 end

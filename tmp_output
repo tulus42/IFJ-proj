@@ -11,13 +11,25 @@ JUMP &&main
 
  LABEL &length
  PUSHFRAME
+ DEFVAR LF@_rval_type
+ TYPE LF@_rval_type LF@_0
+ JUMPIFNEQ &strlenexit LF@_rval_type string@string
  DEFVAR LF@_rval
  STRLEN LF@_rval LF@_0
  POPFRAME
  RETURN
+ LABEL &strlenexit
+ EXIT int@4
 
  LABEL &substr
  PUSHFRAME
+ DEFVAR LF@_rval_type
+ TYPE LF@_rval_type LF@_0
+ JUMPIFNEQ &substrexit LF@_rval_type string@string
+ TYPE LF@_rval_type LF@_1
+ JUMPIFNEQ &substrexit LF@_rval_type string@int
+ TYPE LF@_rval_type LF@_2
+ JUMPIFNEQ &substrexit LF@_rval_type string@int
  DEFVAR LF@_rval
  MOVE LF@_rval string@
  DEFVAR LF@str_len
@@ -67,9 +79,16 @@ JUMP &&main
  LABEL &substr&return
  POPFRAME
  RETURN
+ LABEL &substrexit
+ EXIT int@4
 
  LABEL &ord
  PUSHFRAME
+ DEFVAR LF@_rval_type
+ TYPE LF@_rval_type LF@_0
+ JUMPIFNEQ &ordexit LF@_rval_type string@string
+ TYPE LF@_rval_type LF@_1
+ JUMPIFNEQ &ordexit LF@_rval_type string@int
  DEFVAR LF@_rval
  MOVE LF@_rval int@0
  DEFVAR LF@cond_length
@@ -88,9 +107,14 @@ JUMP &&main
  LABEL &ord&return
  POPFRAME
  RETURN
+ LABEL &ordexit
+ EXIT int@4
 
  LABEL &chr
  PUSHFRAME
+ DEFVAR LF@_rval_type
+ TYPE LF@_rval_type LF@_0
+ JUMPIFNEQ &chrexit LF@_rval_type string@int
  DEFVAR LF@_rval
  MOVE LF@_rval string@
  DEFVAR LF@cond_range
@@ -102,6 +126,8 @@ JUMP &&main
  LABEL &chr&return
  POPFRAME
  RETURN
+ LABEL &chrexit
+ EXIT int@4
 LABEL &type_check
 PUSHFRAME
 POPS GF@_aux_1
@@ -132,14 +158,15 @@ RETURN
 LABEL &&main
 CREATEFRAME
 PUSHFRAME
-PUSHS string@Zadej\010
+PUSHS string@vypocet\032faktorialu\010
 POPS GF@_exp_res
 WRITE GF@_exp_res
 DEFVAR LF@a
 DEFVAR LF@a_type
 MOVE LF@a_type string@nil
+READ LF@a int
 PUSHS LF@a
-PUSHS float@0.5
+PUSHS int@0
 CREATEFRAME
 CALL &type_check
 LTS
@@ -153,6 +180,23 @@ LABEL &1_2
 DEFVAR LF@vysl
 DEFVAR LF@vysl_type
 MOVE LF@vysl_type string@nil
+PUSHS int@1
+PUSHS int@0
+CREATEFRAME
+CALL &type_check
+JUMPIFEQ &cat3 GF@_aux_1_type string@string
+JUMP &adds3
+LABEL &cat3
+POPS GF@_aux_1
+POPS GF@_aux_2
+CONCAT GF@_aux_1 GF@_aux_2 GF@_aux_1
+PUSHS GF@_aux_1
+JUMP &notadds3
+LABEL &adds3
+ADDS
+LABEL &notadds3
+POPS GF@_exp_res
+MOVE LF@vysl GF@_exp_res
 LABEL &2_4
 PUSHS LF@a
 PUSHS int@0
@@ -161,9 +205,6 @@ CALL &type_check
 GTS
 POPS GF@_exp_res
 JUMPIFEQ &2_5 GF@_exp_res bool@false
-DEFVAR LF@vysl
-DEFVAR LF@vysl_type
-MOVE LF@vysl_type string@nil
 PUSHS LF@vysl
 PUSHS LF@a
 CREATEFRAME
@@ -171,11 +212,8 @@ CALL &type_check
 MULS
 POPS GF@_exp_res
 MOVE LF@vysl GF@_exp_res
-DEFVAR LF@a
-DEFVAR LF@a_type
-MOVE LF@a_type string@nil
 PUSHS LF@a
-PUSHS float@42.11
+PUSHS int@1
 CREATEFRAME
 CALL &type_check
 SUBS

@@ -232,8 +232,8 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
 
 Type_of_tHTItem* get_type (tHTable ptrht,char key[]) {
 
-	printf("som v get_type\n");
-	printf("%s\n",key);
+	//printf("som v get_type\n");
+	//printf("%s\n",key);
 	if (htSearch(ptrht,key)!=NULL){				//ak je item najdeny
 		return &(htSearch(ptrht,key))->typ;		//funkcia vrati typ hladaneho itemu
 	}
@@ -309,7 +309,7 @@ int STlast_check(){
 		tmp=global_ST[i];
 
 		while(tmp!=NULL){
-			printf("%s\n",tmp->key );
+			//printf("%s\n",tmp->key );
 			if ((tmp->typ==FUNCTION)&&(tmp->defined==false)){
 				return sym_table_error(ER_SEM_VARIABLE);
 			}
@@ -364,17 +364,17 @@ return ST_OK;
 }
 
 int itemupdate(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc ){
-	printf("Checkpoint1\n");
+	//printf("Checkpoint1\n");
 	free(item->key);
-	printf("Checkpoint2\n");
+	//printf("Checkpoint2\n");
 	item->key = (char*) malloc((strlen(k)+2));
-	printf("Checkpoint3\n");
+	//printf("Checkpoint3\n");
 	if (item->key==NULL){								//ak sa alokacia nepodarila tak funkcia skonci
-			printf("Checkpoint4\n");
+			//printf("Checkpoint4\n");
 			return sym_table_error(ER_INTERNAL);
 	}
 
-	printf("Checkpoint5\n");
+	//printf("Checkpoint5\n");
 	strcpy(item->key,k);
 	item->typ=t;	
 	item->param_count=pc;

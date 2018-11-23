@@ -298,7 +298,7 @@ int handle_expression(Data_t* data){
         
     }
     gen_save_expr_res();
-    printf("While has finished succesfully!\n"); // DEBUG
+    //printf("While has finished succesfully!\n"); // DEBUG
 
     // if we come here, the syntax and semantics were correct
     //clear_buffer(&buffer);
@@ -626,7 +626,7 @@ Precedential_table_rule get_rule(Precedential_table_symbol rows, Precedential_ta
 int expression_error(Symbol_stack_t* stack, Symbol_list* list,  int error_type){
     free_stack(stack);
     clear_buffer(list);
-    printf("EXPRESSION ERROR!\n");
+    //printf("EXPRESSION ERROR!\n");
     return error_type;
 }
 
@@ -643,29 +643,29 @@ void print_token(Data_t* data){
 */
 void print_current_stack(Symbol_stack_t* stack){ // 
     if(stack->top == NULL){
-        printf("STACK IS EMPTY\n\n");
+        //printf("STACK IS EMPTY\n\n");
         return;
     }
     else{
-        printf("STACK CONTAINS:\n");
+        //printf("STACK CONTAINS:\n");
         Symbol_item_t* tmp = stack->top;
         int i = 0;
         while(tmp != NULL){
             if(tmp->current_status == VALID_TOKEN){
                 if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){
-                    printf("%d : %s : %s : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token], tmp->my_token.attr_token.tmp_string);
+                    //printf("%d : %s : %s : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token], tmp->my_token.attr_token.tmp_string);
                 }
                 else{
-                    printf("%d : %s : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token]);
+                    //printf("%d : %s : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token]);
                 }
             }
             else{
-                printf("%d : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status]);
+                //printf("%d : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status]);
             }
             i++;
             tmp = tmp->next;
         }
-        printf("\n");
+        //printf("\n");
     }
 }
 
@@ -674,7 +674,7 @@ void print_current_stack(Symbol_stack_t* stack){ //
  */
 void check_sematics(Data_t* data){
     // search in the table
-    printf("Kontrolujem sématiku v expression\n");
+    //printf("Kontrolujem sématiku v expression\n");
 
     if(data->in_definition == true){    // je fo funkcii - je lokálna
         if(check_define(local_ST, data->token->attr.string->s) == PARAM_DEFINED){
@@ -692,7 +692,7 @@ void check_sematics(Data_t* data){
         return_code = EXPRESSION_OK;
         return;
     }
-    printf("Nenasiel som v tabuľke - EXPRESSION\n");
+    //printf("Nenasiel som v tabuľke - EXPRESSION\n");
     return_code = UNDEFINED_ID_EXPRESSION;
     
 }
@@ -928,10 +928,10 @@ void clear_buffer(Symbol_list* list){
  */
 int insert_to_buffer(Symbol_list* list, Data_t* data){
     if(data->token->token == TYPE_STRING || data->token->token == TYPE_IDENTIFIER){
-         printf("Dám do buffera %s : %s\n", tokens_tmp[data->token->token], data->token->attr.string->s);
+         //printf("Dám do buffera %s : %s\n", tokens_tmp[data->token->token], data->token->attr.string->s);
     }
     else{
-        printf("Dám do buffera %s\n", tokens_tmp[data->token->token]);
+        //printf("Dám do buffera %s\n", tokens_tmp[data->token->token]);
     }
     Precedential_table_symbol current_symbol = get_symbol_from_token(data);
     Symbol_item_t* last_one;
@@ -1046,22 +1046,22 @@ bool is_empty(Symbol_list* list){
  */
 void print_buffer(Symbol_list* list){
     if(list->first == NULL){
-        printf("BUFFER IS EMPTY\n\n");
+        //printf("BUFFER IS EMPTY\n\n");
         return;
     }
     int counter = 0;
     Symbol_item_t* tmp = list->first;
-    printf("BUFFER CONTAINS:\n");
+    //printf("BUFFER CONTAINS:\n");
     while(tmp != NULL){
         if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){
-            printf("%d : %s : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token], tmp->my_token.attr_token.tmp_string);
+            //printf("%d : %s : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token], tmp->my_token.attr_token.tmp_string);
         }
         else{
-            printf("%d : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token]);
+            //printf("%d : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token]);
         }
         counter++;
         tmp = tmp->next;
     }
-    printf("\n");
+    //printf("\n");
 }
 

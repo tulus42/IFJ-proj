@@ -254,6 +254,9 @@ static int prog(Data_t* data){
         insert_to_buffer(&buffer, data);
 
         res = handle_expression(data);
+        if (res != EXPRESSION_OK) {
+            return(res);
+        }
 
         clear_buffer(&buffer);
         if (res != EXPRESSION_OK) {
@@ -446,6 +449,12 @@ static int statement(Data_t* data) {
 
             // ak sme v DEF
             if (data->in_definition == true) {
+                if (check_define(local_ST, identifier_declare.s) != PARAM_DEFINED) {
+                    gen_var_declar(identifier_declare.s);
+                    gen_var_defval((&identifier)->s);
+                }
+
+
                 res = htInsert(local_ST, &tItem);
                 printf("idetmInsert returned: %d\n", res);
                 if (res != ST_OK) {
@@ -455,6 +464,11 @@ static int statement(Data_t* data) {
             
             // ak sme na globalnej urovni
             } else {
+                if (check_define(global_ST, identifier_declare.s) != PARAM_DEFINED) {
+                    gen_var_declar(identifier_declare.s);
+                    gen_var_defval((&identifier)->s);
+                }
+
                 res = htInsert(global_ST, &tItem);
 
                 
@@ -465,9 +479,8 @@ static int statement(Data_t* data) {
                 }
                 htPrintTable(global_ST);
             }
-
-            gen_var_declar((&identifier)->s);
-            gen_var_defval((&identifier)->s);
+            
+            
             
 
             return(prog(data));
@@ -638,10 +651,14 @@ static int declare(Data_t* data) {
                 //    htInsert(global_ST, &tItem);
                 //}
                 
-
+                
                 gen_func_call((&identifier)->s);
                 gen_func_rval_assign((&identifier_declare)->s);
                 printf("ID1: %s\nID2: %s\n", identifier_f.s,identifier.s);
+
+                clear_buffer(&buffer);
+                data->in_declare = false;
+                return(SYN_OK);
 
             } else
 
@@ -998,6 +1015,7 @@ static int function(Data_t* data) {
             GET_TOKEN();
         }
 
+        clear_buffer(&buffer);
         // nenulovy pocet argumentov - ak by nasledovala ")" alebo EOL/EOF -> ER_SYN
         if (IS_VALUE()) {
             IF_N_OK_RETURN(print(data));
@@ -1450,7 +1468,7 @@ static int function(Data_t* data) {
 static int print(Data_t* data) {
     printf("in PRINT\n");
 
-
+    clear_buffer(&buffer);
     while (data->token->token != TYPE_COMMA && data->token->token != TYPE_EOL && data->token->token != TYPE_EOF) {
         if (data->in_bracket == true && data->token->token == TYPE_RIGHT_BRACKET) {
             break;
@@ -1463,9 +1481,28 @@ static int print(Data_t* data) {
     }
 
 
-    if (data->token->token == TYPE_COMMA || data->token->token == TYPE_EOL || data->token->token == TYPE_EOF || (data->in_bracket == true && data->token->token == TYPE_RIGHT_BRACKET)) {
+    /*if (data->token->token == TYPE_COMMA || data->token->token == TYPE_EOL || data->token->token == TYPE_EOF || (data->in_bracket == true && data->token->token == TYPE_RIGHT_BRACKET)) {
+        insert_stop(&buffer);
+    }*/
+
+    if (data->token->token == TYPE_COMMA) {
         insert_stop(&buffer);
     }
+
+    if (data->token->token == TYPE_EOL) {
+        insert_stop(&buffer);
+    }
+
+    if (data->token->token == TYPE_EOF) {
+        insert_stop(&buffer);
+    }
+
+    if (data->in_bracket == true && data->token->token == TYPE_RIGHT_BRACKET) {
+        insert_stop(&buffer);
+    }
+
+
+
     /*
     // ... ID ...
     if (data->token->token == TYPE_IDENTIFIER) {

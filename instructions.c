@@ -29,10 +29,15 @@ Adrián Tulušák, xtulus00
 #define FUNC_LEN				\
 	"\n LABEL &length"			\
 	"\n PUSHFRAME"				\
+	"\n DEFVAR LF@_rval_type"        \
+	"\n TYPE LF@_rval_type LF@_0"               \
+	"\n JUMPIFNEQ &strlenexit LF@_rval_type string@string"	\
 	"\n DEFVAR LF@_rval"		\
 	"\n STRLEN LF@_rval LF@_0"	\
 	"\n POPFRAME"				\
-	"\n RETURN"					
+	"\n RETURN"					\
+	"\n LABEL &strlenexit"	    \
+	"\n EXIT int@4"	    
 
 #define FUNC_SUBS													\
 	"\n LABEL &substr"												\
@@ -511,10 +516,13 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 
 
 			ADD_INT(auxcat);
-			ADD_CODE("GF@_aux_1_type string@string")
+			ADD_CODE(" GF@_aux_1_type string@string");
 			ADD_CODE("\n");
 
 			ADD_CODE("JUMP &adds");
+
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
 
 			ADD_CODE("LABEL &cat");
 
@@ -523,10 +531,12 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 
 			ADD_INST("POPS GF@_aux_1");
 			ADD_INST("POPS GF@_aux_2");
-			ADD_INST("CONCAT GF@_aux_1 GF@_aux_1 GF@_aux_2");
+			ADD_INST("CONCAT GF@_aux_1 GF@_aux_2 GF@_aux_1");
 			ADD_INST("PUSHS GF@_aux_1");
 
 			ADD_CODE("JUMP &notadds");
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
 
 
 			ADD_CODE("LABEL &adds");

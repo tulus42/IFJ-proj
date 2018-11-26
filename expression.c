@@ -150,25 +150,6 @@ bool from_buffer = false;
             return expression_error(&stack, &buffer, return_code);              \
     }while(0);                                                                  \
 
-/**
- * Remember in new improved static structure :) 
- */
-#define REMEMBER_TOKEN()                                                        \
-    do{                                                                         \
-        tmp->my_token.type_token = data->token->token;                          \
-        tmp->my_token.attr_token.tmp_flt = data->token->attr.flt;               \
-        tmp->my_token.attr_token.tmp_integer = data->token->attr.integer;       \
-        tmp->my_token.attr_token.tmp_keyword = data->token->attr.keyword;       \
-        if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){ \
-            length = data->token->attr.string->current_size;                     \
-            tmp->my_token.attr_token.tmp_string = (char *) malloc(length); \
-            if(tmp->my_token.attr_token.tmp_string == NULL){    \
-                return ER_INTERNAL; \
-            }   \
-            copy_my_string(tmp->my_token.attr_token.tmp_string, data->token->attr.string->s, length);   \
-            tmp->my_token.attr_token.tmp_string[length] = '\0'; \
-        }                                                                       \
-    }while(0);                                                                  \
 
 
 #define GET_SYMBOL()                                  \
@@ -215,11 +196,30 @@ int return_code = EXPRESSION_OK;
  * 
  **********************************************************/
 
+int remember_token(Symbol_item_t* tmp, Data_t* data){
+    int length;
+    tmp->my_token.type_token = data->token->token;                          
+        tmp->my_token.attr_token.tmp_flt = data->token->attr.flt;               
+        tmp->my_token.attr_token.tmp_integer = data->token->attr.integer;       
+        tmp->my_token.attr_token.tmp_keyword = data->token->attr.keyword;       
+        if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){ 
+            length = data->token->attr.string->current_size + 1;
+            printf("Mám veľkosť %d a idem naalokovať %d\n", length, data->token->attr.string->current_size);                     
+            tmp->my_token.attr_token.tmp_string = (char *) malloc(length); 
+            if(tmp->my_token.attr_token.tmp_string == NULL){    
+                return ER_INTERNAL; 
+            }
+            printf("Idem kopirovat\n");
+            strcpy(tmp->my_token.attr_token.tmp_string, data->token->attr.string->s);   
+            //copy_my_string(tmp->my_token.attr_token.tmp_string, data->token->attr.string->s, length);   
+            //tmp->my_token.attr_token.tmp_string[length] = '\0';
+        }  
+}
+
 /**
  * Handles the epxression, get the first token an token that symbolizes end of expression 
  */
 int handle_expression(Data_t* data){
-    // my variables
     bool can_get_token = true;
     bool is_reduced = false;
     Precedential_table_symbol to_push_symbol;
@@ -227,27 +227,24 @@ int handle_expression(Data_t* data){
     int length;
     Symbol_item_t* tmp = NULL;
 
-    
-    // initialize stack
-    init_stack(&stack);
+    print_buffer(&buffer);
+    print_current_stack(&stack);
 
-    // stack contains : $
-    if(!push_no_token(&stack, DOLLAR)){ // push dollar
+    if(!push_no_token(&stack, DOLLAR)){
         return expression_error(&stack, &buffer, ER_INTERNAL);
     }
 
     GET_SYMBOL();
 
-    //print_buffer(&buffer);
-    //print_current_stack(&stack);
-    
-    // We iterate through all the tokens and check their syntax
-    // When the rule is SHIFT or EQUAL, we can get new token
-    // When the rule is REDUCE, we don't get any new tokens
-    // UDEFINED symbolizes either gramatical error or succesfull reduction of expression 
+    print_buffer(&buffer);
+    print_current_stack(&stack);
+
     while(!is_reduced){
         current_rule = get_indexes_and_rule(&stack, to_push_symbol);  // get current rule
 
+        if(current_rule == U){
+            GET_SYMBOL();
+        }
 
         if(current_rule == S){  // SHIFT rule
             can_get_token = true;
@@ -278,10 +275,16 @@ int handle_expression(Data_t* data){
                 if(finished && last_symbol == DOLLAR && to_push_symbol == DOLLAR){ // we are at the and reduced everything succesfully
                     break;
                 }
+                else{
+                    return expression_error(&stack, &buffer, OTHER_SYNTACTICAL_ERRORS);
+                }
             }
             else if(!is_empty(&buffer)){
                 if(finished && last_symbol == DOLLAR && buffer.first->symbol == DOLLAR){
                     break;
+                }
+                else{
+                    return expression_error(&stack, &buffer, OTHER_SYNTACTICAL_ERRORS);
                 }
             }
             else{
@@ -293,16 +296,20 @@ int handle_expression(Data_t* data){
             GET_SYMBOL();
         }
 
-        //print_buffer(&buffer); // DEBUG
-        //print_current_stack(&stack);
+        print_buffer(&buffer); // DEBUG
+        print_current_stack(&stack);
         
     }
     gen_save_expr_res();
-    //printf("While has finished succesfully!\n"); // DEBUG
 
-    // if we come here, the syntax and semantics were correct
-    //clear_buffer(&buffer);
-    //free_stack(&stack);
+
+
+
+    printf("While has finished succesfully!\n"); // DEBUG
+
+    // clearing all
+    free_stack(&stack);
+    clear_buffer(&buffer);
     return EXPRESSION_OK;
 }
 
@@ -322,6 +329,7 @@ bool push_reduced(int count, Symbol_stack_t* stack){
     new_thing->next = stack->top;
     new_thing->symbol = NON_TERMINAL;
     new_thing->current_status = ON_GENERATOR_STACK;
+    new_thing->my_token.type_token = TYPE_EOL;
     stack->top = new_thing;
     return true;
 }
@@ -350,7 +358,7 @@ bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack, bool 
             if(new_thing->my_token.attr_token.tmp_string == NULL){
                 return ER_INTERNAL;
             } 
-            copy_my_string(new_thing->my_token.attr_token.tmp_string, tmp->my_token.attr_token.tmp_string, length);
+            strcpy(new_thing->my_token.attr_token.tmp_string, tmp->my_token.attr_token.tmp_string);
         }
     }
     // we pop it
@@ -381,12 +389,12 @@ bool reduce_identifier(Symbol_item_t* tmp, int count, Symbol_stack_t* stack){
     new_thing->my_token.attr_token.tmp_integer = tmp->my_token.attr_token.tmp_integer;       
     new_thing->my_token.attr_token.tmp_keyword = tmp->my_token.attr_token.tmp_keyword;       
     if(new_thing->my_token.type_token == TYPE_STRING || new_thing->my_token.type_token == TYPE_IDENTIFIER){
-        length = strlen(tmp->my_token.attr_token.tmp_string);
+        length = strlen(tmp->my_token.attr_token.tmp_string) + 2;
         new_thing->my_token.attr_token.tmp_string = (char *) malloc(length);
             if(new_thing->my_token.attr_token.tmp_string == NULL){
                 return ER_INTERNAL;
             } 
-        copy_my_string(new_thing->my_token.attr_token.tmp_string, tmp->my_token.attr_token.tmp_string, length);
+        strcpy(new_thing->my_token.attr_token.tmp_string, tmp->my_token.attr_token.tmp_string);
     }
 
     // we pop it
@@ -526,7 +534,8 @@ bool add_after_first_terminal(Symbol_stack_t* stack, Precedential_table_symbol s
     }
 
     new_item->symbol = symbol;
-    new_item->current_status = INVALID_TOKEN;    
+    new_item->current_status = INVALID_TOKEN;
+    new_item->my_token.type_token = TYPE_EOL;    
     
     if(is_term(stack->top->symbol)){ // terminal is on top
         new_item->next = stack->top;
@@ -643,29 +652,29 @@ void print_token(Data_t* data){
 */
 void print_current_stack(Symbol_stack_t* stack){ // 
     if(stack->top == NULL){
-        //printf("STACK IS EMPTY\n\n");
+        printf("STACK IS EMPTY\n\n");
         return;
     }
     else{
-        //printf("STACK CONTAINS:\n");
+        printf("STACK CONTAINS:\n");
         Symbol_item_t* tmp = stack->top;
         int i = 0;
         while(tmp != NULL){
             if(tmp->current_status == VALID_TOKEN){
                 if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){
-                    //printf("%d : %s : %s : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token], tmp->my_token.attr_token.tmp_string);
+                    printf("%d : %s : %s : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token], tmp->my_token.attr_token.tmp_string);
                 }
                 else{
-                    //printf("%d : %s : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token]);
+                    printf("%d : %s : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token]);
                 }
             }
             else{
-                //printf("%d : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status]);
+                printf("%d : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status]);
             }
             i++;
             tmp = tmp->next;
         }
-        //printf("\n");
+        printf("\n");
     }
 }
 
@@ -800,7 +809,7 @@ bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol, Data_t*
         stack->top = tmp;
 
         if(from_lexer){
-            REMEMBER_TOKEN();
+            remember_token(tmp, data);
             
         }
         else if(from_buffer){
@@ -816,7 +825,7 @@ bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol, Data_t*
                 if(tmp->my_token.attr_token.tmp_string == NULL){
                     return ER_INTERNAL;
                 } 
-                copy_my_string(tmp->my_token.attr_token.tmp_string, stack_top->my_token.attr_token.tmp_string, length);
+                strcpy(tmp->my_token.attr_token.tmp_string, stack_top->my_token.attr_token.tmp_string);
                 }
             }
             else if(stack_top->current_status == INVALID_TOKEN){
@@ -859,12 +868,11 @@ bool push_no_token(Symbol_stack_t* stack, Precedential_table_symbol symbol){
  */
 bool pop_stack(Symbol_stack_t* stack){
     Symbol_item_t* tmp = stack->top;
-    if(tmp->current_status == VALID_TOKEN){
-        if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){
-            free(tmp->my_token.attr_token.tmp_string);
-        }
+    
+    if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){
+        free(tmp->my_token.attr_token.tmp_string);
     }
-
+    
     if(tmp == NULL){
         return true;
     }
@@ -888,6 +896,9 @@ void free_stack(Symbol_stack_t* stack){
     }
     while(stack->top != NULL){
         Symbol_item_t* tmp = stack->top;
+        if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){
+            free(tmp->my_token.attr_token.tmp_string);
+        }
         stack->top = tmp->next;
         free(tmp);
     }
@@ -911,15 +922,26 @@ void init_buffer(Symbol_list* list){
  * 
  */
 void clear_buffer(Symbol_list* list){
-    Symbol_list* tmp = list;
+    Symbol_item_t* tmp = list->first;
     Symbol_item_t* to_delete;
-    while(tmp->first != NULL){
-        to_delete = tmp->first;
-        if(tmp->first == tmp->last){
-            tmp->last = NULL;
+    if(tmp == NULL){
+        return;
+    }
+    while(tmp != NULL){
+        to_delete = tmp;
+        if(tmp == list->last){
+            list->last = NULL;
         }
-        tmp->first = tmp->first->next;
+
+        if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){
+            free(to_delete->my_token.attr_token.tmp_string);
+        }
+        
+        tmp = tmp->next;
         free(to_delete);
+    }
+    if(list->last == NULL){
+        list->first = NULL;
     }
 }
 
@@ -927,15 +949,17 @@ void clear_buffer(Symbol_list* list){
  * 
  */
 int insert_to_buffer(Symbol_list* list, Data_t* data){
+    
     if(data->token->token == TYPE_STRING || data->token->token == TYPE_IDENTIFIER){
-         //printf("Dám do buffera %s : %s\n", tokens_tmp[data->token->token], data->token->attr.string->s);
+        printf("Dám do buffera %s : %s\n", tokens_tmp[data->token->token], data->token->attr.string->s);
     }
     else{
-        //printf("Dám do buffera %s\n", tokens_tmp[data->token->token]);
+        printf("Dám do buffera %s\n", tokens_tmp[data->token->token]);
     }
     Precedential_table_symbol current_symbol = get_symbol_from_token(data);
     Symbol_item_t* last_one;
     int length;
+
 
     Symbol_item_t* tmp = malloc(sizeof(Symbol_item_t));
     if(tmp == NULL){
@@ -946,7 +970,7 @@ int insert_to_buffer(Symbol_list* list, Data_t* data){
     tmp->next = NULL;
 
     if(current_symbol != DOLLAR){
-        REMEMBER_TOKEN();
+        remember_token(tmp, data);
         tmp->current_status = VALID_TOKEN;
     }
     else{
@@ -984,6 +1008,8 @@ int insert_stop(Symbol_list* list){
     }
 
     tmp->symbol = stop_sign;
+    tmp->current_status = VALID_TOKEN;
+    tmp->my_token.type_token = TYPE_EOL;
     tmp->next = NULL;
 
     if(list->first == NULL && list->last == NULL){ // zero elements
@@ -1045,23 +1071,26 @@ bool is_empty(Symbol_list* list){
  * 
  */
 void print_buffer(Symbol_list* list){
-    if(list->first == NULL){
-        //printf("BUFFER IS EMPTY\n\n");
+    Symbol_item_t* tmp = list->first;
+
+    if(tmp == NULL){
+        printf("BUFFER IS EMPTY\n\n");
         return;
     }
-    int counter = 0;
-    Symbol_item_t* tmp = list->first;
-    //printf("BUFFER CONTAINS:\n");
+    else{
+        int counter = 0;
+        printf("BUFFER CONTAINS:\n");
     while(tmp != NULL){
         if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){
-            //printf("%d : %s : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token], tmp->my_token.attr_token.tmp_string);
+            printf("%d : %s : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token], tmp->my_token.attr_token.tmp_string);
         }
         else{
-            //printf("%d : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token]);
+            printf("%d : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token]);
         }
         counter++;
         tmp = tmp->next;
     }
-    //printf("\n");
+    printf("\n");
+    }
 }
 

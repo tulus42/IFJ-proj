@@ -121,6 +121,7 @@ int insert_stop(Symbol_list* list);
 int handle_expression(Data_t* data);
 int count_to_reduce(Symbol_stack_t* stack);
 int expression_error(Symbol_stack_t* stack, Symbol_list* list, int error_type);
+int remember_token(Symbol_item_t* tmp, Data_t* data);
 
 Precedential_table_symbol get_first_term(Symbol_stack_t* stack);
 Precedential_table_symbol get_symbol_from_token(Data_t* data);

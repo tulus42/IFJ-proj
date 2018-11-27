@@ -50,7 +50,7 @@ Adrián Tulušák, xtulus00
 	"\n TYPE LF@_rval_type LF@_2"               \
 	"\n JUMPIFNEQ &substrexit LF@_rval_type string@int"	\
 	"\n DEFVAR LF@_rval"											\
-	"\n MOVE LF@_rval string@"										\
+	"\n MOVE LF@_rval nil@nil"										\
 	"\n DEFVAR LF@str_len"											\
 	"\n CREATEFRAME"												\
 	"\n DEFVAR TF@_0"												\
@@ -110,7 +110,7 @@ Adrián Tulušák, xtulus00
 	"\n TYPE LF@_rval_type LF@_1"               \
 	"\n JUMPIFNEQ &ordexit LF@_rval_type string@int"	\
 	"\n DEFVAR LF@_rval"									\
-	"\n MOVE LF@_rval int@0"								\
+	"\n MOVE LF@_rval nil@nil"								\
 	"\n DEFVAR LF@cond_length"								\
 	"\n LT LF@cond_length LF@_1 int@1"						\
 	"\n JUMPIFEQ &ord&return LF@cond_length bool@true"		\
@@ -499,6 +499,7 @@ bool gen_var_declar(char *var_id)
 	ADD_CODE("MOVE LF@");
 	ADD_CODE(var_id);
 	ADD_CODE("_type string@nil\n");
+	gen_var_defval(var_id);
 	return true;
 }
 
@@ -592,15 +593,6 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 			ADD_INST("DIVS");
 			break;
 
-	/*	case IDIV:
-			ADD_INST("POPS GF@_aux_1");
-			ADD_INST("INT2FLOATS");
-			ADD_INST("PUSHS GF@_aux_1");
-			ADD_INST("INT2FLOATS");
-			ADD_INST("DIVS");
-			ADD_INST("FLOAT2INTS");
-			break; */
-
 		case EQL:
 			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
@@ -675,30 +667,58 @@ bool generate_concat_stack_strings()
 
 bool gen_input(char *var_id, Type_of_tHTItem t, bool assign)
 {
-	// if assign + i do exp result
-	ADD_CODE("READ LF@");
-	ADD_CODE(var_id);
-	ADD_CODE(" ");
-
-	switch (t)
+	if (assign)
 	{
-		case INTEGER:
-			ADD_CODE("int");
-			break;
+		ADD_CODE("READ LF@");
+		ADD_CODE(var_id);
+		ADD_CODE(" ");
 
-		case PRASATKO_S_PAPUCKAMI_FLT:
-			ADD_CODE("float");
-			break;
+		switch (t)
+		{
+			case INTEGER:
+				ADD_CODE("int");
+				break;
 
-		case STRING:
-			ADD_CODE("string");
-			break;
+			case PRASATKO_S_PAPUCKAMI_FLT:
+				ADD_CODE("float");
+				break;
 
-		default:
-			return false;
+			case STRING:
+				ADD_CODE("string");
+				break;
+
+			default:
+				return false;
+		}
+		ADD_CODE("\n");
+		return true;
 	}
-	ADD_CODE("\n");
-	return true;
+	else
+	{
+		ADD_CODE("READ ");
+		ADD_CODE("GF@_exp_res");
+		ADD_CODE(" ");
+
+		switch (t)
+		{
+			case INTEGER:
+				ADD_CODE("int");
+				break;
+
+			case PRASATKO_S_PAPUCKAMI_FLT:
+				ADD_CODE("float");
+				break;
+
+			case STRING:
+				ADD_CODE("string");
+				break;
+
+			default:
+				return false;
+		}
+		ADD_CODE("\n");
+		return true;
+	}
 }
 
 bool gen_print()
@@ -749,6 +769,8 @@ static bool gen_label(int l_idx, int deep)
 	ADD_CODE("\n");
 	return true;
 }
+
+
 
 
 bool gen_if_start(int l_idx, int deep)

@@ -72,6 +72,17 @@ Pre jednoduchšie spracovanie reťazcov sme sa rozhodli implementovať súbor \t
 
 \section{Syntaktická analýza}
 
+\subsection{Precedenčná analýza výrazov}
+Syntaktická analýza výrazov je implementovaná v súbore \texttt{expression.c} pomocou precedenčnej tabuľky. Hlavné telo \texttt{expression.c} pozostáva z funkcie \texttt{handle\_expression}, ktorá postupne spracováva jednotlivé tokeny alebo symboly a vyhodnocuje ich syntaktickú správnosť. Keďže nie je vždy úplne jednoznačne možné určiť, či nasledujúci token bude súšasťou výrazu alebo nie, rozhodli sme sa implementovať \texttt{buffer}, kam sa postupne ukladajú tokeny vo forme jendosmerne viazaného zoznamu. Ak parser vyhodnotí, že dané tokeny nie sú súšasťou výrazu, vyčistí buffer a a syntaktická analýza pokračuje v parseri. V opačnom prípade je zavolaná funkcia \texttt{handle\_expression}, ktorá pri spracovaní používa tokeny v bufferi, až kým nie je buffer prázdny a ďalej si žiada tokeny pomocou funkcie \texttt{get\_next\_token}. Z každého tokenu si vytvoríme symbol na základe jeho typu, ktorý si ďalej ukladáme na zásobník. Spracovávanie symbolov je naprogramované na základe algoritmu uvedeného v prezentácii \cite{IFJpred}. Symboly majú svoj status, ktorý sa kopíruje aj pri redukcii danej časti výrazu. Časti výrazu sa postupne dávajú na zásobník generátora a akonáhle už raz bol daný výraz daný do generátora, jeho status sa mení na \texttt{ON\_GENERATOR\_STACK} a pri daľšej redukcii už nebude znova pridaný na zásobník generátora. 
+
+Pri spracovaní výrazov máme flag \texttt{return\_code}, ktorý môže nadobúdať hodnotu:
+\begin{itemize}
+\item \textbf{EXPRESSION\_OK} - výraz má správnu syntax aj sématiku
+\item \textbf{SYNTACTICAL\_ERRORS} - výraz má syntaktickú chybu
+\item \textbf{UNDEFINED\_ID\_EXPRESSION} - výraz má sématickú chybu
+\item \textbf{ER\_INTERNAL} - interná chyba (neúspešný malloc, neúspešné pridanie do zásobníku a pod.)
+\end{itemize}
+
 \subsection{Sématická analýza}
 \subsection{Tabuľka symbolov}
 Tabuľku symbolov sme implementovali ako tabuľku s rozptýlenými položkami. Synonymá sú v tabuľke zoradené explicitne, čo zabezpečuje tereticky neobmedzený počet položiek uchovávateľných tabuľkou symbolov. Synonymá sú zreťazené v jednosmerne viazaných zoznamoch. Veľkosť mapovacieho poľa sme vyberali tak, aby bola rovná prvočíslu. Naša tabuľka má veľkosť 6421. Očakávame, že naplnenie tabuľky nepresiahne 75\%. Mapovaciu funkciu sme prevzali z druhej domácej úlohy z IAL, lebo nám pripadala efektívna a ľahko pochopiteľná. Funkcia spočítava ASCII hodnotu jednotlivých znakov kľúča a nakoniec vracia modulo veľkosti tabuľky z daného súčtu. Každá položka tabuľky obsahuje svoj vlastný unikátny kľúč, ktorý sa ukladá v podobe reťazca. Kľúče značia identifikátory funkcii a premenných. Každá položka taktiež obsahuje svoj typ, značiaci či sa jedná o premennú alebo funkciu, boolovskú hodnotu, určujúca či bola položka definovaná, ukazateľ na ďalší prvok v zozname a integer značiaci počet parametrov v prípade, že sa jedná o funkciu. Položky sa ukladajú do 2 idetických tabuliek s rozptýlenými položkami v závislosti od toho, či sa jedná o lokálne alebo globálne premenné. Všetky funkcie sa ukladajú do globálnej tabuľky symbolov. Implementovali sme taktiež niekoľko funkcii zabezpečujúce pohodlnú prácu s tabuľkou. Funkcie zabezpečujú inicializáciu, výpis chybových hlásení, pridávanie prvkov, vyhľadávanie v tabuľke, kontrolu jednotlivých atribútov položiek a čistenie tabuľky.
@@ -88,13 +99,18 @@ Už na začiatku sme sa dohodli na pravidelných týždenných stretnutiach, kde
 Pre správu projektu sme používali verzovací systém Git a vzdialený repozitár GitHub. Tento spôsob správy projektu nám umožňoval pracovať na viacerých častiach projektu súčasne. Po otestovaní jednotlivých podčastí sme súbory začali spájať do celku.
 
 \subsection{Hodnotenie}
+\newpage
+\bibliographystyle{czechiso}
+\renewcommand{\refname}{Použitá literatúra}
+\bibliography{doc}
 
-\section{Prílohy}
+\newpage
+\appendix
 
-\subsection{Deterministický konečný automat}
-\subsection{LL-gramatika}
-\subsection{Precedenčná tabuľka}
-\begin{table}[h]
+\section{Deterministický konečný automat}
+\section{LL-gramatika}
+\section{Precedenčná tabuľka}
+\begin{table}[ht]
 \centering
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
 \hline
@@ -110,5 +126,7 @@ Pre správu projektu sme používali verzovací systém Git a vzdialený repozit
 \textbf{\$} & \textless{}    & \textless{}    & \textless{}    & \textless{}    & \textless{} &                & \textless{} & \textless{}    &                \\ \hline
 \end{tabular}
 \end{table}
+
+
 
 \end{document}

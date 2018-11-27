@@ -10,6 +10,9 @@
 \usepackage[IL2]{fontenc}
 \usepackage{verbatim}
 \usepackage{graphics}
+\usepackage{graphicx}
+\usepackage[unicode]{hyperref}
+\usepackage{enumitem}
 
 \begin{document}
 \begin{center}
@@ -109,6 +112,56 @@ Pre správu projektu sme používali verzovací systém Git a vzdialený repozit
 
 \section{Deterministický konečný automat}
 \section{LL-gramatika}
+\begin{table}[!ht]
+	\centering
+    \begin{enumerate}[noitemsep]
+        \item \verb|  <prog> -> DEF ID_FUNC ( <params> ) EOL <statement> END <prog>|
+        \item \verb|  <prog> -> EOL <prog>|
+        \item \verb|  <prog> -> EOF|
+        \item \verb|  <prog> -> <statement> <prog>|
+        
+        \item \verb|  <statement> -> IF <expression> THEN EOL <statements> ELSE EOL <statements> END <prog>|
+        \item \verb|  <statement> -> WHILE <expression> DO EOL <statement> END EOL|
+        \item \verb|  <statement> -> <function> EOL|
+        \item \verb| <statement> -> ID EOL|
+        \item \verb| <statement> -> ID <declare> EOL|
+        \item \verb| <statement> -> EOL <prog>|
+        
+        \item \verb| <declare> -> = <value>|
+        \item \verb| <declare> -> = <expression>|
+        \item \verb| <declare> -> = <function>|
+        \item \verb| <declare> -> |$\varepsilon$
+        
+        \item \verb| <params> -> ID <param>|
+        \item \verb| <params> ->| $\varepsilon$
+        
+        \item \verb| <param> , ID <param>|
+        \item \verb| <param> -> |$\varepsilon$
+    
+        \item \verb| <argvs> -> <value> <arg>|
+        \item \verb| <argvs> -> |$\varepsilon$
+        
+        \item \verb| <arg> -> , <value> <arg>|
+        \item \verb| <arg> ->| $\varepsilon$
+        
+        \item \verb| <value> -> INT_VALUE|
+        \item \verb| <value> -> FLOAT_VALUE|
+        \item \verb| <value> -> STRING_VALUE|
+        \item \verb| <value> -> ID|
+        
+        \item \verb| <function> -> PRINT ( <argvs> ) EOL|
+        \item \verb| <function> -> LENGTH ( <argvs> ) EOL|
+        \item \verb| <function> -> SUBSTR ( <argvs> ) EOL|
+        \item \verb| <function> -> ORD ( <argvs> ) EOL|
+        \item \verb| <function> -> CHR ( <argvs> ) EOL|
+        \item \verb| <function> -> INPUTS EOL|
+        \item \verb| <function> -> INPUTI EOL|
+        \item \verb| <function> -> INPUTF EOL|
+        \item \verb| <function> -> ID_FUNC ( <argvs> )|
+	\end{enumerate}
+
+	\label{table:ll_gramatika}
+\end{table}
 \section{Precedenčná tabuľka}
 \begin{table}[ht]
 \centering

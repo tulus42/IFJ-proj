@@ -23,16 +23,16 @@ int main(){
     generator_start(); // kontrolovat succes
 
     parser_result = start_parser();
-    if(parser_result == ER_SYN){
+    if(parser_result != SYN_OK){
         clear_code();
-        return 1;
+        return parser_result;
     }
     
     if(parser_result == SYN_OK){
-        //FILE *f;
-        //f = fopen("/home/adrian/Plocha/Škola/IFJ/IFJ/tmp_output", "w");
-        flush_code(stdout);
-        //fclose(f);
+        FILE *f;
+        f = fopen("/home/adrian/Plocha/Škola/IFJ/IFJ/tmp_output", "w");
+        flush_code(f);
+        fclose(f);
     }else
     {
         clear_code();

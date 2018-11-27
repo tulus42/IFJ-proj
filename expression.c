@@ -217,8 +217,8 @@ int handle_expression(Data_t* data){
 
     GET_SYMBOL();
 
-    //print_buffer(&buffer);
-    //print_current_stack(&stack);
+    print_buffer(&buffer);
+    print_current_stack(&stack);
 
     while(!is_reduced){
         current_rule = get_indexes_and_rule(&stack, to_push_symbol);  // get current rule
@@ -273,8 +273,8 @@ int handle_expression(Data_t* data){
             GET_SYMBOL();
         }
 
-        //print_buffer(&buffer); // DEBUG
-        //print_current_stack(&stack);
+        print_buffer(&buffer); // DEBUG
+        print_current_stack(&stack);
         
     }
     gen_save_expr_res();
@@ -685,6 +685,11 @@ void check_sematics(Data_t* data){
  * Returns symbol of precedential table from token 
  */
 Precedential_table_symbol get_symbol_from_token(Data_t* data){
+    if(data->token->token == TYPE_KEYWORD){
+        if(data->token->attr.keyword == KEYWORD_NIL){
+            return ID;
+        }
+    }
     switch(data->token->token){
         case(TYPE_PLUS):
             return PLUS;

@@ -196,25 +196,7 @@ int return_code = EXPRESSION_OK;
  * 
  **********************************************************/
 
-int remember_token(Symbol_item_t* tmp, Data_t* data){
-    int length;
-    tmp->my_token.type_token = data->token->token;                          
-        tmp->my_token.attr_token.tmp_flt = data->token->attr.flt;               
-        tmp->my_token.attr_token.tmp_integer = data->token->attr.integer;       
-        tmp->my_token.attr_token.tmp_keyword = data->token->attr.keyword;       
-        if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){ 
-            length = data->token->attr.string->current_size + 1;
-            printf("Mám veľkosť %d a idem naalokovať %d\n", length, data->token->attr.string->current_size);                     
-            tmp->my_token.attr_token.tmp_string = (char *) malloc(length); 
-            if(tmp->my_token.attr_token.tmp_string == NULL){    
-                return ER_INTERNAL; 
-            }
-            printf("Idem kopirovat\n");
-            strcpy(tmp->my_token.attr_token.tmp_string, data->token->attr.string->s);   
-            //copy_my_string(tmp->my_token.attr_token.tmp_string, data->token->attr.string->s, length);   
-            //tmp->my_token.attr_token.tmp_string[length] = '\0';
-        }  
-}
+
 
 /**
  * Handles the epxression, get the first token an token that symbolizes end of expression 
@@ -224,11 +206,10 @@ int handle_expression(Data_t* data){
     bool is_reduced = false;
     Precedential_table_symbol to_push_symbol;
     Precedential_table_rule current_rule;
-    int length;
     Symbol_item_t* tmp = NULL;
 
-    print_buffer(&buffer);
-    print_current_stack(&stack);
+    //print_buffer(&buffer);
+    //print_current_stack(&stack);
 
     if(!push_no_token(&stack, DOLLAR)){
         return expression_error(&stack, &buffer, ER_INTERNAL);
@@ -236,15 +217,11 @@ int handle_expression(Data_t* data){
 
     GET_SYMBOL();
 
-    print_buffer(&buffer);
-    print_current_stack(&stack);
+    //print_buffer(&buffer);
+    //print_current_stack(&stack);
 
     while(!is_reduced){
         current_rule = get_indexes_and_rule(&stack, to_push_symbol);  // get current rule
-
-        if(current_rule == U){
-            GET_SYMBOL();
-        }
 
         if(current_rule == S){  // SHIFT rule
             can_get_token = true;
@@ -296,16 +273,13 @@ int handle_expression(Data_t* data){
             GET_SYMBOL();
         }
 
-        print_buffer(&buffer); // DEBUG
-        print_current_stack(&stack);
+        //print_buffer(&buffer); // DEBUG
+        //print_current_stack(&stack);
         
     }
     gen_save_expr_res();
 
-
-
-
-    printf("While has finished succesfully!\n"); // DEBUG
+    //printf("While has finished succesfully!\n"); // DEBUG
 
     // clearing all
     free_stack(&stack);
@@ -798,7 +772,6 @@ void init_stack(Symbol_stack_t* stack){
 bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol, Data_t* data){
     Symbol_item_t* tmp = malloc(sizeof(Symbol_item_t));
     Symbol_item_t* stack_top;
-    int length;
 
     if(tmp == NULL){
         return false;
@@ -904,6 +877,23 @@ void free_stack(Symbol_stack_t* stack){
     }
 }
 
+int remember_token(Symbol_item_t* tmp, Data_t* data){
+    int length;
+    tmp->my_token.type_token = data->token->token;                          
+        tmp->my_token.attr_token.tmp_flt = data->token->attr.flt;               
+        tmp->my_token.attr_token.tmp_integer = data->token->attr.integer;       
+        tmp->my_token.attr_token.tmp_keyword = data->token->attr.keyword;       
+        if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){ 
+            length = data->token->attr.string->current_size + 1;                    
+            tmp->my_token.attr_token.tmp_string = (char *) malloc(length); 
+            if(tmp->my_token.attr_token.tmp_string == NULL){    
+                return ER_INTERNAL; 
+            }
+            strcpy(tmp->my_token.attr_token.tmp_string, data->token->attr.string->s);
+        }
+    return 0;  
+}
+
 /***********************************************************
  * 
  *                  BUFFER FUNCTIONS
@@ -949,17 +939,8 @@ void clear_buffer(Symbol_list* list){
  * 
  */
 int insert_to_buffer(Symbol_list* list, Data_t* data){
-    
-    if(data->token->token == TYPE_STRING || data->token->token == TYPE_IDENTIFIER){
-        printf("Dám do buffera %s : %s\n", tokens_tmp[data->token->token], data->token->attr.string->s);
-    }
-    else{
-        printf("Dám do buffera %s\n", tokens_tmp[data->token->token]);
-    }
     Precedential_table_symbol current_symbol = get_symbol_from_token(data);
     Symbol_item_t* last_one;
-    int length;
-
 
     Symbol_item_t* tmp = malloc(sizeof(Symbol_item_t));
     if(tmp == NULL){

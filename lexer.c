@@ -507,6 +507,7 @@ int get_next_token(Token_t *token)
 				else{ // this can be identifier
 					ungetc(c, source);
 					token->token = TYPE_FUNC;
+					copy_string_content(token->attr.string, string_ptr);
 					return lexer_succesful(string_ptr);
 				}
 				break;

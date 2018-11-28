@@ -587,7 +587,8 @@ static int statement(Data_t* data) {
 
         GET_TOKEN();
 
-        
+        insert_to_buffer(&buffer, data);
+
         // expression na zaciatku riadku
         if (IS_OPERAND() || data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
             res = handle_expression(data);

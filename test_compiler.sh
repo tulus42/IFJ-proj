@@ -1034,8 +1034,14 @@ else
     echo -e "\nSome tests ${RED}[FAILED]${NOCOLOR}.\n"
 fi
 
+counter=(($counter/90)*100)
+result=$counter
 
-echo -e "$((result/90*100))"
-var1=$((result))
-echo -e "\nPercentual success is $var1"
+
+if [ $counter > 75 ]; then
+    echo -e "Percentual success is ${GREEN}$result%\n${NOCOLOR}"
+else
+    echo -e "Percentual success is ${RED}$result%\n${NOCOLOR}"
+fi
+
 

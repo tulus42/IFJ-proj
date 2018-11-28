@@ -111,7 +111,8 @@ typedef enum
 
 	TYPE_INT, 
 	TYPE_FLOAT, 
-	TYPE_STRING /// STRING LITERAL
+	TYPE_STRING, /// STRING LITERAL
+	TYPE_FUNC
 } Token_type;
 
 typedef struct

@@ -1,0 +1,5 @@
+my_func()
+begin
+end
+
+b = my_func

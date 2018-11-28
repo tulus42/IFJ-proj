@@ -506,7 +506,7 @@ int get_next_token(Token_t *token)
 				}
 				else{ // this can be identifier
 					ungetc(c, source);
-					keywords(string_ptr, token); // not needed, no keywords ends with ? or !
+					token->token = TYPE_FUNC;
 					return lexer_succesful(string_ptr);
 				}
 				break;

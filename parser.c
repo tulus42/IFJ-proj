@@ -167,6 +167,11 @@ static int prog(Data_t* data){
 
         // ... ID_FUNC ...
         GET_TOKEN();
+
+        if (data->token->token != TYPE_IDENTIFIER && data->token->token != TYPE_FUNC) {
+            return(ER_SYN);
+        }
+
         save_id(&identifier_f, data);
         printf("ID: %s\n", identifier.s);
         
@@ -241,7 +246,7 @@ static int prog(Data_t* data){
 
 
     // <prog> -> <statements> <prog>
-    else if(data->token->token == TYPE_KEYWORD || data->token->token == TYPE_IDENTIFIER){
+    else if(data->token->token == TYPE_KEYWORD || data->token->token == TYPE_IDENTIFIER || data->token->token == TYPE_FUNC){
         printf("INTO <statement> Token: %s\n", tokens[data->token->token]);
         int res=statement(data);
         printf("Return value of <statement> is: %d\n", res);
@@ -440,7 +445,41 @@ static int statement(Data_t* data) {
     // <statement> -> ID EOL
     // <statement> -> ID <declare> EOL
     // <statement> -> ID_FUNC ( <argvs> ) EOL
-    else if (data->token->token == TYPE_IDENTIFIER) {
+    // ak ID konci s "?" alebo "!", nemoze byt vytvorena premenna
+    else if (data->token->token == TYPE_FUNC) {
+        save_id(&identifier, data);
+        save_id(&identifier_declare, data);
+        
+
+        GET_TOKEN();
+
+        // <statement> -> ID_FUNC 
+        if (check_define(global_ST, (&identifier)->s) == FUNCTION_DEFINED) {
+            
+            gen_func_prep_for_params();
+
+            IF_N_OK_RETURN(argvs(data));
+
+            gen_func_call((&identifier)->s);
+
+            return(prog(data));
+        } else 
+
+        if (data->in_definition == true) {
+            IF_N_OK_RETURN(argvs(data));
+
+            itemupdate(&tItem, (&identifier)->s, FUNCTION, false, params_cnt);
+            res = htInsert(global_ST, &tItem);
+            if (res != ST_OK) {
+                return(res);
+            }
+        } else {
+            return(ER_SEM_VARIABLE);
+        }
+            
+    }
+
+    else if (data->token->token == TYPE_IDENTIFIER || data->token->token == TYPE_FUNC) {
 
 
         printf("in <statement> ID EOL/ID <declare>/ID_FUNC...\n");
@@ -663,15 +702,15 @@ static int declare(Data_t* data) {
     GET_TOKEN();
 
     // ak ID, ID_FUNC, int/flt/str
-    if (IS_VALUE() || data->token->token == TYPE_LEFT_BRACKET) {
+    if (IS_VALUE() || data->token->token == TYPE_LEFT_BRACKET || data->token->token == TYPE_FUNC) {
         insert_to_buffer(&buffer, data);
 
         // ... ID, ID_FUNC ...
-        if (data->token->token == TYPE_IDENTIFIER) {
+        if (data->token->token == TYPE_IDENTIFIER || data->token->token == TYPE_FUNC) {
             // TODO - pripad, ze sme v definici
             save_id(&identifier, data);
             printf("ID1: %s\nID2: %s\nID3: %s\n", identifier_f.s,identifier.s,identifier_declare.s);
-
+            
             // ... ID_FUNC ...
             if (check_define(global_ST, data->token->attr.string->s) == FUNCTION_DEFINED) {
                 
@@ -681,11 +720,7 @@ static int declare(Data_t* data) {
                 IF_N_OK_RETURN(argvs(data));
                 //itemupdate(&tItem, (&identifier_declare)->s, VAR, true, 0);
                 printf("ID1: %s\nID2: %s\n", identifier_f.s,identifier.s);
-                //if (data->in_definition == true) {
-                //    htInsert(local_ST, &tItem);    
-                //} else {
-                //    htInsert(global_ST, &tItem);
-                //}
+                
                 
                 
                 gen_func_call((&identifier)->s);
@@ -715,44 +750,38 @@ static int declare(Data_t* data) {
                 return(SYN_OK);
 
 
-                /*
-                GET_TOKEN();
-
-
-                // ak nasleduje operand, vyhodnosti expression
-                if (IS_OPERAND()) {
-                    
-                    res = handle_expression(data);
-                    if (res != EXPRESSION_OK) {
-                        clear_buffer(&buffer);
-                        return(res);
-                    }
-
-                    gen_assign(identifier_declare.s);
-
-                    clear_buffer(&buffer);
-                    data->in_declare = false;
-                    return(SYN_OK);
-
-                } else
-
-                // ... EOL || EOF ...
-                if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
-                    insert_stop(&buffer);
-                    
-                    res = handle_expression(data);
-                    if (res != EXPRESSION_OK) {
-                        return(res);
-                    }
-                    clear_buffer(&buffer);
-
-                    gen_assign(identifier_declare.s);
-                    data->in_declare = false;
-                    return(SYN_OK);
-                }*/
+                
 
             // ak ID nie je definovane -> ERR
-            } else {
+            } else
+            
+            if (data->in_definition == true) {
+                if (data->token->token == TYPE_FUNC) {
+                    IF_N_OK_RETURN(argvs(data));
+
+                    itemupdate(&tItem, (&identifier)->s, FUNCTION, false, params_cnt);
+                    res = htInsert(global_ST, &tItem);
+                    if (res != ST_OK) {
+                        return(res);
+                    }
+
+                } else {
+                    GET_TOKEN();
+                    if (data->token->token == TYPE_LEFT_BRACKET || IS_VALUE()) {
+                       IF_N_OK_RETURN(argvs(data));
+
+                        itemupdate(&tItem, (&identifier)->s, FUNCTION, false, params_cnt);
+                        res = htInsert(global_ST, &tItem);
+                        if (res != ST_OK) {
+                            return(res);
+                        } 
+                    } else {
+                        return(ER_SYN);
+                    } 
+                }
+            }
+            
+            else {
                 clear_buffer(&buffer);
                 return(ER_SEM_VARIABLE);
             }
@@ -1519,10 +1548,11 @@ static int print(Data_t* data) {
     }
 
 
-    /*if (data->token->token == TYPE_COMMA || data->token->token == TYPE_EOL || data->token->token == TYPE_EOF || (data->in_bracket == true && data->token->token == TYPE_RIGHT_BRACKET)) {
+    if (data->token->token == TYPE_COMMA || data->token->token == TYPE_EOL || data->token->token == TYPE_EOF || (data->in_bracket == true && data->token->token == TYPE_RIGHT_BRACKET)) {
         insert_stop(&buffer);
-    }*/
+    }
 
+    /*
     if (data->token->token == TYPE_COMMA) {
         insert_stop(&buffer);
     }
@@ -1538,23 +1568,8 @@ static int print(Data_t* data) {
     if (data->in_bracket == true && data->token->token == TYPE_RIGHT_BRACKET) {
         insert_stop(&buffer);
     }
-
-
-
-    /*
-    // ... ID ...
-    if (data->token->token == TYPE_IDENTIFIER) {
-        // check ID in table
-
-        CHECK_BOTH_TABLES();
-    } else
-
-    // ... INT/FLT/STR ...
-    if (IS_VALUE()) {
-        
-    }
-
     */
+
     printf("into epression\n");
 
     res = handle_expression(data);

@@ -25,6 +25,7 @@ int main(){
     parser_result = start_parser();
     if(parser_result != SYN_OK){
         clear_code();
+        printf("EXIT code: %d\n", parser_result);
         return parser_result;
     }
     

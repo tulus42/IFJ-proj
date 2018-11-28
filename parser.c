@@ -65,7 +65,8 @@ const char* tokens[] = {
 
 #define IS_VALUE()                                                           \
     data->token->token == TYPE_INT || data->token->token == TYPE_FLOAT      \
-    || data->token->token == TYPE_STRING || data->token->token == TYPE_IDENTIFIER 
+    || data->token->token == TYPE_STRING || data->token->token == TYPE_IDENTIFIER \
+    || (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_NIL)
 
 #define IF_N_OK_RETURN(__func__) \
     res = __func__; \
@@ -661,7 +662,7 @@ static int declare(Data_t* data) {
     GET_TOKEN();
 
     // ak ID, ID_FUNC, int/flt/str
-    if (IS_VALUE()) {
+    if (IS_VALUE() || data->token->token == TYPE_LEFT_BRACKET) {
         insert_to_buffer(&buffer, data);
 
         // ... ID, ID_FUNC ...

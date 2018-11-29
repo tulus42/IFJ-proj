@@ -1,2 +1,2 @@
 a = 5
-print "hello", a, "\n"
+print "hello, ", a, "\n"

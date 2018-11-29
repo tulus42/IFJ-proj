@@ -1,0 +1,6 @@
+
+
+ b=42
+while b do
+	b-2
+end 

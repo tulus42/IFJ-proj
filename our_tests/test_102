@@ -1,0 +1,21 @@
+x = 5
+y= 10
+z =12
+a = a
+def ja (x,y)
+	x+y
+end
+def som(a,b)
+	a = b *0 
+	a = b +0.2
+	b = b +a
+	42 + a
+end
+
+y = ja (y,z)
+a = "zid"
+a = som (y,z)
+if a != 42 then
+	print lost
+else
+	print win

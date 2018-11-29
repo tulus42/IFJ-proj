@@ -58,9 +58,9 @@ const char* tokens[] = {
 
 
 #define GET_TOKEN()   \
-    do {                                                       \
-        if (get_next_token(data->token) != LEXER_OK)                             \
-            return(ER_LEX); \
+    do { res = get_next_token(data->token);                                                   \
+        if (res != LEXER_OK)                             \
+            return(res); \
     } while (data->token->token == TYPE_COMMENT);
 
 #define IS_VALUE()                                                           \

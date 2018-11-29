@@ -14,8 +14,6 @@ Adrián Tulušák, xtulus00
 #ifndef LEXER
 #define LEXER
 
-
-
 #define LEXER_OK 0
 
 // add keywords

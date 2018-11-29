@@ -1,0 +1,3 @@
+print "Ahoj\n Sve\te\s \x22"
+b = 10.5 / 24.42
+c = 8e+10 - 8e+9

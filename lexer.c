@@ -30,6 +30,12 @@ hex_number error
 skontrolovať rozsah int a double?
 */
 
+#define ADDING_CHAR()	\
+	if(!add_char(string_ptr, c)){	\
+		return lexer_error(string_ptr, ER_INTERNAL);	\
+	}	\
+
+
 /**
  * Sets the source file
  */
@@ -248,23 +254,17 @@ int get_next_token(Token_t *token)
 				}
 				else if(isdigit(c)){ // [0-9]
 					if(c == '0'){ // number starts with 0, therefore it can be 0 or 0.XXXX, but not 0XXX, X is [1-9]
-						if(!add_char(string_ptr, c)){
-							return lexer_error(string_ptr, ER_INTERNAL);
-						}
+						ADDING_CHAR()
 						change_state(&current_status, STATE_FIRST_ZERO);
 					}
 					else{ // first digit is not zero, therefore it can be followed by any other digit including zero
-						if(!add_char(string_ptr, c)){
-							return lexer_error(string_ptr, ER_INTERNAL);
-						}
+						ADDING_CHAR()
 						change_state(&current_status, STATE_FIRST_NONZERO);
 					}
 				}
 				else if(isalpha(c) || c == '_'){ // [a-zA-Z_]
 					if(islower(c) || c == '_'){ // first char is [a-z_], so it can be an identifier
-						if(!add_char(string_ptr, c)){
-							return lexer_error(string_ptr, ER_INTERNAL);
-						}
+						ADDING_CHAR()
 						change_state(&current_status, STATE_NEXT_CHARS);
 					}
 					else{ // can't begin with [A-Z], lexical error
@@ -283,9 +283,7 @@ int get_next_token(Token_t *token)
 
 			case(STATE_EXPECT_COMMENT):
 				if(c == '='){
-					if(!add_char(string_ptr, c)){
-							return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 					change_state(&current_status, STATE_COMMENT_START);
 				}
 				else{
@@ -325,19 +323,13 @@ int get_next_token(Token_t *token)
 
 			case(STATE_HEXADECIMAL_NUM):
 				if(isdigit(c)){	// hexadecimal number can contain digit
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 				} // and these uppercase and lowercase letters
 				else if(c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'E' || c == 'F'){
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 				}
 				else if(c == 'a' || c == 'b' || c == 'c' || c == 'd' || c == 'e' || c == 'f'){
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 				}
 				else{
 					ungetc(c, source);
@@ -359,9 +351,7 @@ int get_next_token(Token_t *token)
 						if(!add_char(string_ptr, '=')){
 							return lexer_error(string_ptr, ER_INTERNAL);
 						}
-						if(!add_char(string_ptr, c)){
-							return lexer_error(string_ptr, ER_INTERNAL);
-						} // use dynamic string, store b
+						ADDING_CHAR()
 						change_state(&current_status, STATE_COMMENT_START);	// go to state that checks whether it is start of block comment
 					}
 					else{
@@ -386,9 +376,7 @@ int get_next_token(Token_t *token)
 
 			// check whether input is '=begin'
 			case(STATE_COMMENT_START):	
-				if(!add_char(string_ptr, c)){
-					return lexer_error(string_ptr, ER_INTERNAL);
-				}
+				ADDING_CHAR()
 				registered_input = strlen(string_ptr->s);
 
 				if(check_comment_begin(registered_input, string_ptr)){
@@ -403,9 +391,7 @@ int get_next_token(Token_t *token)
 				break;
 
 			case(STATE_INVALID_END):
-				if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-				}
+				ADDING_CHAR()
 				registered_input = strlen(string_ptr->s);
 				if(check_comment_end(registered_input, string_ptr)){ // it is '=end'
 					if(registered_input == strlen("=end")){
@@ -452,9 +438,7 @@ int get_next_token(Token_t *token)
 
 			// check whether input is '=end'
 			case(STATE_COMMENT_END):
-				if(!add_char(string_ptr, c)){
-					return lexer_error(string_ptr, ER_INTERNAL);
-				}
+				ADDING_CHAR()
 				registered_input = strlen(string_ptr->s);
 				if(check_comment_end(registered_input, string_ptr)){ // it is '=end'
 					if(registered_input == strlen("=end")){
@@ -482,14 +466,10 @@ int get_next_token(Token_t *token)
 			// array of chars
 			case(STATE_NEXT_CHARS):
 				if(isalpha(c) || isdigit(c) || c == '_'){
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					} // adding new chars to the string
+					ADDING_CHAR() // adding new chars to the string
 				}
 				else if(c == '?' || c == '!'){ // this has to be the end of string
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 					change_state(&current_status, STATE_LAST_CHAR);
 				}
 				else{ // string is complete
@@ -523,10 +503,11 @@ int get_next_token(Token_t *token)
 					if(c == '\\'){ // special escape sequences
 						change_state(&current_status, STATE_BACKSLASH_LITERAL);
 					}
+					else if(c == '\n' || c == EOF){
+						return lexer_error(string_ptr, ER_LEX);
+					} 
 					else{ // adds it to the literal string
-						if(!add_char(string_ptr, c)){
-							return lexer_error(string_ptr, ER_INTERNAL);
-						}
+						ADDING_CHAR()
 					}
 				}
 				break;
@@ -596,9 +577,7 @@ int get_next_token(Token_t *token)
 			// first char was 0
 			case(STATE_FIRST_ZERO):
 				if(c == '.'){ // 0.xxx
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 					change_state(&current_status, STATE_DECIMAL);
 				}
 				else if(c == 'b'){
@@ -623,9 +602,7 @@ int get_next_token(Token_t *token)
 			// it is binary number
 			case(STATE_BINARY_NUM):
 				if(c == '1' || c == '0'){
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 				}
 				else{
 					ungetc(c, source);
@@ -639,9 +616,7 @@ int get_next_token(Token_t *token)
 			// it is octal number
 			case(STATE_OCTAL_NUM):
 				if(c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7'){
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 				}
 				else{
 					ungetc(c, source);
@@ -655,20 +630,14 @@ int get_next_token(Token_t *token)
 			// first character was a non-zero digit
 			case(STATE_FIRST_NONZERO):
 				if(isdigit(c)){ // saves all digits ans stays in this state
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 				}
 				else if(c == '.'){ // it will be a decimal number
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 					change_state(&current_status, STATE_DECIMAL);
 				}
 				else if(c == 'e' || c == 'E'){ // it will be written with exponent
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 					change_state(&current_status, STATE_EXPONENTIAL_SIGN);
 				}
 				else{ // it is int, put c back to buffer and save it as an int
@@ -682,14 +651,10 @@ int get_next_token(Token_t *token)
 			// previous chars were digits followed by dot
 			case(STATE_DECIMAL):
 				if(isdigit(c)){
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 				}
 				else if(c == 'e' || c == 'E'){
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 					change_state(&current_status, STATE_EXPONENTIAL_SIGN);
 				}
 				else{ // it is decimal float, put c back to buffer and save it as float
@@ -703,9 +668,7 @@ int get_next_token(Token_t *token)
 			// chooses the sign of exponential
 			case(STATE_EXPONENTIAL_SIGN):
 				if(c == '+' || c == '-'){ // non-mandatory sign
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 				}
 				else if(isdigit(c)){ // if no sign, default sign is '+'
 					ungetc(c, source); // put c back to buffer
@@ -719,9 +682,7 @@ int get_next_token(Token_t *token)
 			// number with mantisa and exponent
 			case(STATE_EXPONENTIAL):
 				if(isdigit(c)){ // adds c 
-					if(!add_char(string_ptr, c)){
-						return lexer_error(string_ptr, ER_INTERNAL);
-					}
+					ADDING_CHAR()
 				}
 				else{ // input is done, put c back to buffer, convert it and save it as float
 					ungetc(c, source);

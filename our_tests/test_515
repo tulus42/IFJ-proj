@@ -1,0 +1,6 @@
+#skaredy komentar
+b = 10
+c = 4
+aBCpremenna = b + c
+_result = c / 2
+# pekny komentar

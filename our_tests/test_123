@@ -1,0 +1,9 @@
+x=1
+z= "string"
+len = lenght(z)
+i=0
+while i<len
+	x=x+ord(z,i)
+	i=i+1
+end
+x

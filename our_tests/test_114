@@ -1,0 +1,10 @@
+#som test
+
+if 42 	
+	bar()
+
+end
+
+def bar ()
+	2
+end

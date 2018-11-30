@@ -1,0 +1,5 @@
+def foo (a,a)
+	a+a
+end
+
+foo(5,4)

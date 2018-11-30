@@ -1,0 +1,6 @@
+
+def foo (s)
+	length (s)
+end
+s=2
+foo(s)

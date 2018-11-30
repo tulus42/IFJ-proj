@@ -566,5 +566,271 @@ fi
 
 a_tests=$((a_tests+1))
 
+echo -e "TEST_104: Invalid number of parameters in function\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 5 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_105: Correct calling of function\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 0 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_106: I am not sure what this shoul be doing....\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 0 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_107: Calling function without definition\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 3 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+
+echo -e "TEST_108: Correct calling of function but invalid inbuild function\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_109: Adding nil together\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 4 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+
+echo -e "TEST_110: I am not sure what this test should do\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 0 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_111: Function without body\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_112: Calling function without its required parameters\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 5 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_113: Recursive calling of 2 functions\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 0 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_114: Recursive calling of 2 functions\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 0 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_115: Expression and if-else\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_116: Zero division\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 9 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_117: Invalid comment\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 1 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_118: Invalid comment\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 1 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_119: Invalid comment\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 1 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_120: Empty file\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 99 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_121: Adding nils\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 4 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_122: Invalid printing\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 1 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_123: Invalid x? Not sure again\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 6 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+
+echo -e "TEST_124: Invalid identifier\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 1 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_125: Build-in function\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 0 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
 
 

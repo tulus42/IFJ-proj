@@ -1,0 +1,12 @@
+def bar (a,b)
+a+b
+end
+a=5
+b=10
+c=a-b
+a=a-c
+c=nil
+if (b==a) then
+d= bar (c,b) 
+end
+print d

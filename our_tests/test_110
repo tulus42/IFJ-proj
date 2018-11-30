@@ -1,0 +1,5 @@
+def foo (u + v)
+	u-v
+end
+
+foo (u,x)

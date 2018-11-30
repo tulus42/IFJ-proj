@@ -1,0 +1,5 @@
+def bar (42)
+	0
+end
+
+bar()

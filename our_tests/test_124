@@ -1,0 +1,2 @@
+\n = "NO!"
+print ("first" + \n + "second" )

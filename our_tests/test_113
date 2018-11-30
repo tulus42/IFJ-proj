@@ -1,0 +1,9 @@
+def foo (a,b)
+	b+ bar (a)
+end
+
+bar (c)
+	c/10
+end
+
+foo (1,2)

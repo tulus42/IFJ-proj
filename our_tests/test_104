@@ -1,0 +1,7 @@
+def foo (a,b)
+ll*a + b
+end
+
+foo (a)
+
+ 

@@ -425,9 +425,20 @@ bool reduce_by_rule(Symbol_stack_t* stack){
             tmp_first->current_status = ON_GENERATOR_STACK;
             reduce_identifier(tmp_first, to_pop, stack);
         }
+        else{
+            return_code = OTHER_SYNTACTICAL_ERRORS;
+            return false;
+        }
     } 
     else if(count == 2){ // we are reducing () as nil
-        push_nil(to_pop, stack);
+        if(tmp_first->my_token.type_token == TYPE_RIGHT_BRACKET && stack->top->next->my_token.type_token == TYPE_LEFT_BRACKET){
+            push_nil(to_pop, stack);
+        }
+        else{
+            return_code = OTHER_SYNTACTICAL_ERRORS;
+            return false;
+        }
+        
     }
     else if(count == 3){ // we are reducing 3 symbols
         Symbol_item_t* tmp_second = stack->top->next;

@@ -460,6 +460,9 @@ static bool gen_term_val_classic(Token_t t)
 			ADD_CODE("LF@");
 			ADD_CODE(t.attr.string->s);
 			break;
+			
+		case TYPE_KEYWORD:
+			ADD_CODE("nil@nil");
 
 		default:
 			free_string(&tmp_str);

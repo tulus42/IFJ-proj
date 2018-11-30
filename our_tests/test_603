@@ -1,0 +1,8 @@
+a = 5
+if a > 15 then
+    print "ahoj"
+else
+    print "cus"
+else
+    print "hmmm"
+end

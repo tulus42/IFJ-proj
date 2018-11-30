@@ -163,6 +163,7 @@ int get_next_token(Token_t *token)
 	int current_status = STATE_START; // current state is start
 	int registered_input; // counts how many chars have been entered for '=begin' and '=end'
 	bool end_of_comment = false;
+	int exponential_counter = 0;
 	
 	token->attr.string = dynamic_string;
 	
@@ -543,6 +544,9 @@ int get_next_token(Token_t *token)
 					change_state(&current_status, STATE_HEX_NUM);
 					break;
 				}
+				else{
+					return lexer_error(string_ptr, ER_LEX);
+				}
 				change_state(&current_status, STATE_STRING);
 				break;
 
@@ -640,6 +644,9 @@ int get_next_token(Token_t *token)
 					ADDING_CHAR()
 					change_state(&current_status, STATE_EXPONENTIAL_SIGN);
 				}
+				else if(isalpha(c)){
+					return lexer_error(string_ptr, ER_LEX);
+				}
 				else{ // it is int, put c back to buffer and save it as an int
 					ungetc(c, source);
 					token->token = TYPE_INT;
@@ -681,14 +688,21 @@ int get_next_token(Token_t *token)
 
 			// number with mantisa and exponent
 			case(STATE_EXPONENTIAL):
-				if(isdigit(c)){ // adds c 
+				if(isdigit(c)){ // adds c, after e, there has to be at least one more digit
+					exponential_counter++; 
 					ADDING_CHAR()
 				}
 				else{ // input is done, put c back to buffer, convert it and save it as float
-					ungetc(c, source);
-					token->token = TYPE_FLOAT;
-					token->attr.flt = strtof(string_ptr->s, NULL);
-					return lexer_succesful(string_ptr);
+					if(exponential_counter == 0){
+						return lexer_error(string_ptr, ER_LEX);
+					}
+					else{
+						ungetc(c, source);
+						token->token = TYPE_FLOAT;
+						token->attr.flt = strtof(string_ptr->s, NULL);
+						exponential_counter = 0;
+						return lexer_succesful(string_ptr);
+					}
 				}
 				break;
 		}

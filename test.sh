@@ -98,7 +98,7 @@ lex_t=$((lex_t + 1))
 
 echo -e "TEST_507: Invalid string escape sequence\c"
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
-if [ $? -eq 1 ]; then
+if [ $? -eq 0 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else
@@ -156,9 +156,9 @@ fi
 
 lex_t=$((lex_t + 1))
 
-echo -e "TEST_512: Invalid hex num\c"
+echo -e "TEST_512: Hex num\c"
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
-if [ $? -eq 1 ]; then
+if [ $? -eq 0 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else
@@ -203,6 +203,146 @@ else
 fi
 
 lex_t=$((lex_t + 1))
+
+echo -e "\nTests for syntactical analysis:\n"
+# These tests are numbered from 600
+syn_t=600
+echo -e "TEST_600: Missing if condition\c"
+./ifj2018 < our_tests/test_$syn_t &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+syn_t=$((syn_t+1))
+
+echo -e "TEST_601: Missing while condition\c"
+./ifj2018 < our_tests/test_$syn_t &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+syn_t=$((syn_t+1))
+
+echo -e "TEST_602: a = a\c"
+./ifj2018 < our_tests/test_$syn_t &>/dev/null
+if [ $? -eq 0 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+syn_t=$((syn_t+1))
+
+echo -e "TEST_603: More elses\c"
+./ifj2018 < our_tests/test_$syn_t &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+syn_t=$((syn_t+1))
+
+echo -e "TEST_604: No else\c"
+./ifj2018 < our_tests/test_$syn_t &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+syn_t=$((syn_t+1))
+
+
+
+echo -e "\nTests for expressions:\n"
+syn_t=650
+echo -e "TEST_650: Invalid expression\c"
+./ifj2018 < our_tests/test_$syn_t &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+syn_t=$((syn_t+1))
+
+echo -e "TEST_651: Invalid expression\c"
+./ifj2018 < our_tests/test_$syn_t &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+syn_t=$((syn_t+1))
+
+echo -e "TEST_652: Invalid expression\c"
+./ifj2018 < our_tests/test_$syn_t &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+syn_t=$((syn_t+1))
+
+echo -e "TEST_653: Invalid expression\c"
+./ifj2018 < our_tests/test_$syn_t &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+syn_t=$((syn_t+1))
+
+echo -e "TEST_654: Invalid expression\c"
+./ifj2018 < our_tests/test_$syn_t &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+syn_t=$((syn_t+1))
+
+echo -e "TEST_655: Non-existing variable\c"
+./ifj2018 < our_tests/test_$syn_t &>/dev/null
+if [ $? -eq 3 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+syn_t=$((syn_t+1))
+
 
 echo -e "\n"
 ### other tests

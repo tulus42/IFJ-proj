@@ -346,6 +346,28 @@ bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack, bool 
     return true;
 }
 
+bool push_nil(int to_pop, Symbol_stack_t* stack){
+    Symbol_item_t* new_thing = malloc(sizeof(Symbol_item_t));
+
+    if(new_thing == NULL){
+        return false;
+    }
+
+    new_thing->current_status = ON_GENERATOR_STACK;
+    new_thing->my_token.type_token = TYPE_KEYWORD;
+    new_thing->my_token.attr_token.tmp_keyword = KEYWORD_NIL;
+    new_thing->symbol = NON_TERMINAL;
+
+    gen_push(new_thing->my_token);
+
+    pop_count(to_pop);
+
+    new_thing->next = stack->top;
+    stack->top = new_thing;
+
+    return true;
+}
+
 /**
  * 
  */
@@ -403,8 +425,11 @@ bool reduce_by_rule(Symbol_stack_t* stack){
             tmp_first->current_status = ON_GENERATOR_STACK;
             reduce_identifier(tmp_first, to_pop, stack);
         }
-    } // we are reducing 3 symbols
-    else if(count == 3){
+    } 
+    else if(count == 2){ // we are reducing () as nil
+        push_nil(to_pop, stack);
+    }
+    else if(count == 3){ // we are reducing 3 symbols
         Symbol_item_t* tmp_second = stack->top->next;
         Symbol_item_t* tmp_third = stack->top->next->next;
 

@@ -190,6 +190,8 @@ static bool gen_type_check()
 	ADD_INST("TYPE GF@_aux_2_type GF@_aux_2");
 
 	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_1_type string@string");
+	ADD_INST("JUMPIFEQ &KILLALL GF@_aux_2_type string@nil");
+	ADD_INST("JUMPIFEQ &KILLALL GF@_aux_1_type string@nil");
 
 	ADD_INST("JUMPIFEQ &one_is_int GF@_aux_1_type string@int");
 	ADD_INST("JUMPIFEQ &one_is_flt GF@_aux_1_type string@float");
@@ -209,6 +211,8 @@ static bool gen_type_check()
 
 	ADD_INST("LABEL &must_be_same");
 	ADD_INST("JUMPIFEQ &type_check_true GF@_aux_1_type GF@_aux_2_type");
+
+	ADD_INST("LABEL &KILLALL");
 
 	ADD_INST("EXIT int@4");
 
@@ -398,6 +402,9 @@ static bool gen_term_val(Tmp_Token_t t)
 			ADD_CODE("LF@");
 			ADD_CODE(t.attr_token.tmp_string);
 			break;
+
+		case TYPE_KEYWORD:
+			ADD_CODE("nil@nil");
 
 		default:
 			free_string(&tmp_str);

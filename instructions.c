@@ -50,7 +50,7 @@ Adrián Tulušák, xtulus00
 	"\n TYPE LF@_rval_type LF@_2"               \
 	"\n JUMPIFNEQ &substrexit LF@_rval_type string@int"	\
 	"\n DEFVAR LF@_rval"											\
-	"\n MOVE LF@_rval nil@nil"										\
+	"\n MOVE LF@_rval string@"										\
 	"\n DEFVAR LF@str_len"											\
 	"\n CREATEFRAME"												\
 	"\n DEFVAR TF@_0"												\
@@ -59,17 +59,17 @@ Adrián Tulušák, xtulus00
 	"\n MOVE LF@str_len TF@_rval"									\
 	"\n DEFVAR LF@ret_cond"											\
 	"\n LT LF@ret_cond LF@str_len int@0"							\
-	"\n JUMPIFEQ &substr&return LF@ret_cond bool@true"				\
+	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n EQ LF@ret_cond LF@str_len int@0"							\
-	"\n JUMPIFEQ &substr&return LF@ret_cond bool@true"				\
+	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n LT LF@ret_cond LF@_1 int@0"									\
-	"\n JUMPIFEQ &substr&return LF@ret_cond bool@true"				\
+	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n EQ LF@ret_cond LF@_1 int@0"									\
-	"\n JUMPIFEQ &substr&return LF@ret_cond bool@true"				\
+	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n GT LF@ret_cond LF@_1 LF@str_len"							\
-	"\n JUMPIFEQ &substr&return LF@ret_cond bool@true"				\
+	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n EQ LF@ret_cond LF@_2 int@0"									\
-	"\n JUMPIFEQ &substr&return LF@ret_cond bool@true"				\
+	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n DEFVAR LF@max_n"											\
 	"\n MOVE LF@max_n LF@str_len"									\
 	"\n SUB LF@max_n LF@max_n LF@_1"								\
@@ -96,6 +96,10 @@ Adrián Tulušák, xtulus00
 	"\n GT LF@process_loop_cond LF@_2 int@0"						\
 	"\n JUMPIFEQ &substr&process_loop LF@process_loop_cond bool@true" \
 	"\n LABEL &substr&return"										\
+	"\n POPFRAME"													\
+	"\n RETURN"			\
+	"\n LABEL &substr&returnfail"										\
+	"\n MOVE LF@_rval nil@nil"										\
 	"\n POPFRAME"													\
 	"\n RETURN"			\
 	"\n LABEL &substrexit"	    \
@@ -154,6 +158,7 @@ Adrián Tulušák, xtulus00
 string_t code;
 
 int auxcat = 1;
+int auxdiv = 1;
 
 static bool generate_header()
 {
@@ -185,6 +190,8 @@ static bool gen_type_check()
 	ADD_INST("TYPE GF@_aux_2_type GF@_aux_2");
 
 	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_1_type string@string");
+	ADD_INST("JUMPIFEQ &KILLALL GF@_aux_2_type string@nil");
+	ADD_INST("JUMPIFEQ &KILLALL GF@_aux_1_type string@nil");
 
 	ADD_INST("JUMPIFEQ &one_is_int GF@_aux_1_type string@int");
 	ADD_INST("JUMPIFEQ &one_is_flt GF@_aux_1_type string@float");
@@ -204,6 +211,8 @@ static bool gen_type_check()
 
 	ADD_INST("LABEL &must_be_same");
 	ADD_INST("JUMPIFEQ &type_check_true GF@_aux_1_type GF@_aux_2_type");
+
+	ADD_INST("LABEL &KILLALL");
 
 	ADD_INST("EXIT int@4");
 
@@ -394,6 +403,9 @@ static bool gen_term_val(Tmp_Token_t t)
 			ADD_CODE(t.attr_token.tmp_string);
 			break;
 
+		case TYPE_KEYWORD:
+			ADD_CODE("nil@nil");
+
 		default:
 			free_string(&tmp_str);
 			return false;
@@ -448,6 +460,9 @@ static bool gen_term_val_classic(Token_t t)
 			ADD_CODE("LF@");
 			ADD_CODE(t.attr.string->s);
 			break;
+			
+		case TYPE_KEYWORD:
+			ADD_CODE("nil@nil");
 
 		default:
 			free_string(&tmp_str);
@@ -529,6 +544,7 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 {
 
 	auxcat++;
+	auxdiv++;
 	switch (symb)
 	{
 		case PLUS:
@@ -590,7 +606,45 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 		case DIV:
 			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
+
+			ADD_CODE("JUMPIFEQ &idiv");
+
+
+			ADD_INT(auxdiv);
+			ADD_CODE(" GF@_aux_1_type string@int");
+			ADD_CODE("\n");
+
+			ADD_CODE("JUMP &div");
+
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
+			
+
+			ADD_CODE("LABEL &idiv");
+
+			ADD_INT(auxdiv);
+			ADD_CODE("\n");
+
+			ADD_INST("IDIVS");
+
+
+			ADD_CODE("JUMP &notdiv");
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
+
+
+			ADD_CODE("LABEL &div");
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
+
+
 			ADD_INST("DIVS");
+
+			ADD_CODE("LABEL &notdiv");
+
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
+
 			break;
 
 		case EQL:

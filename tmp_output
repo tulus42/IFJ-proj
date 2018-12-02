@@ -40,17 +40,17 @@ JUMP &&main
  MOVE LF@str_len TF@_rval
  DEFVAR LF@ret_cond
  LT LF@ret_cond LF@str_len int@0
- JUMPIFEQ &substr&returnfail LF@ret_cond bool@true
+ JUMPIFEQ &substr&return LF@ret_cond bool@true
  EQ LF@ret_cond LF@str_len int@0
- JUMPIFEQ &substr&returnfail LF@ret_cond bool@true
+ JUMPIFEQ &substr&return LF@ret_cond bool@true
  LT LF@ret_cond LF@_1 int@0
- JUMPIFEQ &substr&returnfail LF@ret_cond bool@true
+ JUMPIFEQ &substr&return LF@ret_cond bool@true
  EQ LF@ret_cond LF@_1 int@0
- JUMPIFEQ &substr&returnfail LF@ret_cond bool@true
+ JUMPIFEQ &substr&return LF@ret_cond bool@true
  GT LF@ret_cond LF@_1 LF@str_len
- JUMPIFEQ &substr&returnfail LF@ret_cond bool@true
+ JUMPIFEQ &substr&return LF@ret_cond bool@true
  EQ LF@ret_cond LF@_2 int@0
- JUMPIFEQ &substr&returnfail LF@ret_cond bool@true
+ JUMPIFEQ &substr&return LF@ret_cond bool@true
  DEFVAR LF@max_n
  MOVE LF@max_n LF@str_len
  SUB LF@max_n LF@max_n LF@_1
@@ -79,10 +79,6 @@ JUMP &&main
  LABEL &substr&return
  POPFRAME
  RETURN
- LABEL &substr&returnfail
- MOVE LF@_rval nil@nil
- POPFRAME
- RETURN
  LABEL &substrexit
  EXIT int@4
 
@@ -94,7 +90,7 @@ JUMP &&main
  TYPE LF@_rval_type LF@_1
  JUMPIFNEQ &ordexit LF@_rval_type string@int
  DEFVAR LF@_rval
- MOVE LF@_rval nil@nil
+ MOVE LF@_rval int@0
  DEFVAR LF@cond_length
  LT LF@cond_length LF@_1 int@1
  JUMPIFEQ &ord&return LF@cond_length bool@true
@@ -139,8 +135,6 @@ POPS GF@_aux_2
 TYPE GF@_aux_1_type GF@_aux_1
 TYPE GF@_aux_2_type GF@_aux_2
 JUMPIFEQ &must_be_same GF@_aux_1_type string@string
-JUMPIFEQ &KILLALL GF@_aux_2_type string@nil
-JUMPIFEQ &KILLALL GF@_aux_1_type string@nil
 JUMPIFEQ &one_is_int GF@_aux_1_type string@int
 JUMPIFEQ &one_is_flt GF@_aux_1_type string@float
 LABEL &one_is_int
@@ -155,7 +149,6 @@ INT2FLOAT GF@_aux_2 GF@_aux_2
 JUMP &type_check_true
 LABEL &must_be_same
 JUMPIFEQ &type_check_true GF@_aux_1_type GF@_aux_2_type
-LABEL &KILLALL
 EXIT int@4
 LABEL &type_check_true
 PUSHS GF@_aux_2
@@ -165,25 +158,78 @@ RETURN
 LABEL &&main
 CREATEFRAME
 PUSHFRAME
-JUMP &endof_ahoj?
-LABEL &ahoj?
-PUSHFRAME
-MOVE GF@_exp_res nil@nil
-READ GF@_exp_res string
-DEFVAR LF@_rval
-MOVE LF@_rval GF@_exp_res
-JUMP &ahoj?_return
-LABEL &ahoj?_return
-POPFRAME
-RETURN
-LABEL &endof_ahoj?
-DEFVAR LF@test
-DEFVAR LF@test_type
-MOVE LF@test_type string@nil
-MOVE LF@test nil@nil
+PUSHS string@vypocet\032faktorialu\010
+POPS GF@_exp_res
+WRITE GF@_exp_res
+DEFVAR LF@a
+DEFVAR LF@a_type
+MOVE LF@a_type string@nil
+READ LF@a int
+PUSHS LF@a
+PUSHS int@0
 CREATEFRAME
-CALL &ahoj?
-MOVE LF@test TF@_rval
-TYPE LF@test_type LF@test
+CALL &type_check
+LTS
+POPS GF@_exp_res
+JUMPIFEQ &1_2 GF@_exp_res bool@false
+PUSHS string@Faktor\010
+POPS GF@_exp_res
+WRITE GF@_exp_res
+JUMP &1_3
+LABEL &1_2
+DEFVAR LF@vysl
+DEFVAR LF@vysl_type
+MOVE LF@vysl_type string@nil
+PUSHS int@1
+PUSHS int@0
+CREATEFRAME
+CALL &type_check
+JUMPIFEQ &cat3 GF@_aux_1_type string@string
+JUMP &adds3
+LABEL &cat3
+POPS GF@_aux_1
+POPS GF@_aux_2
+CONCAT GF@_aux_1 GF@_aux_2 GF@_aux_1
+PUSHS GF@_aux_1
+JUMP &notadds3
+LABEL &adds3
+ADDS
+LABEL &notadds3
+POPS GF@_exp_res
+MOVE LF@vysl GF@_exp_res
+LABEL &2_4
+PUSHS LF@a
+PUSHS int@0
+CREATEFRAME
+CALL &type_check
+GTS
+POPS GF@_exp_res
+JUMPIFEQ &2_5 GF@_exp_res bool@false
+PUSHS LF@vysl
+PUSHS LF@a
+CREATEFRAME
+CALL &type_check
+MULS
+POPS GF@_exp_res
+MOVE LF@vysl GF@_exp_res
+PUSHS LF@a
+PUSHS int@1
+CREATEFRAME
+CALL &type_check
+SUBS
+POPS GF@_exp_res
+MOVE LF@a GF@_exp_res
+JUMP &2_4
+LABEL &2_5
+PUSHS string@Vysledek\032je:\032
+POPS GF@_exp_res
+WRITE GF@_exp_res
+PUSHS LF@vysl
+POPS GF@_exp_res
+WRITE GF@_exp_res
+PUSHS string@\010
+POPS GF@_exp_res
+WRITE GF@_exp_res
+LABEL &1_3
 POPFRAME
 CLEARS

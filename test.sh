@@ -13,7 +13,6 @@ lex_t=500
 echo -e "\nTests for lexical analysis:\n"
 # These tests are numbered from 500
 echo -e "TEST_500: Invalid identifier name\c"
-echo $?
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
 if [ $? -eq 1 ]; then
 	counter=$((counter+1))
@@ -99,7 +98,6 @@ lex_t=$((lex_t + 1))
 
 echo -e "TEST_507: Invalid string escape sequence\c"
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
-echo $?
 if [ $? -eq 0 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"

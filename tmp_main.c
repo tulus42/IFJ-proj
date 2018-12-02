@@ -32,11 +32,12 @@ int main(){
     }
     
     if(parser_result == SYN_OK){
-        //FILE *f;
-        //f = fopen("/home/sabina/Desktop/IFJ/tmp_output", "w");
-        flush_code(stdout);
-        //fclose(f);
-    }else{
+        FILE *f;
+        f = fopen("/home/adrian/Plocha/Škola/IFJ/IFJ/tmp_output", "w");
+        flush_code(f);
+        fclose(f);
+    }else
+    {
         clear_code();
     }
    

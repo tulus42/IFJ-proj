@@ -14,10 +14,10 @@ Adrián Tulušák, xtulus00
 // todo vestavene funkce typ kontrola + navrat
 
 #define ADD_INST(_inst)		\
-	if (!add_const_string(&code, (_inst "\n"))) return false 
+	if (!add_const_string(head->code, (_inst "\n"))) return false 
 
 #define ADD_CODE(_code)		\
-	if (!add_const_string(&code, (_code))) return false
+	if (!add_const_string(head->code, (_code))) return false
 
 #define ADD_INT(_code)				\
 	do {							\
@@ -50,7 +50,7 @@ Adrián Tulušák, xtulus00
 	"\n TYPE LF@_rval_type LF@_2"               \
 	"\n JUMPIFNEQ &substrexit LF@_rval_type string@int"	\
 	"\n DEFVAR LF@_rval"											\
-	"\n MOVE LF@_rval nil@nil"										\
+	"\n MOVE LF@_rval string@"										\
 	"\n DEFVAR LF@str_len"											\
 	"\n CREATEFRAME"												\
 	"\n DEFVAR TF@_0"												\
@@ -59,24 +59,19 @@ Adrián Tulušák, xtulus00
 	"\n MOVE LF@str_len TF@_rval"									\
 	"\n DEFVAR LF@ret_cond"											\
 	"\n LT LF@ret_cond LF@str_len int@0"							\
-	"\n JUMPIFEQ &substr&return LF@ret_cond bool@true"				\
+	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n EQ LF@ret_cond LF@str_len int@0"							\
-	"\n JUMPIFEQ &substr&return LF@ret_cond bool@true"				\
+	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n LT LF@ret_cond LF@_1 int@0"									\
-	"\n JUMPIFEQ &substr&return LF@ret_cond bool@true"				\
-	"\n EQ LF@ret_cond LF@_1 int@0"									\
-	"\n JUMPIFEQ &substr&return LF@ret_cond bool@true"				\
+	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n GT LF@ret_cond LF@_1 LF@str_len"							\
-	"\n JUMPIFEQ &substr&return LF@ret_cond bool@true"				\
-	"\n EQ LF@ret_cond LF@_2 int@0"									\
-	"\n JUMPIFEQ &substr&return LF@ret_cond bool@true"				\
+	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
+	"\n LT LF@ret_cond LF@_2 int@0"									\
+	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n DEFVAR LF@max_n"											\
 	"\n MOVE LF@max_n LF@str_len"									\
 	"\n SUB LF@max_n LF@max_n LF@_1"								\
-	"\n ADD LF@max_n LF@max_n int@1"								\
 	"\n DEFVAR LF@edit_n_cond"										\
-	"\n LT LF@edit_n_cond LF@_2 int@0"								\
-	"\n JUMPIFEQ &substr&edit_n LF@edit_n_cond bool@true"			\
 	"\n GT LF@edit_n_cond LF@_2 LF@max_n"							\
 	"\n JUMPIFEQ &substr&edit_n LF@edit_n_cond bool@true"			\
 	"\n JUMP &substr&process"										\
@@ -85,7 +80,6 @@ Adrián Tulušák, xtulus00
 	"\n LABEL &substr&process"										\
 	"\n DEFVAR LF@index"											\
 	"\n MOVE LF@index LF@_1"										\
-	"\n SUB LF@index LF@index int@1"								\
 	"\n DEFVAR LF@char"												\
 	"\n DEFVAR LF@process_loop_cond"								\
 	"\n LABEL &substr&process_loop"									\
@@ -96,6 +90,10 @@ Adrián Tulušák, xtulus00
 	"\n GT LF@process_loop_cond LF@_2 int@0"						\
 	"\n JUMPIFEQ &substr&process_loop LF@process_loop_cond bool@true" \
 	"\n LABEL &substr&return"										\
+	"\n POPFRAME"													\
+	"\n RETURN"			\
+	"\n LABEL &substr&returnfail"										\
+	"\n MOVE LF@_rval nil@nil"										\
 	"\n POPFRAME"													\
 	"\n RETURN"			\
 	"\n LABEL &substrexit"	    \
@@ -112,7 +110,7 @@ Adrián Tulušák, xtulus00
 	"\n DEFVAR LF@_rval"									\
 	"\n MOVE LF@_rval nil@nil"								\
 	"\n DEFVAR LF@cond_length"								\
-	"\n LT LF@cond_length LF@_1 int@1"						\
+	"\n LT LF@cond_length LF@_1 int@0"						\
 	"\n JUMPIFEQ &ord&return LF@cond_length bool@true"		\
 	"\n DEFVAR LF@str_len"									\
 	"\n CREATEFRAME"										\
@@ -120,9 +118,9 @@ Adrián Tulušák, xtulus00
 	"\n MOVE TF@_0 LF@_0"									\
 	"\n CALL &length"										\
 	"\n MOVE LF@str_len TF@_rval"							\
+	"\n SUB LF@str_len LF@str_len int@1"                    \
 	"\n GT LF@cond_length LF@_1 LF@str_len"					\
 	"\n JUMPIFEQ &ord&return LF@cond_length bool@true"		\
-	"\n SUB LF@_1 LF@_1 int@1"								\
 	"\n STRI2INT LF@_rval LF@_0 LF@_1"						\
 	"\n LABEL &ord&return"									\
 	"\n POPFRAME"											\
@@ -156,7 +154,9 @@ Adrián Tulušák, xtulus00
 node_t * head = NULL;
 node_t * cur = NULL;
 
+
 int auxcat = 1;
+int auxdiv = 1;
 
 static bool generate_header()
 {
@@ -188,6 +188,8 @@ static bool gen_type_check()
 	ADD_INST("TYPE GF@_aux_2_type GF@_aux_2");
 
 	ADD_INST("JUMPIFEQ &must_be_same GF@_aux_1_type string@string");
+	ADD_INST("JUMPIFEQ &KILLALL GF@_aux_2_type string@nil");
+	ADD_INST("JUMPIFEQ &KILLALL GF@_aux_1_type string@nil");
 
 	ADD_INST("JUMPIFEQ &one_is_int GF@_aux_1_type string@int");
 	ADD_INST("JUMPIFEQ &one_is_flt GF@_aux_1_type string@float");
@@ -207,6 +209,8 @@ static bool gen_type_check()
 
 	ADD_INST("LABEL &must_be_same");
 	ADD_INST("JUMPIFEQ &type_check_true GF@_aux_1_type GF@_aux_2_type");
+
+	ADD_INST("LABEL &KILLALL");
 
 	ADD_INST("EXIT int@4");
 
@@ -259,6 +263,36 @@ bool generator_start()
 
 
 
+
+static void pusher(node_t * head, string_t code) {
+    node_t * current = head;
+    while (current->next != NULL) {
+        current = current->next;
+    }
+
+    current->next = malloc(sizeof(node_t));
+    current->next->code = &code;
+    current->next->next = NULL;
+}
+
+bool gen_new_part()
+{
+	string_t new_code;
+	if (!allocate_string(&new_code)) return false;
+	pusher(head, new_code);
+	return true;
+
+}
+
+bool gen_defvar_2_old(char *var_id)
+{
+	//if (!add_const_string(&prev_code, "DEFVAR LF@")) return false;
+	//if (!add_const_string(&prev_code, var_id)) return false;
+	//if (!add_const_string(&prev_code, "\n")) return false;
+	return true;
+}
+
+
 bool gen_mainscope_start()
 {
 	ADD_INST("LABEL &&main");
@@ -279,13 +313,21 @@ bool gen_mainscope_end()
 
 void clear_code()
 {
-	free_string(&code);
+	//free_string(&code);
 }
 
 void flush_code(FILE *dst_file)
 {
-	fputs(code.s, dst_file);
-	clear_code();
+
+	node_t * current = head;
+
+    while (current != NULL) {
+        fputs(current->code->s, dst_file);
+        current = current->next;
+    }
+
+	//fputs(code.s, dst_file);
+	//clear_code();
 }
 
 bool gen_func_start(char *func_id)
@@ -409,6 +451,9 @@ static bool gen_term_val(Tmp_Token_t t)
 			ADD_CODE(t.attr_token.tmp_string);
 			break;
 
+		case TYPE_KEYWORD:
+			ADD_CODE("nil@nil");
+
 		default:
 			free_string(&tmp_str);
 			return false;
@@ -463,6 +508,9 @@ static bool gen_term_val_classic(Token_t t)
 			ADD_CODE("LF@");
 			ADD_CODE(t.attr.string->s);
 			break;
+			
+		case TYPE_KEYWORD:
+			ADD_CODE("nil@nil");
 
 		default:
 			free_string(&tmp_str);
@@ -544,6 +592,7 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 {
 
 	auxcat++;
+	auxdiv++;
 	switch (symb)
 	{
 		case PLUS:
@@ -605,7 +654,45 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 		case DIV:
 			ADD_INST("CREATEFRAME");
 			ADD_INST("CALL &type_check");
+
+			ADD_CODE("JUMPIFEQ &idiv");
+
+
+			ADD_INT(auxdiv);
+			ADD_CODE(" GF@_aux_1_type string@int");
+			ADD_CODE("\n");
+
+			ADD_CODE("JUMP &div");
+
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
+			
+
+			ADD_CODE("LABEL &idiv");
+
+			ADD_INT(auxdiv);
+			ADD_CODE("\n");
+
+			ADD_INST("IDIVS");
+
+
+			ADD_CODE("JUMP &notdiv");
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
+
+
+			ADD_CODE("LABEL &div");
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
+
+
 			ADD_INST("DIVS");
+
+			ADD_CODE("LABEL &notdiv");
+
+			ADD_INT(auxcat);
+			ADD_CODE("\n");
+
 			break;
 
 		case EQL:
@@ -934,3 +1021,5 @@ bool gen_save_expr_res()
 
 	return true;
 }
+
+

@@ -25,9 +25,7 @@ Adrián Tulušák, xtulus00
 #define OTHER_SYNTACTICAL_ERRORS 2
 #define UNDEFINED_ID_EXPRESSION 3
 
-
-
-
+// rules
 typedef enum{
     S,  // shift <
     R,  // reduce >
@@ -35,6 +33,7 @@ typedef enum{
     U   // undefined - no rule, error
 } Precedential_table_rule;
 
+// indexes
 typedef enum{
     INDEX_PLUS,                 // +
     INDEX_MINUS,                // -
@@ -47,6 +46,7 @@ typedef enum{
     INDEX_DOLLAR                // $
 } Precedential_table_index;
 
+// symbols
 typedef enum{
     PLUS,   // +
     MINUS,  // -
@@ -67,12 +67,14 @@ typedef enum{
     IDIV
 } Precedential_table_symbol;
 
+// symbol status
 typedef enum{
     ON_GENERATOR_STACK,
     INVALID_TOKEN,
     VALID_TOKEN
 } Symbol_status;
 
+// one item
 typedef struct one_item{
     int symbol;
     struct one_item* next;
@@ -80,11 +82,12 @@ typedef struct one_item{
     Symbol_status current_status;
 } Symbol_item_t;
 
-
+// stack
 typedef struct {
     Symbol_item_t* top;
 } Symbol_stack_t;
 
+// buffer
 typedef struct {
     Symbol_item_t* first;
     Symbol_item_t* last;
@@ -92,12 +95,6 @@ typedef struct {
 
 Symbol_stack_t stack;
 Symbol_list buffer;
-
-
-// DEBUG FUNCTIONS
-void print_current_stack(Symbol_stack_t* stack);
-void print_token(Data_t* data);
-void print_buffer(Symbol_list* list);
 
 /***********************************************************
  * 

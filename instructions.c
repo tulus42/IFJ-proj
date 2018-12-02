@@ -256,16 +256,7 @@ bool generator_start()
 }
 
 
-bool gen_new_part()
-{
-	string_t new_code
-	if (!allocate_string(&new_code)) return false;
-	prev_code = code;
-	code = new_code;
-	pusher(head, code);
-	return true;
 
-}
 
 static void pusher(node_t * head, string_t code) {
     node_t * current = head;
@@ -276,6 +267,17 @@ static void pusher(node_t * head, string_t code) {
     current->next = malloc(sizeof(node_t));
     current->next->code = code;
     current->next->next = NULL;
+}
+
+bool gen_new_part()
+{
+	string_t new_code;
+	if (!allocate_string(&new_code)) return false;
+	prev_code = code;
+	code = new_code;
+	pusher(head, code);
+	return true;
+
 }
 
 bool gen_defvar_2_old(char *var_id)

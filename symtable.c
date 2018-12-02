@@ -20,53 +20,20 @@ const char* types_of_HTitem[] = {
 	"FUNCTION",
 };
 
-const char* is_defined[] = {
-	"FALSE",
-	"TRUE",
-};
-
-
-/* ladiaca funkcia pre ST*/
-
-
-void htPrintTable( tHTable ptrht ) {
-	if (ptrht == global_ST)
-		printf ("------------HASH TABLE - GLOBAL-------------\n");
-	else
-		printf ("------------HASH TABLE - LOCAL-------------\n");
-
-	for ( int i=0; i<HTSIZE; i++ ) {
-		if ((ptrht)[i]==NULL)
-		{
-			continue;
-		}
-		printf ("%i:",i);
-		tHTItem* ptr = (ptrht)[i];
-		while ( ptr != NULL ) {
-			printf (" (%s,%s,%s,%d)\n",ptr->key, types_of_HTitem[ptr->typ], is_defined[ptr->defined],ptr->param_count);
-			ptr = ptr->ptrnext;
-		}
-		//printf("\n");
-	}
-	printf ("------------koniec tabulky------------\n");
-}
-
 /**
- * Writes error to stderr, returns error code
+ ** Returns error code
  */
 
 int sym_table_error(int error_code){
 	htClearAll(local_ST);
-	//htInit(local_ST);
 	htClearAll(global_ST);
-	//htInit(global_ST);
-	fprintf(stderr, "sym_table ERROR\n");
 return error_code;
 }
 
 
-/*Funkcia vracia index tabulky na zaklade kluca
-**Funkcia je prebraná z 2. domácej úlohy IAL
+/*
+** Function returns idex of item based on key
+** Function is borowed from IAL 2. Home work
 */
 int hashCode ( char key[] ) {
 	int retval = 1;
@@ -77,8 +44,9 @@ int hashCode ( char key[] ) {
 }
 
 
-/*Funkcia inicializuje kazdú položku tabuľky na NULL
-**Využíva sa len vo funkciách htInits() a htClearAll()
+/*
+** Function inits every index of chosen table on NULL
+** Function is used in htInits() and htClearAll()
 */
 
 void htInit ( tHTable ptrht ) {
@@ -89,18 +57,18 @@ void htInit ( tHTable ptrht ) {
 }
 
 /*
-** Funkcia inicializuje obe tabulky
+** Function inits both tables
 */
 void STinits(){
 	htInit(global_ST);
 	htInit(local_ST);
 }
 
-/* Hashovacia tabuľka s explicitne zreťazenými synonymami.
-** Vyhľadávanie prvku v hashovacej tabuľke ptrht podľa zadaného kľúča key. 
-** Ak je daný prvok nájdený, vracia pointer na daný prvok. 
-** Ak sa položka v tabuľke nenachádza funkcia vracia NULL.
-**
+/* 
+** Hash table with explicitly linked synonyms
+** Function search in chosen table for item based on key 
+** Function returns pointer on item if result is positive
+** Function returns NULL if result is negative
 */
 tHTItem* htSearch ( tHTable ptrht, char key[] ) {
 
@@ -121,54 +89,55 @@ tHTItem* htSearch ( tHTable ptrht, char key[] ) {
 return NULL;
 }
 
-/* Funkcia vkladá do zvolenej tabuľky ptrht položku key, ktorá má typ NILL
-** Pri chybe alokácie vracia hodnotu ER_INTERNAL
-** Pri pokuse o redefiniciu premennej vracia ER_SEM_VARIABLE
-** Inak vracia 0
+/* 
+** Function inserts item with chosen key and type VAR to chosen table
+** If alocation false function returns ER_INTERNAL
+** If item is redifiend, funtion returns ER_SEM_VARIABLE
+** Else returns 0
 */
 
 int def_ID( tHTable ptrht,char key[] ){
 
-	if (htSearch(ptrht,key)!=NULL){							//ak je položka nájdená jedná sa o ER_SEM_VARIABLE
+	if (htSearch(ptrht,key)!=NULL){							// If search result is positive function returns ER_SEM_VARIABLE
 		
 		return sym_table_error(ER_SEM_VARIABLE);
  		 
  	}
  	else{
- 		tHTItem *Ninsert = malloc(sizeof(tHTItem));			//alokácia novej položky
+ 		tHTItem *Ninsert = malloc(sizeof(tHTItem));			// new alocation
  		if (Ninsert==NULL){								
  			return sym_table_error(ER_INTERNAL);
 
  		}
  		
-		Ninsert->key = (char*) malloc((strlen(key)+2));		//alokácia kľúča
+		Ninsert->key = (char*) malloc((strlen(key)+2));		// key alocation
 		if (Ninsert->key==NULL){							
  			return sym_table_error(ER_INTERNAL);
  		}
 
- 		strcpy(Ninsert->key,key);							//inicializácia položky
+ 		strcpy(Ninsert->key,key);							// item init
  		Ninsert->typ=VAR;	
  		Ninsert->param_count=0;
  		Ninsert->defined=true;						
- 		Ninsert->ptrnext=(ptrht)[hashCode(key)];			//prvok zaradime na zaciatok zoznamu
+ 		Ninsert->ptrnext=(ptrht)[hashCode(key)];			// item is add to start of list
  		(ptrht)[hashCode(key)]=Ninsert;
  	}
 	return ST_OK;
 }
 
-/* Funkcia vkladá do zvolenej tabuľky ptrht celú vybranú položku item_ptr 
-** Ak je položka už v tabuľke aktualizuje jej typ 
-** v pripade FUNCTION môže preklopiť jej defined zložku
+/* 
+** Function inserts item_ptr to chosen table
+** If item alredy exists in table function can update its defined atribute
 */
 
 int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
 
 
 	tHTItem *actual_item=htSearch(ptrht,item_ptr->key);
-	if (actual_item){													//ak je item najdeny aktuelizuje data
-		if ((item_ptr->typ==FUNCTION)&&(actual_item->typ==FUNCTION)){	//obe su funkcie
-			if (actual_item->param_count==item_ptr->param_count){		//maju rovnaky pocet parametrov
-				if (item_ptr->defined && !actual_item->defined){		//item v tabzľke je nedefinovany a "pridávaný" item je definovany
+	if (actual_item){													// If item exists
+		if ((item_ptr->typ==FUNCTION)&&(actual_item->typ==FUNCTION)){	// Both items are functions
+			if (actual_item->param_count==item_ptr->param_count){		// They have same number of parameters
+				if (item_ptr->defined && !actual_item->defined){		// If found item is defined and item_ptr is undefined
 					actual_item->defined=item_ptr->defined;
 					return ST_OK;
 				}
@@ -176,79 +145,51 @@ int htInsert ( tHTable ptrht, tHTItem* item_ptr ) {
 				return(ER_SEM_PARAMETERS);
 			}
 		} 
-		if (item_ptr->defined == true) {
+		if (item_ptr->defined == true) {								// Define item if item_ptr is defined
 			actual_item->defined= true;
 			return(ST_OK);
 		}
-/*
- 		switch(item_ptr->typ){
- 			case STRING:
-					actual_item->typ= item_ptr->typ;
-					actual_item->defined= item_ptr->defined;
-					//clear_string_content(actual_item->data.string);
-	 				//copy_string_content(actual_item->data.string, item_ptr->data.string);
-				 	break;
-				case INTEGER:
-					actual_item->defined= item_ptr->defined;
-					actual_item->typ= item_ptr->typ;
-					//actual_item->data.integer=item_ptr->data.integer;
-					break;
-				case PRASATKO_S_PAPUCKAMI_FLT:
-					actual_item->defined= item_ptr->defined;
-					actual_item->typ= item_ptr->typ;
-					//actual_item->data.PRASATKO_S_PAPUCKAMI_FLT=item_ptr->data.PRASATKO_S_PAPUCKAMI_FLT;
-					break;
-				default:
-					return  sym_table_error(ER_SEM_VARIABLE);
- 					break;
- 		}*/
  	}
- 	else{																//položka nie je v tabuľke
+ 	else{																// if item isn t in table
 
- 		tHTItem *Ninsert = malloc(sizeof(tHTItem));						//alokácia položky
+ 		tHTItem *Ninsert = malloc(sizeof(tHTItem));						// item alocation
  		if (Ninsert==NULL){							
  			return sym_table_error(ER_INTERNAL);
  		}
 
-		Ninsert->key = (char*) malloc((strlen((item_ptr->key))+2));		//alokácia kľúča
+		Ninsert->key = (char*) malloc((strlen((item_ptr->key))+2));		// key alocation
 		if (Ninsert->key==NULL){							
  			return sym_table_error(ER_INTERNAL);
  		}
 
- 		strcpy(Ninsert->key,item_ptr->key);								//nahrajú sa kľúč a data
+ 		strcpy(Ninsert->key,item_ptr->key);								// save key and datá
  		Ninsert->typ=item_ptr->typ;							
  		Ninsert->param_count=item_ptr->param_count;
  		Ninsert->defined=item_ptr->defined;		
- 		Ninsert->ptrnext=(ptrht)[hashCode(item_ptr->key)];				//prvok zaradime na zaciatok zoznamu
+ 		Ninsert->ptrnext=(ptrht)[hashCode(item_ptr->key)];				// item is add to start of list
  		(ptrht)[hashCode(item_ptr->key)]=Ninsert;
  	}
  return ST_OK;
 }
 
-/* Funkcia vyhľadáva v zvolenej tabuľke ptrht položku s kľúčom key
-** Ak je položka nájdená vracia ukazateľ na jej typ
-** Ak sa položka v tabuľke nenacjhádza vracia ukazateľ na NULL
+/* 
+** Function search in chosen table for key
+** If item is found function returns pointer on its type
+** Else returns NULL
 */
 
 Type_of_tHTItem* get_type (tHTable ptrht,char key[]) {
 
-	//printf("som v get_type\n");
-	//printf("%s\n",key);
-	if (htSearch(ptrht,key)!=NULL){				//ak je item najdeny
-		return &(htSearch(ptrht,key))->typ;		//funkcia vrati typ hladaneho itemu
+	if (htSearch(ptrht,key)!=NULL){				// if item is found
+		return &(htSearch(ptrht,key))->typ;		// returns pointer on typ of searched item
 	}
-	else{										//inak vrati NULL
+	else{										// else NULL
 		return NULL;
 	}
 }
 
-/* Funkcia kontroluje či je funkcia s kľúčom key v globálnej tabuľke symbolov (global_ST) definovaná
-** Návratové hodnoty
-** NOT_FOUND==2
-** param_defined==3
-** param_undefined==4
-** defined==FALSE==0
-** defined==TRUE==1
+/* 
+** Function checks if item is VAR/Function and defined/undefined
 */
 
 int check_define (tHTable tab, char key[]) {
@@ -273,7 +214,8 @@ int check_define (tHTable tab, char key[]) {
 	}								
 }
 
-/* Vyčistí tabuľku ptrht a reinicializuje ju
+/* 
+** clears table and then init table
 */
 
 void htClearAll ( tHTable ptrht ) {
@@ -292,12 +234,13 @@ void htClearAll ( tHTable ptrht ) {
 			free(tmp);
 		}
 	}
-	htInit(ptrht);							//reinicializacia tabulky
+	htInit(ptrht);							// reinit table
 }
 
-/* Skontroluje či sú všetky funkcie v Globálnej tabuľke symbolov definovane
-** Ak narazí na nedefinovanú funkciu skončí s návratovou hodnotou ER_SEM_VARIABLE
-** Ak sú všetky funkcie definované vracia hodnotu 0
+/* 
+** Checks if functions are defined
+** If undefined function is found returns ER_SEM_VARIABLE
+** If each function is defined returns 0
 */
 
 int STlast_check(){
@@ -309,7 +252,6 @@ int STlast_check(){
 		tmp=global_ST[i];
 
 		while(tmp!=NULL){
-			//printf("%s\n",tmp->key );
 			if ((tmp->typ==FUNCTION)&&(tmp->defined==false)){
 				return sym_table_error(ER_SEM_VARIABLE);
 			}
@@ -341,7 +283,7 @@ void htClearlocal () {
 			free(tmp);
 		}
 	}
-	htInit(local_ST);							//reinicializacia tabulky
+	htInit(local_ST);							//reinit local table
 }
 
 int iteminit(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc ){
@@ -350,7 +292,7 @@ int iteminit(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc ){
 		return sym_table_error(ER_INTERNAL);
 	}
 	item->key = (char*) malloc((strlen(k)+2));
-	if (item->key==NULL){								//ak sa alokacia nepodarila tak funkcia skonci
+	if (item->key==NULL){								// failed alocation returns ER_INTERNAL
 			return sym_table_error(ER_INTERNAL);
 	}
 
@@ -364,17 +306,15 @@ return ST_OK;
 }
 
 int itemupdate(tHTItem* item,char k[], Type_of_tHTItem t,bool d, int pc ){
-	//printf("Checkpoint1\n");
+	
 	free(item->key);
-	//printf("Checkpoint2\n");
 	item->key = (char*) malloc((strlen(k)+2));
-	//printf("Checkpoint3\n");
-	if (item->key==NULL){								//ak sa alokacia nepodarila tak funkcia skonci
-			//printf("Checkpoint4\n");
+	if (item->key==NULL){								// failed alocation returns ER_INTERNAL
+
 			return sym_table_error(ER_INTERNAL);
 	}
 
-	//printf("Checkpoint5\n");
+
 	strcpy(item->key,k);
 	item->typ=t;	
 	item->param_count=pc;
@@ -388,14 +328,11 @@ void itemfree(tHTItem* item){
 	free(item->key);
 }
 
-/*
-*/
+
 
 int check_param_cnt(char key[]){
 
 
-	//NOT_FOUND kontrolovany parserom
-	//tHTItem *tmp = htSearch(global_ST, key);
 	return htSearch(global_ST, key)->param_count;
 
 }

@@ -19,10 +19,6 @@ Adrián Tulušák, xtulus00
 #define INSTRUCTIONS_H
 
 
-typedef struct node {
-    string_t * code;
-    struct node * next;
-} node_t;
 
 bool generator_start(); // vygeneruje hlavicku, preddefinovane funkce a jump na main
 bool gen_mainscope_start(); // zacatek main

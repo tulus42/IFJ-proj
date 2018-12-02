@@ -14,6 +14,8 @@
 \usepackage[unicode]{hyperref}
 \usepackage{enumitem}
 \usepackage{float}
+\usepackage{pdfpages}
+\usepackage{graphicx}
 
 \begin{document}
 \begin{center}
@@ -99,7 +101,20 @@ Funkcia spočítava ASCII hodnotu jednotlivých znakov kľúča a nakoniec vraci
 \section{Generovanie inštrukcií}
 
 \section{Práca v tíme}
-Náš tím sme si zostavili pomerne skoro. Po rozdelení práce na menšie celky sme začali každý pracovať na časti pridelenej vedúcim tímu. Približne 3 týždne pred pokusným odovzdaním sme začali jednotlivé časti spájať do celku. Pokusné odovzdávanie sme využili, no výsledok nás nemilo prekvapil. Zistili sme, že hoci všetko fungovvalo pomerne správne, návratové hodnoty sme vždy "natvrdo" vracali buď ako 0 alebo 1, čo sa aj prejavilo na celkovom percentuálnom hodnotení. Pri tejto príležitosti sme spravili riadnu revíziu kódu a poopravovali čo najviac chýb a nedostatkov. 
+Náš tím sme si zostavili pomerne skoro. Po rozdelení práce na menšie celky sme začali každý pracovať na časti pridelenej vedúcim tímu. Približne 3 týždne pred pokusným odovzdaním sme začali jednotlivé časti spájať do celku. Pokusné odovzdávanie sme využili, no výsledok nás nemilo prekvapil. Zistili sme, že hoci všetko fungovvalo pomerne správne, návratové hodnoty sme vždy "natvrdo" vracali buď ako 0 alebo 1, čo sa aj prejavilo na celkovom percentuálnom hodnotení. Pri tejto príležitosti sme spravili riadnu revíziu kódu a poopravovali čo najviac chýb a nedostatkov. Práca v tíme bola rozdelená nasledovne:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+Meno & Povinnosti\\ \hline
+\textbf{Dominik Peza} & vedenie tímu, pridelovanie úloh, kontrola práce, konzultácie, generovanie inštrukcií\\
+Sabína Gregušová & lexikálna analýza, precedenčná analýza výrazov, dokumentácia, testovanie\\
+Adam Hostin & sématická analýza, tabuľka symbolov, dokumentácia, testovanie\\
+Adrián Tulušák & syntaktická analýza, sématická analýza, testovanie, dokumentácia\\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{Komunikácia}
 Už na začiatku sme sa dohodli na pravidelných týždenných stretnutiach, kde sme diskutovali o našej ďaľšej práci na nadchádzajúci týždeň. Komunikovali sme najmä cez facebook a skype a osobné stretnutia boli veľmi príjemné. 
@@ -118,6 +133,8 @@ Celkovo hodnotíme tento projekt kladne, hoci na začiatku vyzeral pomerne zlož
 \appendix
 
 \section{Deterministický konečný automat}
+\includegraphics{DKA.pdf}
+
 \section{LL-gramatika}
 \begin{table}[!ht]
 	\centering

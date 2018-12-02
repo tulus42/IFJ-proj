@@ -182,7 +182,8 @@ char convert_from_hex(char hex[]){
 /**
  * Adds constant string to the end of dynamic string.
  */
-bool add_const_string(string_t* string_ptr, const char *const_string){
+bool add_const_string(string_t* string_ptr, const char *const_string)
+{
     unsigned int const_str_length = (unsigned int) strlen(const_string);
 
     if (string_ptr->current_size + const_str_length + 1 >= string_ptr->buffer_size)
@@ -203,10 +204,36 @@ bool add_const_string(string_t* string_ptr, const char *const_string){
 }
 
 /**
- * Copy content of one string to another
+ * 
+ */
+void remove_first_char(string_t* string_ptr){
+    char one_char;
+    int counter = 1;
+    while(string_ptr->s[counter] != '\0'){
+        one_char = string_ptr->s[counter];
+        string_ptr->s[counter-1] = one_char;
+        string_ptr->current_size = counter;
+        counter++;
+    }
+    string_ptr->s[counter-1] = '\0';
+}
+
+
+/**
+ * 
  */
 void copy_string_content(string_t* dest, string_t* source){
     for(unsigned int i = 0; i < source->current_size; i++){
         add_char(dest, source->s[i]);
     }
+}
+
+/**
+ * 
+ */
+void copy_my_string(char dest[], char src[], int length){
+    for(int i = 0; i < length; i++){
+        dest[i] = src[i];
+    }
+    dest[length] = '\0';
 }

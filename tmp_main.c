@@ -31,7 +31,7 @@ int main(){
     
     if(parser_result == SYN_OK){
         FILE *f;
-        f = fopen("/home/adrian/Plocha/Škola/IFJ/IFJ/tmp_output", "w");
+        f = fopen("/home/osboxes/Documents/IFJ-master/tmp_output", "w");
         flush_code(f);
         fclose(f);
     }else

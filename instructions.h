@@ -20,7 +20,7 @@ Adrián Tulušák, xtulus00
 
 
 typedef struct node {
-    string_t code;
+    string_t * code;
     struct node * next;
 } node_t;
 

@@ -14,10 +14,10 @@ Adrián Tulušák, xtulus00
 // todo vestavene funkce typ kontrola + navrat
 
 #define ADD_INST(_inst)		\
-	if (!add_const_string(&code, (_inst "\n"))) return false 
+	if (!add_const_string(head->code, (_inst "\n"))) return false 
 
 #define ADD_CODE(_code)		\
-	if (!add_const_string(&code, (_code))) return false
+	if (!add_const_string(head->code, (_code))) return false
 
 #define ADD_INT(_code)				\
 	do {							\
@@ -149,9 +149,10 @@ Adrián Tulušák, xtulus00
 	"\n EXIT int@4"
 
 
-string_t code;
-string_t prev_code;
+//string_t code;
+//string_t prev_code;
 node_t * head = NULL;
+node_t * cur = NULL;
 
 
 int auxcat = 1;
@@ -237,13 +238,16 @@ static bool gen_builtin_funcs()
 
 bool generator_start()
 {
-	if (!allocate_string(&code)) return false;
+	string_t new_code;	
+	if (!allocate_string(&new_code)) return false;
 
 	head = malloc(sizeof(node_t));
 	if (head == NULL) return false;
 
-	head->code = code;
+
+	head->code = &new_code;
 	head->next = NULL;
+	//code = head->code;
 
 
 	if (!generate_header()) return false;
@@ -265,7 +269,7 @@ static void pusher(node_t * head, string_t code) {
     }
 
     current->next = malloc(sizeof(node_t));
-    current->next->code = code;
+    current->next->code = &code;
     current->next->next = NULL;
 }
 
@@ -273,18 +277,16 @@ bool gen_new_part()
 {
 	string_t new_code;
 	if (!allocate_string(&new_code)) return false;
-	prev_code = code;
-	code = new_code;
-	pusher(head, code);
+	pusher(head, new_code);
 	return true;
 
 }
 
 bool gen_defvar_2_old(char *var_id)
 {
-	if (!add_const_string(&prev_code, "DEFVAR LF@")) return false;
-	if (!add_const_string(&prev_code, var_id)) return false;
-	if (!add_const_string(&prev_code, "\n")) return false;
+	//if (!add_const_string(&prev_code, "DEFVAR LF@")) return false;
+	//if (!add_const_string(&prev_code, var_id)) return false;
+	//if (!add_const_string(&prev_code, "\n")) return false;
 	return true;
 }
 
@@ -309,7 +311,7 @@ bool gen_mainscope_end()
 
 void clear_code()
 {
-	free_string(&code);
+	//free_string(&code);
 }
 
 void flush_code(FILE *dst_file)
@@ -318,7 +320,7 @@ void flush_code(FILE *dst_file)
 	node_t * current = head;
 
     while (current != NULL) {
-        fputs(current->code.s, dst_file);
+        fputs(current->code->s, dst_file);
         current = current->next;
     }
 
@@ -1017,4 +1019,5 @@ bool gen_save_expr_res()
 
 	return true;
 }
+
 

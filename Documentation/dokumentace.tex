@@ -14,6 +14,8 @@
 \usepackage[unicode]{hyperref}
 \usepackage{enumitem}
 \usepackage{float}
+\usepackage{pdfpages}
+\usepackage{graphicx}
 
 \begin{document}
 \begin{center}
@@ -58,7 +60,9 @@ Adrián Tulušák  & xtulus00  & \quad25\,\%\\
 Naším cieľom je implementovať prekladač imperatívneho jazyka IFJ18 do predmetov IFJ a IAL v jazyku C. Hlavnou náplňou práce bola implementácia: lexikálneho analyzátora, parsera (syntaktická a sématická analýza) a generátora inštrukcií.
 
 \section{Lexikálna analýza}
-Na začiatku sme implementovali lexikálny analyzátor v súbore \texttt{lexer.c}, ktorého základom je deterministický konečný automat (ďalej iba DKA).  Hlavnou funkciou v tomto súbore je \texttt{get\_next\_token}, ktorá číta jednotlivé znaky a pomocou príkazu \texttt{switch} prechádza do nasledujúcich stavov podľa DKA až kým nevyhodnotí  lexikálne správny token, inak vracia \texttt{ER\_LEX}. Lexikálny analyzátor musí mať nadstavený vstupný súbor, ktorý obsahuje program napísaný v jazyku IFJ18. Pri úspešnom vyhodnotení tokenu sa správne uvoľní všetká alokovaná pamäť. Matematické a relačné operátory sú vyhodnotené vcelku rýchlo a jednoducho, identifikátory, reťazce a čísla vyžadujú viacej prechodov a používajú dynamický reťazec, o ktorom ďalej pojednáva sekcia Spracovanie reťazcov. Pri identifikátore sa kontrolujú povolené znaky na základe pozície v reťazci a na záver sa identifikátor porovná so všetkými kľúčovými slovami, ak sa nájde zhoda, je to kľúčové slovo, inak je to identifikátor. Reťazce sú ohraničené dvojitými úvodzovkami (") a môžu obsahovať escape sequence. Pre tento prípad existuje špeciálny stav \texttt{STATE\_BACKSLASH\_LITERAL}, do ktorého sa prechádza pri  prečítaní znaku \textbackslash \quad a čaká sa na skratku escape sequence, ako napríklad t, s alebo n. 
+Na začiatku sme implementovali lexikálny analyzátor v súbore \texttt{lexer.c}, ktorého základom je deterministický konečný automat (ďalej iba DKA).  Hlavnou funkciou v tomto súbore je \texttt{get\_next\_token}, ktorá číta jednotlivé znaky a pomocou príkazu \texttt{switch} prechádza do nasledujúcich stavov podľa DKA až kým nevyhodnotí  lexikálne správny token, inak vracia \texttt{ER\_LEX}. Lexikálny analyzátor musí mať nadstavený vstupný súbor, ktorý obsahuje program napísaný v jazyku IFJ18.
+
+Pri úspešnom vyhodnotení tokenu sa správne uvoľní všetká alokovaná pamäť. Matematické a relačné operátory sú vyhodnotené vcelku rýchlo a jednoducho, identifikátory, reťazce a čísla vyžadujú viacej prechodov a používajú dynamický reťazec, o ktorom ďalej pojednáva sekcia Spracovanie reťazcov. Pri identifikátore sa kontrolujú povolené znaky na základe pozície v reťazci a na záver sa identifikátor porovná so všetkými kľúčovými slovami, ak sa nájde zhoda, je to kľúčové slovo, inak je to identifikátor. Reťazce sú ohraničené dvojitými úvodzovkami (") a môžu obsahovať escape sequence. Pre tento prípad existuje špeciálny stav \texttt{STATE\_BACKSLASH\_LITERAL}, do ktorého sa prechádza pri  prečítaní znaku \textbackslash \quad a čaká sa na skratku escape sequence, ako napríklad t, s alebo n. 
 
 \subsection{Štruktúra Token\_t}
 Pre jednoduchšiu prácu s tokenmi sme použili štruktúru \texttt{Token\_t}, ktorá obsahovala:
@@ -72,7 +76,7 @@ Pre jednoduchšiu prácu s tokenmi sme použili štruktúru \texttt{Token\_t}, k
 
 
 \subsection{Spracovanie reťazcov}
-Pre jednoduchšie spracovanie reťazcov sme sa rozhodli implementovať súbor \texttt{dynamic\_string.c}. Jeho súčasťou je aj štruktúra \texttt{string\_t}, ktorá obsahuje samotný ukazateľ na dynamický reťazec, súčastnú veľkosť reťazca a celkovú veľkosť bufferu. Na začiatku je alokovaný reťazec s veľkosťou 10 a pri každom pridaní znaku sa kontroluje, či je ešte v reťazci miesto. Keď sa blížime k zaplneniu reťazca, funkcia \texttt{check\_empty\_bites} zväčší veľkosť buffera o 5, čím zaistí adekvátnu veľkosť pre reťazec. Všetky alokácie pamäte sú kontrolované a ich zlyhanie je adekvátne ošetrené vrátením internej chyby \texttt{ER\_INTERNAL}.
+Pre jednoduchšie spracovanie reťazcov sme sa rozhodli implementovať súbor \texttt{dynamic\_string.c}. Jeho súčasťou je aj štruktúra \texttt{string\_t}, ktorá obsahuje samotný ukazateľ na dynamický reťazec, súčastnú veľkosť reťazca a celkovú veľkosť bufferu. Na začiatku je alokovaný reťazec s veľkosťou 10 bytov a pri každom pridaní znaku sa kontroluje, či je ešte v reťazci miesto. Keď sa blížime k zaplneniu reťazca, funkcia \texttt{check\_empty\_bites} zväčší veľkosť buffera o 5, čím zaistí dostatočnú veľkosť pre reťazec. Všetky alokácie pamäte sú kontrolované a ich zlyhanie je adekvátne ošetrené vrátením internej chyby \texttt{ER\_INTERNAL}.
 
 \section{Syntaktická analýza}
 
@@ -94,12 +98,25 @@ Pri kontrole jednotlivých symbolov na zásobníku sa zároveň kontroluje aj te
 \subsection{Sématická analýza}
 Sématickú analýzu sme implementovali ako tabuľku s rozptýlenými položkami. Synonymá sú v tabuľke zoradené explicitne, čo zabezpečuje tereticky neobmedzený počet položiek uchovávateľných tabuľkou symbolov. Synonymá sú zreťazené v jednosmerne viazaných zoznamoch. Veľkosť mapovacieho poľa sme vyberali tak, aby bola rovná prvočíslu. Naša tabuľka má veľkosť 6421. Očakávame, že naplnenie tabuľky nepresiahne 75\%. Mapovaciu funkciu sme prevzali z druhej domácej úlohy z IAL, lebo nám pripadala efektívna a ľahko pochopiteľná. 
 
-Funkcia spočítava ASCII hodnotu jednotlivých znakov kľúča a nakoniec vracia modulo veľkosti tabuľky z daného súčtu. Každá položka tabuľky obsahuje svoj vlastný unikátny kľúč, ktorý sa ukladá v podobe reťazca. Kľúče značia identifikátory funkcii a premenných. Každá položka taktiež obsahuje svoj typ, značiaci či sa jedná o premennú alebo funkciu, boolovskú hodnotu, určujúca či bola položka definovaná, ukazateľ na ďalší prvok v zozname a integer značiaci počet parametrov v prípade, že sa jedná o funkciu. Položky sa ukladajú do 2 idetických tabuliek s rozptýlenými položkami v závislosti od toho, či sa jedná o lokálne alebo globálne premenné. Všetky funkcie sa ukladajú do globálnej tabuľky symbolov. Implementovali sme taktiež niekoľko funkcii zabezpečujúce pohodlnú prácu s tabuľkou. Funkcie zabezpečujú inicializáciu, výpis chybových hlásení, pridávanie prvkov, vyhľadávanie v tabuľke, kontrolu jednotlivých atribútov položiek a čistenie tabuľky.
+Funkcia spočítava ASCII hodnotu jednotlivých znakov kľúča a nakoniec vracia modulo veľkosti tabuľky z daného súčtu. Každá položka tabuľky obsahuje svoj vlastný unikátny kľúč, ktorý sa ukladá v podobe reťazca. Kľúče značia identifikátory funkcii a premenných. Každá položka taktiež obsahuje svoj typ, značiaci či sa jedná o premennú alebo funkciu, boolovskú hodnotu, určujúca či bola položka definovaná, ukazateľ na ďalší prvok v zozname a integer značiaci počet parametrov v prípade, že sa jedná o funkciu. Položky sa ukladajú do 2 identických tabuliek s rozptýlenými položkami v závislosti od toho, či sa jedná o lokálne alebo globálne premenné. Všetky funkcie sa ukladajú do globálnej tabuľky symbolov. Implementovali sme taktiež niekoľko funkcii zabezpečujúce pohodlnú prácu s tabuľkou. Funkcie zabezpečujú inicializáciu, výpis chybových hlásení, pridávanie prvkov, vyhľadávanie v tabuľke, kontrolu jednotlivých atribútov položiek a čistenie tabuľky.
 
 \section{Generovanie inštrukcií}
 
 \section{Práca v tíme}
-Náš tím sme si zostavili pomerne skoro. Po rozdelení práce na menšie celky sme začali každý pracovať na časti pridelenej vedúcim tímu. Približne 3 týždne pred pokusným odovzdaním sme začali jednotlivé časti spájať do celku. Pokusné odovzdávanie sme využili, no výsledok nás nemilo prekvapil. Zistili sme, že hoci všetko fungovvalo pomerne správne, návratové hodnoty sme vždy "natvrdo" vracali buď ako 0 alebo 1, čo sa aj prejavilo na celkovom percentuálnom hodnotení. Pri tejto príležitosti sme spravili riadnu revíziu kódu a poopravovali čo najviac chýb a nedostatkov. 
+Náš tím sme si zostavili pomerne skoro. Po rozdelení práce na menšie celky sme začali každý pracovať na časti pridelenej vedúcim tímu. Približne 3 týždne pred pokusným odovzdaním sme začali jednotlivé časti spájať do celku. Pokusné odovzdávanie sme využili, no výsledok nás nemilo prekvapil. Zistili sme, že hoci všetko fungovvalo pomerne správne, návratové hodnoty sme vždy "natvrdo" vracali buď ako 0 alebo 1, čo sa aj prejavilo na celkovom percentuálnom hodnotení. Pri tejto príležitosti sme spravili riadnu revíziu kódu a poopravovali čo najviac chýb a nedostatkov. Práca v tíme bola rozdelená nasledovne:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+Meno & Povinnosti\\ \hline
+\textbf{Dominik Peza} & vedenie tímu, pridelovanie úloh, kontrola práce, konzultácie, generovanie inštrukcií\\
+Sabína Gregušová & lexikálna analýza, precedenčná analýza výrazov, dokumentácia, testovanie\\
+Adam Hostin & sématická analýza, tabuľka symbolov, dokumentácia, testovanie, diagramy\\
+Adrián Tulušák & syntaktická analýza, sématická analýza, testovanie, dokumentácia\\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{Komunikácia}
 Už na začiatku sme sa dohodli na pravidelných týždenných stretnutiach, kde sme diskutovali o našej ďaľšej práci na nadchádzajúci týždeň. Komunikovali sme najmä cez facebook a skype a osobné stretnutia boli veľmi príjemné. 
@@ -108,7 +125,7 @@ Už na začiatku sme sa dohodli na pravidelných týždenných stretnutiach, kde
 Pre správu projektu sme používali verzovací systém Git a vzdialený repozitár GitHub. Tento spôsob správy projektu nám umožňoval pracovať na viacerých častiach projektu súčasne. Po otestovaní jednotlivých podčastí sme súbory začali spájať do celku a každý mal možnosť testovať projekt už ako celok.
 
 \subsection{Hodnotenie}
-Celkovo hodnotíme tento projekt kladne, hoci na začiatku vyzeral pomerne zložito, postupne sme mali nápady ako dané problémy vyriešiť a nakoniec sme všetko stihli v časovom predstihu, takže sme mali možnosť odstraňovať chyby a testovať správnosť a určite tento projekt prispel k zlepšeniu našim programátorských schopností.
+Celkovo hodnotíme tento projekt kladne, hoci na začiatku vyzeral pomerne zložito, postupne sme mali nápady ako dané problémy vyriešiť a nakoniec sme všetko stihli v časovom predstihu, takže sme mali možnosť odstraňovať chyby a testovať správnosť a určite tento projekt prispel k zlepšeniu našich programátorských schopností.
 \newpage
 \bibliographystyle{czechiso}
 \renewcommand{\refname}{Použitá literatúra}
@@ -118,6 +135,8 @@ Celkovo hodnotíme tento projekt kladne, hoci na začiatku vyzeral pomerne zlož
 \appendix
 
 \section{Deterministický konečný automat}
+\scalebox{0.85}{\includegraphics{DKA.pdf}}
+
 \section{LL-gramatika}
 \begin{table}[!ht]
 	\centering
@@ -127,7 +146,8 @@ Celkovo hodnotíme tento projekt kladne, hoci na začiatku vyzeral pomerne zlož
         \item \verb|<prog> -> EOF|
         \item \verb|<prog> -> <statement> <prog>|
         
-        \item \verb|<statement> -> IF <expression> THEN EOL <statements> ELSE EOL <statements> END <prog>|
+        \item \verb|<statement> -> IF <expression> THEN EOL <statement> ELSE| \\ 
+\verb|EOL <statement> END <prog>|
         \item \verb|<statement> -> WHILE <expression> DO EOL <statement> END EOL|
         \item \verb|<statement> -> <function> EOL|
         \item \verb|<statement> -> ID EOL|

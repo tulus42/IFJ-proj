@@ -14,10 +14,17 @@ Adrián Tulušák, xtulus00
 // todo vestavene funkce typ kontrola + navrat
 
 #define ADD_INST(_inst)		\
+<<<<<<< HEAD
+	if (!add_const_string(&code[code_idx], (_inst "\n"))) return false 
+
+#define ADD_CODE(_code)		\
+	if (!add_const_string(&code[code_idx], (_code))) return false
+=======
 	if (!add_const_string(&code, (_inst "\n"))) return false 
 
 #define ADD_CODE(_code)		\
 	if (!add_const_string(&code, (_code))) return false
+>>>>>>> master
 
 #define ADD_INT(_code)				\
 	do {							\
@@ -151,10 +158,10 @@ Adrián Tulušák, xtulus00
 	"\n EXIT int@4"
 
 
-//string_t code; &code 
-//string_t prev_code;
-node_t * head = NULL;
-node_t * cur = NULL;
+
+string_t code[1000];
+
+int code_idx = 0;
 
 int auxcat = 1;
 
@@ -234,16 +241,8 @@ static bool gen_builtin_funcs()
 
 bool generator_start()
 {
-	string_t * new_code;	
-	if (!allocate_string(new_code)) return false;
-
-	head = malloc(sizeof(node_t));
-	if (head == NULL) return false;
-
-
-	head->code = new_code;
-	head->next = NULL;
-	//code = head->code;
+		
+	if (!allocate_string(&code[0])) return false;
 
 
 	if (!generate_header()) return false;
@@ -252,13 +251,32 @@ bool generator_start()
 
 	if (!gen_type_check()) return false;
 
-	flush_code(stdout);
 
 	return true;
 }
 
 
 
+<<<<<<< HEAD
+bool gen_new_part()
+{
+	code_idx++;
+	if (!allocate_string(&code[code_idx])) return false;
+	return true;
+
+}
+
+bool gen_defvar_2_old(char *var_id)
+{
+	if (!add_const_string(&code[code_idx-1], "DEFVAR LF@")) return false;
+	if (!add_const_string(&code[code_idx-1], var_id)) return false;
+	if (!add_const_string(&code[code_idx-1], "\n")) return false;
+	return true;
+}
+
+
+=======
+>>>>>>> master
 bool gen_mainscope_start()
 {
 	ADD_INST("LABEL &&main");
@@ -279,12 +297,29 @@ bool gen_mainscope_end()
 
 void clear_code()
 {
+<<<<<<< HEAD
+	for (int i = 0; i <= code_idx; i++)
+    {
+		free_string(&code[i]);	
+	}
+	
+=======
 	free_string(&code);
+>>>>>>> master
 }
 
 void flush_code(FILE *dst_file)
 {
+<<<<<<< HEAD
+	for (int i = 0; i <= code_idx; i++)
+    {
+		fputs((code[i]).s, dst_file);	
+	}
+
+	
+=======
 	fputs(code.s, dst_file);
+>>>>>>> master
 	clear_code();
 }
 
@@ -871,11 +906,7 @@ bool gen_func_rval_assign(char *var_id)
 	ADD_CODE(var_id);
 	ADD_CODE(" TF@_rval\n");
 
-	ADD_CODE("TYPE LF@");
-	ADD_CODE(var_id);
-	ADD_CODE("_type LF@");
-	ADD_CODE(var_id);
-	ADD_CODE("\n");
+
 
 	return true;
 }

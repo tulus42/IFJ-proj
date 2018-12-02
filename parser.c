@@ -313,6 +313,8 @@ static int statement(Data_t* data) {
             printf("ERR1\n");
             return(ER_SYN);
         }
+
+        if (data->in_while_or_if == 1) gen_new_part();
     
         gen_if_start(this_if, data->in_while_or_if);
         // ... EOL ...
@@ -531,11 +533,25 @@ static int statement(Data_t* data) {
         if (data->token->token == TYPE_ASSIGN) {
             if (data->in_definition == true) {
                 if (check_define(local_ST, identifier_declare.s) != PARAM_DEFINED) {
-                    gen_var_declar(identifier_declare.s);
+                    if(data->in_while_or_if == 0)
+                    {
+                        gen_var_declar(identifier_declare.s);
+                    }
+                    else
+                    {
+                        gen_defvar_2_old(identifier_declare.s);
+                    }
                 }
             } else {
                 if (check_define(global_ST, identifier_declare.s) != PARAM_DEFINED) {
-                    gen_var_declar(identifier_declare.s);
+                    if(data->in_while_or_if == 0)
+                    {
+                        gen_var_declar(identifier_declare.s);
+                    }
+                    else
+                    {
+                        gen_defvar_2_old(identifier_declare.s);
+                    }
                 }
             }
             

@@ -18,9 +18,17 @@ Adrián Tulušák, xtulus00
 #ifndef INSTRUCTIONS_H
 #define INSTRUCTIONS_H
 
+
+typedef struct node {
+    string_t * code;
+    struct node * next;
+} node_t;
+
 bool generator_start(); // vygeneruje hlavicku, preddefinovane funkce a jump na main
 bool gen_mainscope_start(); // zacatek main
 bool gen_mainscope_end(); // konec main
+bool gen_new_part();
+bool gen_defvar_2_old(char *var_id);
 
 
 bool gen_func_start(char *func_id); // začátek funkce, dec 1

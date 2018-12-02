@@ -64,19 +64,14 @@ Adrián Tulušák, xtulus00
 	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n LT LF@ret_cond LF@_1 int@0"									\
 	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
-	"\n EQ LF@ret_cond LF@_1 int@0"									\
-	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n GT LF@ret_cond LF@_1 LF@str_len"							\
 	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
-	"\n EQ LF@ret_cond LF@_2 int@0"									\
+	"\n LT LF@ret_cond LF@_2 int@0"									\
 	"\n JUMPIFEQ &substr&returnfail LF@ret_cond bool@true"				\
 	"\n DEFVAR LF@max_n"											\
 	"\n MOVE LF@max_n LF@str_len"									\
 	"\n SUB LF@max_n LF@max_n LF@_1"								\
-	"\n ADD LF@max_n LF@max_n int@1"								\
 	"\n DEFVAR LF@edit_n_cond"										\
-	"\n LT LF@edit_n_cond LF@_2 int@0"								\
-	"\n JUMPIFEQ &substr&edit_n LF@edit_n_cond bool@true"			\
 	"\n GT LF@edit_n_cond LF@_2 LF@max_n"							\
 	"\n JUMPIFEQ &substr&edit_n LF@edit_n_cond bool@true"			\
 	"\n JUMP &substr&process"										\
@@ -85,7 +80,6 @@ Adrián Tulušák, xtulus00
 	"\n LABEL &substr&process"										\
 	"\n DEFVAR LF@index"											\
 	"\n MOVE LF@index LF@_1"										\
-	"\n SUB LF@index LF@index int@1"								\
 	"\n DEFVAR LF@char"												\
 	"\n DEFVAR LF@process_loop_cond"								\
 	"\n LABEL &substr&process_loop"									\
@@ -116,7 +110,7 @@ Adrián Tulušák, xtulus00
 	"\n DEFVAR LF@_rval"									\
 	"\n MOVE LF@_rval nil@nil"								\
 	"\n DEFVAR LF@cond_length"								\
-	"\n LT LF@cond_length LF@_1 int@1"						\
+	"\n LT LF@cond_length LF@_1 int@0"						\
 	"\n JUMPIFEQ &ord&return LF@cond_length bool@true"		\
 	"\n DEFVAR LF@str_len"									\
 	"\n CREATEFRAME"										\
@@ -124,9 +118,9 @@ Adrián Tulušák, xtulus00
 	"\n MOVE TF@_0 LF@_0"									\
 	"\n CALL &length"										\
 	"\n MOVE LF@str_len TF@_rval"							\
+	"\n SUB LF@str_len LF@str_len int@1"                    \
 	"\n GT LF@cond_length LF@_1 LF@str_len"					\
 	"\n JUMPIFEQ &ord&return LF@cond_length bool@true"		\
-	"\n SUB LF@_1 LF@_1 int@1"								\
 	"\n STRI2INT LF@_rval LF@_0 LF@_1"						\
 	"\n LABEL &ord&return"									\
 	"\n POPFRAME"											\

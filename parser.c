@@ -639,7 +639,17 @@ static int statement(Data_t* data) {
     // expression na zaciatku riadku s konstantou alebo zatvorkou na zaciatku
     if (IS_VALUE() || data->token->token == TYPE_LEFT_BRACKET) {
         insert_to_buffer(&buffer, data);
+        
 
+        // TODO
+        while (data->token->token == TYPE_LEFT_BRACKET) {
+            GET_TOKEN();
+            insert_to_buffer(&buffer, data);
+
+            if (!(IS_VALUE())) {
+                return(ER_SYN);
+            }
+        }
         GET_TOKEN();
 
         insert_to_buffer(&buffer, data);
@@ -651,6 +661,17 @@ static int statement(Data_t* data) {
             if (res != EXPRESSION_OK) {
                 return(res);
             } else {
+
+                if (data->token->token == TYPE_QUESTION_MARK) {
+                    // ternarny operator
+
+
+                }
+
+
+
+
+
                 return(prog(data));
             }
             
@@ -1632,6 +1653,7 @@ static bool init_struct(Data_t* data){
     data->in_while_or_if = 0;
     data->in_definition = false;
     data->in_declare = false;
+    data->in_ternar_operator = false;
 
     return true;
 }
@@ -1699,7 +1721,7 @@ int start_parser(){
     
     free_string(&string);
     free(our_data.token);
-
+    
     //free(identifier);
     free_string(&identifier);
     free_string(&identifier_f);
@@ -1711,7 +1733,7 @@ int start_parser(){
 
     printf("EXIT code: %d\n", res);
 
-    if (our_data.in_while_or_if != 0)
+    if (res == SYN_OK && our_data.in_while_or_if != 0)
         return(ER_SYN);
     else
         return res;

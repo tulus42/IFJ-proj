@@ -149,7 +149,7 @@ Adrián Tulušák, xtulus00
 	"\n EXIT int@4"
 
 
-//string_t code;
+//string_t code; &code 
 //string_t prev_code;
 node_t * head = NULL;
 node_t * cur = NULL;
@@ -238,14 +238,14 @@ static bool gen_builtin_funcs()
 
 bool generator_start()
 {
-	string_t new_code;	
-	if (!allocate_string(&new_code)) return false;
+	string_t * new_code;	
+	if (!allocate_string(new_code)) return false;
 
 	head = malloc(sizeof(node_t));
 	if (head == NULL) return false;
 
 
-	head->code = &new_code;
+	head->code = new_code;
 	head->next = NULL;
 	//code = head->code;
 
@@ -255,6 +255,8 @@ bool generator_start()
 	if (!gen_builtin_funcs()) return false;
 
 	if (!gen_type_check()) return false;
+
+	flush_code(stdout);
 
 	return true;
 }

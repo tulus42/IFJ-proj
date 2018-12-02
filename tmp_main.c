@@ -20,7 +20,9 @@ int main(){
 
     ;
 
-    generator_start(); // kontrolovat succes
+    if (generator_start() == false) { // kontrolovat succes
+        return(99);
+    }
 
     parser_result = start_parser();
     if(parser_result != SYN_OK){
@@ -31,7 +33,7 @@ int main(){
     
     if(parser_result == SYN_OK){
         FILE *f;
-        f = fopen("/home/osboxes/Documents/IFJ-master/tmp_output", "w");
+        f = fopen("/home/adrian/Plocha/Škola/IFJ/IFJ/tmp_output", "w");
         flush_code(f);
         fclose(f);
     }else

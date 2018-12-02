@@ -25,7 +25,7 @@ Adrián Tulušák, xtulus00
 
 
 
-/*datové typy*/
+/*structers*/
 
 typedef enum
 {
@@ -44,7 +44,6 @@ typedef enum
   Type_of_tHTItem typ;    
   bool defined;
   int param_count;
-  //Token_attr data;
   struct tHTItem* ptrnext;
 } tHTItem;
 
@@ -56,7 +55,7 @@ tHTable global_ST;
 
 
 
-/* Hlavičky funkcií. */
+/* headers */
 
 int sym_table_error(int error_code);
 int hashCode ( char key[] );

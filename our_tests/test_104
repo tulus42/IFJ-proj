@@ -1,6 +1,8 @@
 def foo (a,b)
-ll*a + b
+   ll*a + b
 end
+
+a = 5
 
 foo (a)
 

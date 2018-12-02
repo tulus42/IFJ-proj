@@ -16,6 +16,7 @@ y = ja (y,z)
 a = "zid"
 a = som (y,z)
 if a != 42 then
-	print lost
+	print "lost"
 else
-	print win
+	print "win"
+end

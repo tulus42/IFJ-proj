@@ -592,7 +592,7 @@ a_tests=$((a_tests+1))
 
 echo -e "TEST_106: I am not sure what this shoul be doing....\c"
 ./ifj2018 < our_tests/test_$a_tests &>/dev/null
-if [ $? -eq 0 ]; then
+if [ $? -eq 3 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else
@@ -617,7 +617,7 @@ a_tests=$((a_tests+1))
 
 echo -e "TEST_108: Correct calling of function but invalid inbuild function\c"
 ./ifj2018 < our_tests/test_$a_tests &>/dev/null
-if [ $? -eq 2 ]; then
+if [ $? -eq 0 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else
@@ -642,7 +642,7 @@ a_tests=$((a_tests+1))
 
 echo -e "TEST_110: I am not sure what this test should do\c"
 ./ifj2018 < our_tests/test_$a_tests &>/dev/null
-if [ $? -eq 0 ]; then
+if [ $? -eq 2 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else
@@ -666,7 +666,7 @@ a_tests=$((a_tests+1))
 
 echo -e "TEST_112: Calling function without its required parameters\c"
 ./ifj2018 < our_tests/test_$a_tests &>/dev/null
-if [ $? -eq 5 ]; then
+if [ $? -eq 2 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else
@@ -834,3 +834,13 @@ fi
 a_tests=$((a_tests+1))
 
 
+
+counter=$((($counter*100)/67))
+
+
+echo -e "\n# VYHODNOTENIE #\n"
+if [ $counter > 75 ]; then
+    echo -e "Percentual success is ${GREEN}$counter%\n${NOCOLOR}"
+else
+    echo -e "Percentual success is ${RED}$counter%\n${NOCOLOR}"
+fi

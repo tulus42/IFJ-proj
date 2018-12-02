@@ -44,6 +44,7 @@ JUMP &&main
  EQ LF@ret_cond LF@str_len int@0
  JUMPIFEQ &substr&return LF@ret_cond bool@true
  LT LF@ret_cond LF@_1 int@0
+<<<<<<< Updated upstream
  JUMPIFEQ &substr&return LF@ret_cond bool@true
  EQ LF@ret_cond LF@_1 int@0
  JUMPIFEQ &substr&return LF@ret_cond bool@true
@@ -51,13 +52,17 @@ JUMP &&main
  JUMPIFEQ &substr&return LF@ret_cond bool@true
  EQ LF@ret_cond LF@_2 int@0
  JUMPIFEQ &substr&return LF@ret_cond bool@true
+=======
+ JUMPIFEQ &substr&returnfail LF@ret_cond bool@true
+ GT LF@ret_cond LF@_1 LF@str_len
+ JUMPIFEQ &substr&returnfail LF@ret_cond bool@true
+ LT LF@ret_cond LF@_2 int@0
+ JUMPIFEQ &substr&returnfail LF@ret_cond bool@true
+>>>>>>> Stashed changes
  DEFVAR LF@max_n
  MOVE LF@max_n LF@str_len
  SUB LF@max_n LF@max_n LF@_1
- ADD LF@max_n LF@max_n int@1
  DEFVAR LF@edit_n_cond
- LT LF@edit_n_cond LF@_2 int@0
- JUMPIFEQ &substr&edit_n LF@edit_n_cond bool@true
  GT LF@edit_n_cond LF@_2 LF@max_n
  JUMPIFEQ &substr&edit_n LF@edit_n_cond bool@true
  JUMP &substr&process
@@ -66,7 +71,6 @@ JUMP &&main
  LABEL &substr&process
  DEFVAR LF@index
  MOVE LF@index LF@_1
- SUB LF@index LF@index int@1
  DEFVAR LF@char
  DEFVAR LF@process_loop_cond
  LABEL &substr&process_loop
@@ -92,7 +96,7 @@ JUMP &&main
  DEFVAR LF@_rval
  MOVE LF@_rval int@0
  DEFVAR LF@cond_length
- LT LF@cond_length LF@_1 int@1
+ LT LF@cond_length LF@_1 int@0
  JUMPIFEQ &ord&return LF@cond_length bool@true
  DEFVAR LF@str_len
  CREATEFRAME
@@ -100,9 +104,9 @@ JUMP &&main
  MOVE TF@_0 LF@_0
  CALL &length
  MOVE LF@str_len TF@_rval
+ SUB LF@str_len LF@str_len int@1
  GT LF@cond_length LF@_1 LF@str_len
  JUMPIFEQ &ord&return LF@cond_length bool@true
- SUB LF@_1 LF@_1 int@1
  STRI2INT LF@_rval LF@_0 LF@_1
  LABEL &ord&return
  POPFRAME
@@ -158,6 +162,7 @@ RETURN
 LABEL &&main
 CREATEFRAME
 PUSHFRAME
+<<<<<<< Updated upstream
 PUSHS string@vypocet\032faktorialu\010
 POPS GF@_exp_res
 WRITE GF@_exp_res
@@ -231,5 +236,19 @@ PUSHS string@\010
 POPS GF@_exp_res
 WRITE GF@_exp_res
 LABEL &1_3
+=======
+DEFVAR LF@c
+DEFVAR LF@c_type
+MOVE LF@c_type string@nil
+MOVE LF@c nil@nil
+CREATEFRAME
+DEFVAR TF@_0
+MOVE TF@_0 int@144
+CALL &chr
+MOVE LF@c TF@_rval
+PUSHS LF@c
+POPS GF@_exp_res
+WRITE GF@_exp_res
+>>>>>>> Stashed changes
 POPFRAME
 CLEARS

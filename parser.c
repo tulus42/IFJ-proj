@@ -494,6 +494,10 @@ static int statement(Data_t* data) {
         // <statement> -> ID_FUNC 
         if (check_define(global_ST, (&identifier)->s) == FUNCTION_DEFINED) {
             
+            if (data->token->token == TYPE_ASSIGN) {
+                return(ER_SEM_VARIABLE);
+            }
+
             gen_func_prep_for_params();
 
             IF_N_OK_RETURN(argvs(data));
@@ -581,20 +585,6 @@ static int statement(Data_t* data) {
             }
             return(prog(data));
         } else
-
-
-
-        // expression na zaciatku riadku
-        if (IS_OPERAND() || data->token->token) {
-            res = handle_expression(data);
-            clear_buffer(&buffer);
-            if (res != EXPRESSION_OK) {
-                return(res);
-            } else {
-                return(prog(data));
-            }
-            
-        } else 
       
         
         // VOLANIE FUNKCIE PRED JEJ DEFINICIOU
@@ -625,11 +615,23 @@ static int statement(Data_t* data) {
                 }
                 //htPrintTable(global_ST);
             } else {
-                return(ER_SYN);
+                return(ER_SEM_VARIABLE);
             }
 
             return(prog(data));
 
+        } else 
+        
+        // expression na zaciatku riadku
+        if (IS_OPERAND() || data->token->token) {
+            res = handle_expression(data);
+            clear_buffer(&buffer);
+            if (res != EXPRESSION_OK) {
+                return(res);
+            } else {
+                return(prog(data));
+            }
+            
         } else {
 
             return(ER_SYN);

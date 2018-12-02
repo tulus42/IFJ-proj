@@ -6,7 +6,7 @@ b=10
 c=a-b
 a=a-c
 c=nil
-if (b==a) then
+if b==a then
 d= bar (c,b) 
 end
 print d

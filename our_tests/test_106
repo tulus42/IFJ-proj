@@ -2,4 +2,6 @@ def foo (a,a)
 	a+a
 end
 
-foo(5,4)
+a = foo(5,4)
+
+print a

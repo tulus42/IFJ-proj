@@ -38,14 +38,14 @@ Adrián Tulušák, xtulus00
 #define STATE_BACKSLASH_LITERAL 517 // backslash
 #define STATE_HEX_NUM 518 // xx
 #define STATE_DECIMAL 519 // 5.42
-#define STATE_EXPONENTIAL 520
-#define STATE_EXPONENTIAL_SIGN 521
-#define STATE_BINARY_NUM 522
+#define STATE_EXPONENTIAL 520 // e
+#define STATE_EXPONENTIAL_SIGN 521 // +, - or nothing
+#define STATE_BINARY_NUM 522 // rozsirenie
 #define STATE_OCTAL_NUM 523
 #define STATE_HEXADECIMAL_NUM 525
-#define STATE_EXPECT_COMMENT 526
+#define STATE_EXPECT_COMMENT 526 // states for comment
 #define STATE_EXPECT_NEWLINE 527
-#define STATE_INVALID_END 528
+#define STATE_INVALID_END 528 // no end
 
 typedef enum
 {
@@ -135,6 +135,7 @@ typedef struct
 int lexer_error(string_t* string_ptr, int error_type);
 int lexer_succesful(string_t* string_ptr);
 int get_next_token(Token_t *token);
+
 void keywords(string_t *string_ptr, Token_t* token);
 void change_state(int * current_state, int next_state);
 void get_source(FILE *f);

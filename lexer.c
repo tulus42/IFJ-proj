@@ -23,12 +23,6 @@ char* string_content;
 string_t* dynamic_string;
 static int token_counter = 0;
 
-/*
-TODO: 
-hex_number error
-=begin if not match, beginning???
-skontrolovať rozsah int a double?
-*/
 
 #define ADDING_CHAR()	\
 	if(!add_char(string_ptr, c)){	\
@@ -55,6 +49,7 @@ void change_state(int * current_state, int next_state){
  * If not keyword, it is automatically an identifier
  */
 void keywords(string_t *string_ptr, Token_t* token){
+	// compare with all the keywords
 	if(compare_strings(string_ptr, "def")){
 		token->token = TYPE_KEYWORD;
 		token->attr.keyword = KEYWORD_DEF;
@@ -123,7 +118,7 @@ void keywords(string_t *string_ptr, Token_t* token){
 		token->token = TYPE_KEYWORD;
 		token->attr.keyword = KEYWORD_CHR;
 	}
-	else{
+	else{// if it is not any keyword, then it is identifier
 		token->token = TYPE_IDENTIFIER;
 		copy_string_content(token->attr.string, string_ptr);
 	}
@@ -272,7 +267,7 @@ int get_next_token(Token_t *token)
 						return lexer_error(string_ptr, ER_LEX);
 					}
 				}
-				else if(c == EOF){ // should this be here???
+				else if(c == EOF){ // EOF
 					token->token = TYPE_EOF;
 					return lexer_succesful(string_ptr);
 				}
@@ -282,6 +277,7 @@ int get_next_token(Token_t *token)
 				}
 				break;
 
+			// after EOL, we can expect comment
 			case(STATE_EXPECT_COMMENT):
 				if(c == '='){
 					ADDING_CHAR()
@@ -321,7 +317,7 @@ int get_next_token(Token_t *token)
 				}
 				break;
 
-
+			// hexadecimal number inside string literal
 			case(STATE_HEXADECIMAL_NUM):
 				if(isdigit(c)){	// hexadecimal number can contain digit
 					ADDING_CHAR()
@@ -348,7 +344,7 @@ int get_next_token(Token_t *token)
 					return lexer_succesful(string_ptr);
 				}
 				else if(isalpha(c) && c == 'b'){ // =b; expesting it to be '=begin'
-					if(token_counter == 0){
+					if(token_counter == 0){		// this apllies only to comment on the first line
 						if(!add_char(string_ptr, '=')){
 							return lexer_error(string_ptr, ER_INTERNAL);
 						}
@@ -391,6 +387,7 @@ int get_next_token(Token_t *token)
 				}
 				break;
 
+			// we wait for end, but have to retract if no end comes
 			case(STATE_INVALID_END):
 				ADDING_CHAR()
 				registered_input = strlen(string_ptr->s);
@@ -419,6 +416,7 @@ int get_next_token(Token_t *token)
 				}
 				break;
 
+			// expects newline
 			case(STATE_EXPECT_NEWLINE):
 				if(end_of_comment){
 					if(c == ' ' || c == '\n' || c == EOF){

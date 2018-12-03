@@ -14,6 +14,7 @@
 \usepackage[unicode]{hyperref}
 \usepackage{enumitem}
 \usepackage{float}
+\usepackage{multicol}
 
 \begin{document}
 \begin{center}
@@ -101,7 +102,6 @@ Funkcia spočítava ASCII hodnotu jednotlivých znakov kľúča a nakoniec vraci
 \section{Generovanie inštrukcií}
 
 \section{Práca v tíme}
-<<<<<<< HEAD
 Náš tím sme si zostavili pomerne skoro. Po rozdelení práce na menšie celky sme začali každý pracovať na časti pridelenej vedúcim tímu. Približne 3 týždne pred pokusným odovzdaním sme začali jednotlivé časti spájať do celku. Pokusné odovzdávanie sme využili, no výsledok nás nemilo prekvapil. Zistili sme, že hoci všetko fungovvalo pomerne správne, návratové hodnoty sme vždy "natvrdo" vracali buď ako 0 alebo 1, čo sa aj prejavilo na celkovom percentuálnom hodnotení. Pri tejto príležitosti sme spravili riadnu revíziu kódu a poopravovali čo najviac chýb a nedostatkov. Práca v tíme bola rozdelená nasledovne:
 
 \begin{table}[H]
@@ -111,14 +111,11 @@ Náš tím sme si zostavili pomerne skoro. Po rozdelení práce na menšie celky
 Meno & Povinnosti\\ \hline
 \textbf{Dominik Peza} & vedenie tímu, pridelovanie úloh, kontrola práce, konzultácie, generovanie inštrukcií\\
 Sabína Gregušová & lexikálna analýza, precedenčná analýza výrazov, dokumentácia, testovanie\\
-Adam Hostin & sématická analýza, tabuľka symbolov, dokumentácia, testovanie, diagramy\\
+Adam Hostin & sématická analýza, dokumentácia, testovanie, diagramy\\
 Adrián Tulušák & syntaktická analýza, sématická analýza, testovanie, dokumentácia\\
 \hline
 \end{tabular}
 \end{table}
-=======
-Náš tím sme si zostavili pomerne skoro. Po rozdelení práce na menšie celky sme začali každý pracovať na časti pridelenej vedúcim tímu. Približne 3 týždne pred pokusným odovzdaním sme začali jednotlivé časti spájať do celku. Pokusné odovzdávanie sme využili, no výsledok nás nemilo prekvapil. Zistili sme, že hoci všetko fungovvalo pomerne správne, návratové hodnoty sme vždy "natvrdo" vracali buď ako 0 alebo 1, čo sa aj prejavilo na celkovom percentuálnom hodnotení. Pri tejto príležitosti sme spravili riadnu revíziu kódu a poopravovali čo najviac chýb a nedostatkov. 
->>>>>>> parent of 4c8da57... Updated makefile
 
 \subsection{Komunikácia}
 Už na začiatku sme sa dohodli na pravidelných týždenných stretnutiach, kde sme diskutovali o našej ďaľšej práci na nadchádzajúci týždeň. Komunikovali sme najmä cez facebook a skype a osobné stretnutia boli veľmi príjemné. 
@@ -137,13 +134,46 @@ Celkovo hodnotíme tento projekt kladne, hoci na začiatku vyzeral pomerne zlož
 \appendix
 
 \section{Deterministický konečný automat}
-<<<<<<< HEAD
 \scalebox{0.85}{\includegraphics{DKA.pdf}}
+\clearpage
 
-=======
->>>>>>> parent of 4c8da57... Updated makefile
+\begin{table}[h]
+\begin{tabular}{l l}
+Legenda:& \\
+S &\qquad start\\
+F1 &\qquad dvojbodka\\
+F2 &\qquad ternárny operátor\\
+F3 &\qquad div\\
+F4 &\qquad nerovná sa \\
+F5 &\qquad priradenie\\
+F6 &\qquad rovná sa\\
+F7 &\qquad nula\\
+F8 &\qquad binárne číslo\\
+F9 & \qquad číslo v osmičkovej sústave\\
+F10&\qquad číslo v hexadecimálnej sústave\\
+F11&\qquad celé číslo v desiatkovej sústave\\
+F12&\qquad desatinné číslo\\
+F13&\qquad číslo s exponentom\\
+F14&\qquad reťazec\\
+F15& \qquad mínus\\
+F16&\qquad plus\\
+F17&\qquad krát\\
+F18&\qquad identifikátor premennej\\
+F19&\qquad identifikátor funkcie\\
+F20&\qquad ostro menší\\
+F21&\qquad menší alebo rovný\\
+F22&\qquad ostro väčší\\
+F23&\qquad väčší rovný\\
+F24&\qquad jednoriadkový komentár\\
+F25&\qquad koniec zátvorky\\
+F26&\qquad začiatok zátvorky\\
+F27&\qquad oddelovač parametrov\\
+\end{tabular}
+\end{table}
+
+
 \section{LL-gramatika}
-\begin{table}[!ht]
+\begin{table}[H]
 	\centering
     \begin{enumerate}[noitemsep]
         \item \verb|<prog> -> DEF ID_FUNC ( <params> ) EOL <statement> END <prog>|

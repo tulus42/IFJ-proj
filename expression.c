@@ -35,6 +35,128 @@ int precedential_table[table_size][table_size] = {
 bool from_lexer = false;
 bool from_buffer = false;
 
+const char* tokens_tmp[] = {
+	"TYPE_EOF", 
+	"TYPE_EOL", 
+	"TYPE_IDENTIFIER", 
+	"TYPE_KEYWORD",
+
+	"TYPE_ASSIGN", // =
+	"TYPE_NEQ", // !=
+	"TYPE_LEQ", // <=
+	"TYPE_LTN", // <
+	"TYPE_MEQ", // >=
+	"TYPE_MTN", // >
+	"TYPE_EQ", // ==
+	
+	"TYPE_PLUS", // +
+	"TYPE_MINUS", //  -
+	"TYPE_MUL", // *
+	"TYPE_DIV", // /
+
+	"TYPE_LEFT_BRACKET", // (
+	"TYPE_RIGHT_BRACKET", // )
+	"TYPE_COMMA", // ,
+
+	"TYPE_COMMENT", // #
+	"TYPE_COMMENT_START", // =begin 
+	"TYPE_COMMENT_END", // =end 
+
+	"TYPE_INT", 
+	"TYPE_FLOAT", 
+	"TYPE_STRING",
+    "TYPE_FUNC"
+};
+
+const char* symbols[] = {
+	"PLUS",   // +
+    "MINUS",  // -
+    "MUL",    // *
+    "DIV",    // /
+    "LEFT_B", // (
+    "RIGHT_B", // )
+    "ID",     // i
+    "EQL",    // ==
+    "NEQ",   // !=
+    "LEQ",    // >=
+    "LTN",    // >
+    "MEQ",    // <=
+    "MTN",    // <
+    "DOLLAR",  // $
+	"E",
+    "START",
+    "IDIV"
+};
+
+const char* rules[] = {
+	"S",  // shift <
+    "R",  // reduce >
+    "E",  // equal =
+    "U" 
+};
+
+const char* status_type[] = {
+    "ON_GENERATOR_STACK",
+    "INVALID_TOKEN",
+    "VALID_TOKEN",
+};
+
+void print_buffer(Symbol_list* list){
+    Symbol_item_t* tmp = list->first;
+
+    if(tmp == NULL){
+        printf("BUFFER IS EMPTY\n\n");
+        return;
+    }
+    else{
+        int counter = 0;
+        printf("BUFFER CONTAINS:\n");
+    while(tmp != NULL){
+        if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){
+            printf("%d : %s : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token], tmp->my_token.attr_token.tmp_string);
+        }
+        else{
+            printf("%d : %s : %s : %s\n", counter, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token]);
+        }
+        counter++;
+        tmp = tmp->next;
+    }
+    printf("\n");
+    }
+}
+
+/**
+ * Debug functions
+*/
+void print_current_stack(Symbol_stack_t* stack){ // 
+    if(stack->top == NULL){
+        printf("STACK IS EMPTY\n\n");
+        return;
+    }
+    else{
+        printf("STACK CONTAINS:\n");
+        Symbol_item_t* tmp = stack->top;
+        int i = 0;
+        while(tmp != NULL){
+            if(tmp->current_status == VALID_TOKEN){
+                if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){
+                    printf("%d : %s : %s : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token], tmp->my_token.attr_token.tmp_string);
+                }
+                else{
+                    printf("%d : %s : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status], tokens_tmp[tmp->my_token.type_token]);
+                }
+            }
+            else{
+                printf("%d : %s : %s\n", i, symbols[tmp->symbol], status_type[tmp->current_status]);
+            }
+            i++;
+            tmp = tmp->next;
+        }
+        printf("\n");
+    }
+}
+
+
 /***********************************************************
  * 
  *                       MACROS
@@ -117,7 +239,13 @@ int handle_expression(Data_t* data){
         return expression_error(&stack, &buffer, ER_INTERNAL);
     }
 
+    print_buffer(&buffer);
+    print_current_stack(&stack);
+
     GET_SYMBOL();
+
+    print_buffer(&buffer);
+    print_current_stack(&stack);
 
     while(!is_reduced){
         current_rule = get_indexes_and_rule(&stack, to_push_symbol);  // get current rule
@@ -170,10 +298,14 @@ int handle_expression(Data_t* data){
 
         if(can_get_token){
             GET_SYMBOL();
-        }       
+        }
+
+        print_buffer(&buffer);
+        print_current_stack(&stack);       
     }
     // pop the generator stack - that is our expression
     gen_save_expr_res();
+    printf("While has finished succesfully!\n\n");
 
     // clearing all
     free_stack(&stack);
@@ -864,6 +996,7 @@ int insert_to_buffer(Symbol_list* list, Data_t* data){
 
     tmp->symbol = current_symbol;
     tmp->next = NULL;
+    tmp->my_token.type_token = TYPE_EOL;
 
     if(current_symbol != DOLLAR){
         remember_token(tmp, data);

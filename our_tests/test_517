@@ -1,0 +1,14 @@
+def fun? ( )
+    42
+end
+
+def fun1! ( )
+    42
+end
+
+abc_premenna = 0
+ab_ = 0
+_pom = 0
+_ = 0
+fun?
+fun1!

@@ -204,6 +204,78 @@ fi
 
 lex_t=$((lex_t + 1))
 
+echo -e "TEST_516: Invalid identifier\c"
+./ifj2018 < our_tests/test_$lex_t &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+lex_t=$((lex_t + 1))
+
+echo -e "TEST_517: Bunch of correct identifiers\c"
+./ifj2018 < our_tests/test_$lex_t &>/dev/null
+if [ $? -eq 0 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+lex_t=$((lex_t + 1))
+
+echo -e "TEST_518: Inccorrect function name\c"
+./ifj2018 < our_tests/test_$lex_t &>/dev/null
+if [ $? -eq 1 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+lex_t=$((lex_t + 1))
+
+echo -e "TEST_519: Invalid identifier\c"
+./ifj2018 < our_tests/test_$lex_t &>/dev/null
+if [ $? -eq 1 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+lex_t=$((lex_t + 1))
+
+echo -e "TEST_520: Invalid identifier\c"
+./ifj2018 < our_tests/test_$lex_t &>/dev/null
+if [ $? -eq 1 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+lex_t=$((lex_t + 1))
+
+echo -e "TEST_521: Using keyword as identifier\c"
+./ifj2018 < our_tests/test_$lex_t &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+lex_t=$((lex_t + 1))
+
 echo -e "\nTests for syntactical analysis:\n"
 # These tests are numbered from 600
 syn_t=600
@@ -629,7 +701,7 @@ a_tests=$((a_tests+1))
 
 echo -e "TEST_109: Adding nil together\c"
 ./ifj2018 < our_tests/test_$a_tests &>/dev/null
-if [ $? -eq 4 ]; then
+if [ $? -eq 0 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else

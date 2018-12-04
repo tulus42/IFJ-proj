@@ -46,6 +46,7 @@ Adrián Tulušák, xtulus00
 #define STATE_EXPECT_COMMENT 526 // states for comment
 #define STATE_EXPECT_NEWLINE 527
 #define STATE_INVALID_END 528 // no end
+#define EXPECT_WHITESPACE_OR_EOL_0 529
 
 typedef enum
 {
@@ -66,7 +67,7 @@ typedef enum
 	KEYWORD_SUBSTR,
 	KEYWORD_ORD,
 	KEYWORD_CHR,
-
+	KEYWORD_ELSEIF
 } Keyword;
 
 typedef union

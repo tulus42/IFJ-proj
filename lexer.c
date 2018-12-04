@@ -118,6 +118,10 @@ void keywords(string_t *string_ptr, Token_t* token){
 		token->token = TYPE_KEYWORD;
 		token->attr.keyword = KEYWORD_CHR;
 	}
+	else if(compare_strings(string_ptr, "elseif")){
+		token->token = TYPE_KEYWORD;
+		token->attr.keyword = KEYWORD_ELSEIF;
+	}
 	else{// if it is not any keyword, then it is identifier
 		token->token = TYPE_IDENTIFIER;
 		copy_string_content(token->attr.string, string_ptr);
@@ -272,7 +276,6 @@ int get_next_token(Token_t *token)
 					return lexer_succesful(string_ptr);
 				}
 				else{ // non-acceptable char
-					printf("Som tu v chare\n");
 					return lexer_error(string_ptr, ER_LEX);
 				}
 				break;
@@ -352,7 +355,9 @@ int get_next_token(Token_t *token)
 						change_state(&current_status, STATE_COMMENT_START);	// go to state that checks whether it is start of block comment
 					}
 					else{
-						return lexer_error(string_ptr, ER_LEX);
+						token->token = TYPE_ASSIGN;
+						ungetc(c, source); // puts c back to buffer
+						return lexer_succesful(string_ptr);
 					}
 				}
 				else{ // =
@@ -378,9 +383,17 @@ int get_next_token(Token_t *token)
 
 				if(check_comment_begin(registered_input, string_ptr)){
 					if(registered_input == strlen("=begin")){ // it is '=begin'
-						end_of_comment = false;
-						change_state(&current_status, STATE_EXPECT_NEWLINE);
+						change_state(&current_status, EXPECT_WHITESPACE_OR_EOL_0);
 					}
+				}
+				else{
+					return lexer_error(string_ptr, ER_LEX);
+				}
+				break;
+
+			case(EXPECT_WHITESPACE_OR_EOL_0):
+				if(isspace(c) || c == '\n'){
+					change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
 				}
 				else{
 					return lexer_error(string_ptr, ER_LEX);
@@ -405,12 +418,7 @@ int get_next_token(Token_t *token)
 
 			// waits for =, everything inside the block comment is ignored
 			case(STATE_INSIDE_BLOCK_COMMENT):
-				if(c == '='){
-					clear_string_content(string_ptr);
-					ungetc(c, source);
-					change_state(&current_status, STATE_INVALID_END);	
-				}
-				else if(c == '\n'){
+				if(c == '\n'){
 					clear_string_content(string_ptr);
 					change_state(&current_status, STATE_COMMENT_END);
 				}
@@ -425,14 +433,6 @@ int get_next_token(Token_t *token)
 						return lexer_succesful(string_ptr);
 					}
 				}
-				else{
-					if(c == '\n'){
-						change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
-					}
-					else{
-						return lexer_error(string_ptr, ER_LEX);
-					}
-				}
 				break;
 
 			// check whether input is '=end'
@@ -441,7 +441,6 @@ int get_next_token(Token_t *token)
 				registered_input = strlen(string_ptr->s);
 				if(check_comment_end(registered_input, string_ptr)){ // it is '=end'
 					if(registered_input == strlen("=end")){
-						end_of_comment = true;
 						change_state(&current_status, STATE_EXPECT_NEWLINE);
 					}
 				}
@@ -469,24 +468,12 @@ int get_next_token(Token_t *token)
 				}
 				else if(c == '?' || c == '!'){ // this has to be the end of string
 					ADDING_CHAR()
-					change_state(&current_status, STATE_LAST_CHAR);
+					keywords(string_ptr, token); // compares it with all keywords
+					return lexer_succesful(string_ptr);
 				}
 				else{ // string is complete
 					ungetc(c, source); // puts c back to buffer
 					keywords(string_ptr, token); // compares it with all keywords
-					return lexer_succesful(string_ptr);
-				}
-				break;
-
-			// last char can be ! or ?, but it cannot be followed by anything else
-			case(STATE_LAST_CHAR):
-				if(isalpha(c) || isdigit(c) || c == '_'){ // it cannot by followd by anything else
-					return lexer_error(string_ptr, ER_LEX);
-				}
-				else{ // this can be identifier
-					ungetc(c, source);
-					token->token = TYPE_FUNC;
-					copy_string_content(token->attr.string, string_ptr);
 					return lexer_succesful(string_ptr);
 				}
 				break;
@@ -582,11 +569,11 @@ int get_next_token(Token_t *token)
 					ADDING_CHAR()
 					change_state(&current_status, STATE_DECIMAL);
 				}
-				else if(c == 'b'){
+				else if(c == 'b'){ // Ob
 					change_state(&current_status, STATE_BINARY_NUM);
 					clear_string_content(string_ptr);
 				}
-				else if(c == 'x'){
+				else if(c == 'x'){	// 0x
 					change_state(&current_status, STATE_HEXADECIMAL_NUM);
 				}
 				else if(isdigit(c)){ // 0X, octal number, X is [1-9]
@@ -642,9 +629,6 @@ int get_next_token(Token_t *token)
 					ADDING_CHAR()
 					change_state(&current_status, STATE_EXPONENTIAL_SIGN);
 				}
-				else if(isalpha(c)){
-					return lexer_error(string_ptr, ER_LEX);
-				}
 				else{ // it is int, put c back to buffer and save it as an int
 					ungetc(c, source);
 					token->token = TYPE_INT;
@@ -658,7 +642,7 @@ int get_next_token(Token_t *token)
 				if(isdigit(c)){
 					ADDING_CHAR()
 				}
-				else if(c == 'e' || c == 'E'){
+				if(c == 'e' || c == 'E'){
 					ADDING_CHAR()
 					change_state(&current_status, STATE_EXPONENTIAL_SIGN);
 				}
@@ -675,7 +659,7 @@ int get_next_token(Token_t *token)
 				if(c == '+' || c == '-'){ // non-mandatory sign
 					ADDING_CHAR()
 				}
-				else if(isdigit(c)){ // if no sign, default sign is '+'
+				else{ // if no sign, default sign is '+'
 					ungetc(c, source); // put c back to buffer
 					if(!add_char(string_ptr, '+')){
 						return lexer_error(string_ptr, ER_INTERNAL);
@@ -690,8 +674,11 @@ int get_next_token(Token_t *token)
 					exponential_counter++; 
 					ADDING_CHAR()
 				}
+				else if(exponential_counter == 0 && isalpha(c)){
+					return lexer_error(string_ptr, ER_LEX);
+				}
 				else{ // input is done, put c back to buffer, convert it and save it as float
-					if(exponential_counter == 0){
+					if(exponential_counter == 0){ // 2e without any more digits following - error
 						return lexer_error(string_ptr, ER_LEX);
 					}
 					else{

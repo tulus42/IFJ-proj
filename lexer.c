@@ -161,6 +161,7 @@ int get_next_token(Token_t *token)
 	int current_status = STATE_START; // current state is start
 	int registered_input; // counts how many chars have been entered for '=begin' and '=end'
 	int exponential_counter = 0;
+	int decimal_counter = 0;
 	
 	token->attr.string = dynamic_string;
 	
@@ -518,7 +519,7 @@ int get_next_token(Token_t *token)
 					break;
 				}
 				else{
-					return lexer_error(string_ptr, ER_LEX);
+					ADDING_CHAR();
 				}
 				change_state(&current_status, STATE_STRING);
 				break;
@@ -628,17 +629,23 @@ int get_next_token(Token_t *token)
 			// previous chars were digits followed by dot
 			case(STATE_DECIMAL):
 				if(isdigit(c)){
-					ADDING_CHAR()
+					ADDING_CHAR();
+					decimal_counter++;
 				}
-				if(c == 'e' || c == 'E'){
+				else if(c == 'e' || c == 'E'){
 					ADDING_CHAR()
 					change_state(&current_status, STATE_EXPONENTIAL_SIGN);
 				}
 				else{ // it is decimal float, put c back to buffer and save it as float
-					ungetc(c, source);
-					token->token = TYPE_FLOAT;
-					token->attr.flt = strtof(string_ptr->s, NULL);
-					return lexer_succesful(string_ptr);
+					if(decimal_counter == 0){
+						return lexer_error(string_ptr, ER_LEX);
+					}
+					else{
+						ungetc(c, source);
+						token->token = TYPE_FLOAT;
+						token->attr.flt = strtof(string_ptr->s, NULL);
+						return lexer_succesful(string_ptr);
+					}
 				}
 				break;
 

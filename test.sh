@@ -230,7 +230,7 @@ lex_t=$((lex_t + 1))
 
 echo -e "TEST_518: Inccorrect function name\c"
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
-if [ $? -eq 1 ]; then
+if [ $? -eq 2 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else
@@ -834,7 +834,7 @@ a_tests=$((a_tests+1))
 
 echo -e "TEST_120: Empty file\c"
 ./ifj2018 < our_tests/test_$a_tests &>/dev/null
-if [ $? -eq 99 ]; then
+if [ $? -eq 0 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else
@@ -905,9 +905,152 @@ fi
 
 a_tests=$((a_tests+1))
 
+echo -e "TEST_126: Invalid comment\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 1 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_127: Invalid comment\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_128: Invalid token\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 1 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_129: This shouldn't work at all\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 3 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_130: The result is 2 and it should be working\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 0 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_131: Invalid assignment of variable\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_132: Zero division\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 9 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_133: This should work - normal program\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 0 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_134: Declaration of function within another function\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_135: Calling function before its declaration\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 2 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_136: Function calls itself\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 0 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
+
+echo -e "TEST_137: This will kill your sleep and haunt you in your dreams. BEWARE OF GENERATED CODE!\c"
+./ifj2018 < our_tests/test_$a_tests &>/dev/null
+if [ $? -eq 0 ]; then
+	counter=$((counter+1))
+	echo -e "${GREEN}[OK]${NOCOLOR}"
+else
+	success=1
+    echo -e "${RED}[FAILED]${NOCOLOR}"
+fi
+
+a_tests=$((a_tests+1))
 
 
-counter=$((($counter*100)/67))
+counter=$((($counter*100)/88))
 
 
 echo -e "\n# VYHODNOTENIE #\n"

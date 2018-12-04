@@ -1,0 +1,6 @@
+a = 42
+while a > 10 do
+    b = 5 + a
+    print b
+    a = a - 1
+end

@@ -1,0 +1,7 @@
+if 4<5 
+a=2
+else
+b=5
+end
+c=a+b
+print c

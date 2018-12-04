@@ -1,0 +1,6 @@
+def try?(a)
+a= length(a)
+end
+
+res = try?('10')
+res

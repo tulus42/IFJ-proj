@@ -17,7 +17,6 @@ Adrián Tulušák, xtulus00
 #include "error.h"
 #include "parser.h"
 #include "expression.h"
-//#include "symtable.h"
 #include "instructions.h"
 
 
@@ -57,36 +56,36 @@ const char* tokens[] = {
 
 
 
-#define GET_TOKEN()   \
-    do { res = get_next_token(data->token);                                                   \
-        if (res != LEXER_OK)                             \
-            return(res); \
-    } while (data->token->token == TYPE_COMMENT); \
+#define GET_TOKEN()                                                                             \
+    do { res = get_next_token(data->token);                                                     \
+        if (res != LEXER_OK)                                                                    \
+            return(res);                                                                        \
+    } while (data->token->token == TYPE_COMMENT);                                               \
    
 
-#define IS_VALUE()                                                           \
-    data->token->token == TYPE_INT || data->token->token == TYPE_FLOAT      \
-    || data->token->token == TYPE_STRING || data->token->token == TYPE_IDENTIFIER \
+#define IS_VALUE()                                                                              \
+    data->token->token == TYPE_INT || data->token->token == TYPE_FLOAT                          \
+    || data->token->token == TYPE_STRING || data->token->token == TYPE_IDENTIFIER               \
     || (data->token->token == TYPE_KEYWORD && data->token->attr.keyword == KEYWORD_NIL)
 
-#define IF_N_OK_RETURN(__func__) \
-    res = __func__; \
+#define IF_N_OK_RETURN(__func__)                                                                \
+    res = __func__;                                                                             \
     if (res != SYN_OK) return(res);    
 
-#define IS_OPERAND() \
-    data->token->token == TYPE_PLUS ||data->token->token == TYPE_MINUS || data->token->token == TYPE_MUL \
-    || data->token->token == TYPE_DIV || data->token->token == TYPE_NEQ || data->token->token == TYPE_LEQ \
-    || data->token->token == TYPE_LTN || data->token->token == TYPE_MEQ || data->token->token == TYPE_MTN \
+#define IS_OPERAND()                                                                                        \
+    data->token->token == TYPE_PLUS ||data->token->token == TYPE_MINUS || data->token->token == TYPE_MUL    \
+    || data->token->token == TYPE_DIV || data->token->token == TYPE_NEQ || data->token->token == TYPE_LEQ   \
+    || data->token->token == TYPE_LTN || data->token->token == TYPE_MEQ || data->token->token == TYPE_MTN   \
     || data->token->token == TYPE_EQ        
 
-#define CHECK_BOTH_TABLES() \
-    if (data->in_definition == true) { \
-        if (check_define(local_ST, data->token->attr.string->s) != PARAM_DEFINED) { \
-            return (ER_SEM_VARIABLE); \
-        } \
-    } else \
-        if (check_define(global_ST, data->token->attr.string->s) != PARAM_DEFINED) { \
-            return(ER_SEM_VARIABLE); \
+#define CHECK_BOTH_TABLES()                                                                     \
+    if (data->in_definition == true) {                                                          \
+        if (check_define(local_ST, data->token->attr.string->s) != PARAM_DEFINED) {             \
+            return (ER_SEM_VARIABLE);                                                           \
+        }                                                                                       \
+    } else                                                                                      \
+        if (check_define(global_ST, data->token->attr.string->s) != PARAM_DEFINED) {            \
+            return(ER_SEM_VARIABLE);                                                            \
     } 
 
 
@@ -499,7 +498,7 @@ static int statement(Data_t* data) {
         if (check_define(global_ST, (&identifier)->s) == FUNCTION_DEFINED) {
             
             if (data->token->token == TYPE_ASSIGN) {
-                return(ER_SYN);
+                return(ER_SEM_VARIABLE);
             }
 
             gen_func_prep_for_params();

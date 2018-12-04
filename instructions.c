@@ -213,6 +213,14 @@ static bool gen_type_check()
 
 	ADD_INST("EXIT int@4");
 
+	ADD_INST("LABEL &KILLALL9");
+
+	ADD_INST("EXIT int@9");
+
+	ADD_INST("LABEL &KILLALL3");
+
+	ADD_INST("EXIT int@3");
+
 	ADD_INST("LABEL &type_check_true");
 
 	ADD_INST("PUSHS GF@_aux_2");
@@ -266,6 +274,10 @@ bool gen_defvar_2_old(char *var_id)
 	if (!add_const_string(&code[code_idx-1], "DEFVAR LF@")) return false;
 	if (!add_const_string(&code[code_idx-1], var_id)) return false;
 	if (!add_const_string(&code[code_idx-1], "\n")) return false;
+
+	if (!add_const_string(&code[code_idx-1], "MOVE LF@")) return false;
+	if (!add_const_string(&code[code_idx-1], var_id)) return false;
+	if (!add_const_string(&code[code_idx-1], " nil@nil\n")) return false;
 	return true;
 }
 
@@ -431,6 +443,7 @@ static bool gen_term_val(Tmp_Token_t t)
 
 		case TYPE_KEYWORD:
 			ADD_CODE("nil@nil");
+			break;
 
 		default:
 			free_string(&tmp_str);
@@ -489,6 +502,7 @@ static bool gen_term_val_classic(Token_t t)
 			
 		case TYPE_KEYWORD:
 			ADD_CODE("nil@nil");
+			break;
 
 		default:
 			free_string(&tmp_str);
@@ -561,6 +575,7 @@ bool gen_push(Tmp_Token_t t)
 	ADD_CODE("PUSHS ");
 	if (!gen_term_val(t))
 	 return false;
+
 	ADD_CODE("\n");
 	return true;
 }
@@ -640,6 +655,9 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 			ADD_CODE(" GF@_aux_1_type string@int");
 			ADD_CODE("\n");
 
+
+
+
 			ADD_CODE("JUMP &div");
 
 			ADD_INT(auxcat);
@@ -650,6 +668,14 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 
 			ADD_INT(auxdiv);
 			ADD_CODE("\n");
+
+			ADD_INST("POPS GF@_aux_1");
+			ADD_INST("POPS GF@_aux_2");
+
+			ADD_INST("JUMPIFEQ &KILLALL9 GF@_aux_1 int@0");
+
+			ADD_INST("PUSHS GF@_aux_2");
+			ADD_INST("PUSHS GF@_aux_1");
 
 			ADD_INST("IDIVS");
 
@@ -662,6 +688,14 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 			ADD_CODE("LABEL &div");
 			ADD_INT(auxcat);
 			ADD_CODE("\n");
+
+			ADD_INST("POPS GF@_aux_1");
+			ADD_INST("POPS GF@_aux_2");
+
+			ADD_INST("JUMPIFEQ &KILLALL9 GF@_aux_1 float@0x0p+0");
+
+			ADD_INST("PUSHS GF@_aux_2");
+			ADD_INST("PUSHS GF@_aux_1");
 
 
 			ADD_INST("DIVS");
@@ -801,10 +835,120 @@ bool gen_input(char *var_id, Type_of_tHTItem t, bool assign)
 	}
 }
 
+int auxprint = 1;
+
 bool gen_print()
 {
+	ADD_INST("TYPE GF@_exp_res_type GF@_exp_res");
+
+	ADD_CODE("JUMPIFEQ &kodimjakoprase");
+	ADD_INT(auxprint);
+	ADD_CODE(" GF@_exp_res_type string@nil");
+	ADD_CODE("\n");
+
+
 	ADD_INST("WRITE GF@_exp_res");
+	ADD_INST("MOVE GF@_exp_res nil@nil");
+
+	ADD_CODE("JUMP &helpme");
+	ADD_INT(auxprint);
+	ADD_CODE("\n");
+
+	ADD_CODE("LABEL &kodimjakoprase");
+	ADD_INT(auxprint);
+	ADD_CODE("\n");
+	
+	ADD_INST("MOVE GF@_exp_res string@");
+	ADD_INST("WRITE GF@_exp_res");
+	ADD_INST("MOVE GF@_exp_res nil@nil");
+
+	ADD_CODE("LABEL &helpme");
+	ADD_INT(auxprint);
+	ADD_CODE("\n");
+
+	auxprint++;
 	return true;
+}
+
+static bool gen_label(int l_idx, int deep, bool tc)
+{
+	if (!tc)
+	{
+		ADD_CODE("LABEL &");
+
+		ADD_INT(deep);
+		ADD_CODE("_");
+		ADD_INT(l_idx);
+		ADD_CODE("\n");
+		return true;
+	}
+	else
+	{
+		ADD_CODE("LABEL &jumpnitozajicku");
+
+		ADD_INT(deep);
+		ADD_CODE("_");
+		ADD_INT(l_idx);
+		ADD_CODE("\n");
+		return true;
+	}
+}
+
+
+static bool get_gf_type2bool(int l_idx, int deep)
+{
+	ADD_INST("TYPE GF@_exp_res_type GF@_exp_res");
+
+	ADD_CODE("JUMPIFEQ &jumpnitozajicku");
+	ADD_INT(deep);
+	ADD_CODE("_");
+	ADD_INT(l_idx);
+	ADD_CODE(" GF@_exp_res_type string@nil");
+	ADD_CODE("\n");
+
+	ADD_CODE("JUMPIFNEQ &prasevkoduneskace");
+	ADD_INT(deep);
+	ADD_CODE("_");
+	ADD_INT(l_idx);
+	ADD_CODE(" GF@_exp_res_type string@bool");
+	ADD_CODE("\n");
+
+	ADD_CODE("JUMP &konecneend");
+	ADD_INT(deep);
+	ADD_CODE("_");
+	ADD_INT(l_idx );
+	ADD_CODE("\n");
+
+	if (!gen_label(l_idx, deep, true))
+		return false;
+
+	ADD_INST("MOVE GF@_exp_res bool@false");
+
+	ADD_CODE("JUMP &konecneend");
+	ADD_INT(deep);
+	ADD_CODE("_");
+	ADD_INT(l_idx);
+	ADD_CODE("\n");
+
+	ADD_CODE("LABEL &prasevkoduneskace");
+	ADD_INT(deep);
+	ADD_CODE("_");
+	ADD_INT(l_idx);
+	ADD_CODE("\n");
+
+	ADD_INST("MOVE GF@_exp_res bool@true");
+
+	ADD_CODE("LABEL &konecneend");
+	ADD_INT(deep);
+	ADD_CODE("_");
+	ADD_INT(l_idx);
+	ADD_CODE("\n");
+
+
+	return true;
+	
+
+	
 }
 
 bool gen_sop1_2flt()
@@ -839,22 +983,13 @@ bool gen_sop2_2int()
 }
 
 
-static bool gen_label(int l_idx, int deep)
-{
-	ADD_CODE("LABEL &");
-
-	ADD_INT(deep);
-	ADD_CODE("_");
-	ADD_INT(l_idx);
-	ADD_CODE("\n");
-	return true;
-}
-
 
 
 
 bool gen_if_start(int l_idx, int deep)
 {
+	
+	get_gf_type2bool(l_idx, deep);
 	ADD_CODE("JUMPIFEQ &");
 
 	ADD_INT(deep);
@@ -873,7 +1008,7 @@ bool gen_if_else(int l_idx, int deep)
 	ADD_CODE("_");
 	ADD_INT(l_idx + 1);
 	ADD_CODE("\n");
-	if (!gen_label(l_idx, deep))
+	if (!gen_label(l_idx, deep,false))
 		return false;
 	return true;
 }
@@ -881,7 +1016,7 @@ bool gen_if_else(int l_idx, int deep)
 
 bool gen_if_end(int l_idx, int deep)
 {
-	if (!gen_label(l_idx, deep))
+	if (!gen_label(l_idx, deep,false))
 		return false;
 	return true;
 }
@@ -889,14 +1024,19 @@ bool gen_if_end(int l_idx, int deep)
 
 bool gen_while_header(int l_idx, int deep)
 {
-	if (!gen_label(l_idx, deep))
+	if (!gen_label(l_idx, deep,false))
 		return false;
 	return true;
 }
 
 
+
+
+
 bool gen_while_start(int l_idx, int deep)
 {
+	get_gf_type2bool(l_idx, deep);
+	
 	ADD_CODE("JUMPIFEQ &");
 
 	ADD_INT(deep);
@@ -916,7 +1056,7 @@ bool gen_while_end(int l_idx, int deep)
 	ADD_CODE("_");
 	ADD_INT(l_idx - 1);
 	ADD_CODE("\n");
-	if (!gen_label(l_idx, deep))
+	if (!gen_label(l_idx, deep, false))
 		return false;
 	return true;
 }

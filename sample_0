@@ -1,6 +1,5 @@
-<<<<<<< Updated upstream
-a = 2
-a = 5
-=======
-b=b
->>>>>>> Stashed changes
+def a ()
+    a = 5
+end
+
+a

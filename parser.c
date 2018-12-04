@@ -382,6 +382,8 @@ static int statement(Data_t* data) {
         if_whlie_idx +=2;
         int this_while = if_whlie_idx;
 
+        if (data->in_while_or_if == 1) gen_new_part();
+
         gen_while_header(this_while, data->in_while_or_if);
 
 
@@ -490,13 +492,18 @@ static int statement(Data_t* data) {
         //printf("in <statement> ID EOL/ID <declare>/ID_FUNC...\n");
         save_id(&identifier, data);
         save_id(&identifier_declare, data);
+
+        insert_to_buffer(&buffer, data);
         
 
         GET_TOKEN();
 
+        insert_to_buffer(&buffer, data);
+
         // <statement> -> ID_FUNC 
         if (check_define(global_ST, (&identifier)->s) == FUNCTION_DEFINED) {
-            
+            clear_buffer(&buffer);
+
             if (data->token->token == TYPE_ASSIGN) {
                 return(ER_SEM_VARIABLE);
             }
@@ -514,7 +521,7 @@ static int statement(Data_t* data) {
 
         // <statement> -> ID EOL || EOF 
         if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
-            
+            clear_buffer(&buffer);
             itemupdate(&tItem, (&identifier)->s,  VAR, false, 0);
 
             // ak sme v DEF
@@ -538,6 +545,8 @@ static int statement(Data_t* data) {
         // <statement> -> ID <declare> EOL
         // ... = ...
         if (data->token->token == TYPE_ASSIGN) {
+            clear_buffer(&buffer);
+
             if (data->in_definition == true) {
                 if (check_define(local_ST, identifier_declare.s) != PARAM_DEFINED) {
                     if(data->in_while_or_if == 0)
@@ -594,6 +603,7 @@ static int statement(Data_t* data) {
         // else if (ID_func) then :************************
         // <statement> -> ID_FUNC ( <argvs> )
         if (data->token->token == TYPE_LEFT_BRACKET || IS_VALUE()) {
+            clear_buffer(&buffer);
             //printf("in <volanie funkcie pred deklaraciou>\n");
             /******
              * check if ID_FUNC in table

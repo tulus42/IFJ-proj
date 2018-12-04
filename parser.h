@@ -24,7 +24,7 @@ typedef struct {
     int in_while_or_if;
     bool in_definition;
     bool in_declare;
-    bool in_ternar_operator;
+    int in_ternar_operator;
 
 } Data_t;
 

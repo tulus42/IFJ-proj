@@ -41,6 +41,7 @@ bool from_buffer = false;
  * 
  **********************************************************/
 
+
 /**
  * Gets token from source file
  */
@@ -197,6 +198,7 @@ bool push_reduced(int count, Symbol_stack_t* stack){
     new_thing->symbol = NON_TERMINAL;
     new_thing->current_status = ON_GENERATOR_STACK;
     new_thing->my_token.type_token = TYPE_EOL;
+    new_thing->in_def = 0;
     stack->top = new_thing;
     return true;
 }
@@ -218,7 +220,8 @@ bool reduce_brackets(Symbol_item_t* tmp, int count, Symbol_stack_t* stack, bool 
         new_thing->my_token.type_token = tmp->my_token.type_token;                          
         new_thing->my_token.attr_token.tmp_flt = tmp->my_token.attr_token.tmp_flt;               
         new_thing->my_token.attr_token.tmp_integer = tmp->my_token.attr_token.tmp_integer;       
-        new_thing->my_token.attr_token.tmp_keyword = tmp->my_token.attr_token.tmp_keyword;       
+        new_thing->my_token.attr_token.tmp_keyword = tmp->my_token.attr_token.tmp_keyword;
+        new_thing->in_def = tmp->in_def;       
         if(new_thing->my_token.type_token == TYPE_STRING || new_thing->my_token.type_token == TYPE_IDENTIFIER){
             length = strlen(tmp->my_token.attr_token.tmp_string);
             new_thing->my_token.attr_token.tmp_string = (char *) malloc(length);
@@ -253,6 +256,7 @@ bool push_nil(int to_pop, Symbol_stack_t* stack){
     new_thing->my_token.type_token = TYPE_KEYWORD;
     new_thing->my_token.attr_token.tmp_keyword = KEYWORD_NIL;
     new_thing->symbol = NON_TERMINAL;
+    new_thing->in_def = 0;
 
     gen_push(new_thing->my_token);
 
@@ -279,7 +283,8 @@ bool reduce_identifier(Symbol_item_t* tmp, int count, Symbol_stack_t* stack){
     new_thing->my_token.type_token = tmp->my_token.type_token;                          
     new_thing->my_token.attr_token.tmp_flt = tmp->my_token.attr_token.tmp_flt;               
     new_thing->my_token.attr_token.tmp_integer = tmp->my_token.attr_token.tmp_integer;       
-    new_thing->my_token.attr_token.tmp_keyword = tmp->my_token.attr_token.tmp_keyword;       
+    new_thing->my_token.attr_token.tmp_keyword = tmp->my_token.attr_token.tmp_keyword; 
+    new_thing->in_def = tmp->in_def;      
     if(new_thing->my_token.type_token == TYPE_STRING || new_thing->my_token.type_token == TYPE_IDENTIFIER){
         length = strlen(tmp->my_token.attr_token.tmp_string) + 2;
         new_thing->my_token.attr_token.tmp_string = (char *) malloc(length);
@@ -348,6 +353,19 @@ bool reduce_by_rule(Symbol_stack_t* stack){
             if(tmp_third->current_status == VALID_TOKEN){
                 gen_push(tmp_first->my_token);
                 // push it to generator
+            }
+
+            if(tmp_first->my_token.type_token == TYPE_IDENTIFIER){
+                check_sematics(tmp_first);
+                if(return_code != EXPRESSION_OK){
+                    return false;
+                }
+            }
+            if(tmp_third->my_token.type_token == TYPE_IDENTIFIER){
+                check_sematics(tmp_third);
+                if(return_code != EXPRESSION_OK){
+                    return false;
+                }
             }
 
             operand = tmp_second->symbol;
@@ -439,7 +457,8 @@ bool add_after_first_terminal(Symbol_stack_t* stack, Precedential_table_symbol s
 
     new_item->symbol = symbol;
     new_item->current_status = INVALID_TOKEN;
-    new_item->my_token.type_token = TYPE_EOL;    
+    new_item->my_token.type_token = TYPE_EOL;
+    new_item->in_def = 0;    
     
     if(is_term(stack->top->symbol)){ // terminal is on top
         new_item->next = stack->top;
@@ -544,20 +563,20 @@ int expression_error(Symbol_stack_t* stack, Symbol_list* list,  int error_type){
 /**
  * Searches the table
  */
-void check_sematics(Data_t* data){
-    if(data->in_definition == true){    // local
-        if(check_define(local_ST, data->token->attr.string->s) == PARAM_DEFINED){
+void check_sematics(Symbol_item_t* item){
+    if(item->in_def == true){    // local
+        if(check_define(local_ST, item->my_token.attr_token.tmp_string) == PARAM_DEFINED){
             return_code = EXPRESSION_OK;
             return;
         }
     }
     else{                               // global
-        if(check_define(global_ST, data->token->attr.string->s) == PARAM_DEFINED){
+        if(check_define(global_ST, item->my_token.attr_token.tmp_string) == PARAM_DEFINED){
             return_code = EXPRESSION_OK;
             return;
         }
     }                                   // function
-    if(check_define(global_ST, data->token->attr.string->s) == FUNCTION_DEFINED){
+    if(check_define(global_ST, item->my_token.attr_token.tmp_string) == FUNCTION_DEFINED){
         return_code = EXPRESSION_OK;
         return;
     }
@@ -592,7 +611,6 @@ Precedential_table_symbol get_symbol_from_token(Data_t* data){
         case(TYPE_FLOAT):
             return ID;
         case(TYPE_IDENTIFIER):
-            check_sematics(data);   // we have to check sematics of identifiers
             return ID;
         case(TYPE_EQ):
             return EQL;
@@ -680,7 +698,8 @@ bool push_stack(Symbol_stack_t* stack, Precedential_table_symbol symbol, Data_t*
             tmp->my_token.type_token = stack_top->my_token.type_token;                          
             tmp->my_token.attr_token.tmp_flt = stack_top->my_token.attr_token.tmp_flt;               
             tmp->my_token.attr_token.tmp_integer = stack_top->my_token.attr_token.tmp_integer;       
-            tmp->my_token.attr_token.tmp_keyword = stack_top->my_token.attr_token.tmp_keyword;       
+            tmp->my_token.attr_token.tmp_keyword = stack_top->my_token.attr_token.tmp_keyword;
+            tmp->in_def = stack_top->in_def;       
             if(tmp->my_token.type_token == TYPE_STRING || stack_top->my_token.type_token == TYPE_IDENTIFIER){
                 int length = strlen(stack_top->my_token.attr_token.tmp_string) + 2;
                 tmp->my_token.attr_token.tmp_string = (char *) malloc(length);
@@ -722,6 +741,7 @@ bool push_no_token(Symbol_stack_t* stack, Precedential_table_symbol symbol){
         tmp->symbol = symbol;
         tmp->current_status = INVALID_TOKEN;
         tmp->my_token.type_token = TYPE_EOL;
+        tmp->in_def = 0;
         stack->top = tmp;
         return true;
     }
@@ -776,7 +796,8 @@ int remember_token(Symbol_item_t* tmp, Data_t* data){
     tmp->my_token.type_token = data->token->token;                          
         tmp->my_token.attr_token.tmp_flt = data->token->attr.flt;               
         tmp->my_token.attr_token.tmp_integer = data->token->attr.integer;       
-        tmp->my_token.attr_token.tmp_keyword = data->token->attr.keyword;       
+        tmp->my_token.attr_token.tmp_keyword = data->token->attr.keyword;
+        tmp->in_def = data->in_definition;       
         if(tmp->my_token.type_token == TYPE_STRING || tmp->my_token.type_token == TYPE_IDENTIFIER){ 
             length = data->token->attr.string->current_size + 1;                    
             tmp->my_token.attr_token.tmp_string = (char *) malloc(length); 
@@ -884,6 +905,7 @@ int insert_stop(Symbol_list* list){
     tmp->symbol = stop_sign;
     tmp->current_status = VALID_TOKEN;
     tmp->my_token.type_token = TYPE_EOL;
+    tmp->in_def = 0;
     tmp->next = NULL;
 
     if(list->first == NULL && list->last == NULL){ // zero elements

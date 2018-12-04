@@ -80,6 +80,7 @@ typedef struct one_item{
     struct one_item* next;
     Tmp_Token_t my_token;
     Symbol_status current_status;
+    bool in_def;
 } Symbol_item_t;
 
 // stack
@@ -102,7 +103,7 @@ Symbol_list buffer;
  * 
  **********************************************************/
 void pop_count(int n);
-void check_sematics(Data_t* data);
+void check_sematics(Symbol_item_t* item);
 
 bool allowed_string_operations(Precedential_table_symbol symbol);
 bool check_operations(Symbol_stack_t* stack, int to_pop, Precedential_table_symbol operand);

@@ -1075,6 +1075,8 @@ bool gen_func_rval_assign(char *var_id)
 	ADD_CODE("MOVE LF@");
 	ADD_CODE(var_id);
 	ADD_CODE(" TF@_rval\n");
+	ADD_CODE("MOVE GF@_exp_res");
+	ADD_CODE(" TF@_rval\n");
 
 
 

@@ -62,13 +62,7 @@ const char* tokens[] = {
         if (res != LEXER_OK)                             \
             return(res); \
     } while (data->token->token == TYPE_COMMENT); \
-    if (data->in_ternar_operator != 0) { \
-        if (data->token->token == TYPE_COLON || data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) \
-            return(SYN_OK); \
-    } \
-    if (data->in_ternar_operator == 2 && (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF)) { \
-        return(ER_SYN); \
-    }
+   
 
 #define IS_VALUE()                                                           \
     data->token->token == TYPE_INT || data->token->token == TYPE_FLOAT      \
@@ -276,15 +270,6 @@ static int prog(Data_t* data){
             return(res);
         }
 
-        if (data->token->token == TYPE_QUESTION_MARK) {
-            // ternarny operator
-            res = ternar_operator(data);
-            if (res != SYN_OK) {
-                return(res);
-            }
-
-        }
-
         return(prog(data));
     }
     
@@ -292,44 +277,6 @@ static int prog(Data_t* data){
     return ER_SYN;
 }
 
-int ternar_operator(Data_t* data) {
-    
-
-    GET_TOKEN();
-
-    data->in_ternar_operator = 2;
-
-    if (data->token->token != TYPE_COLON) {
-
-        // (expression) ? <statement> ....
-        res = statement(data);
-        if (res != SYN_OK) {
-            return(ER_SYN);
-        }
-    }
-    
-    data->in_ternar_operator = 0;
-
-    GET_TOKEN();
-
-    data->in_ternar_operator = 1;
-
-    if (data->token->token != TYPE_KEYWORD || data->token->attr.keyword != KEYWORD_END) {
-        // (expression) ? <statement> : <statement>
-        res = statement(data);
-        if (res != SYN_OK) {
-            return(ER_SYN);
-        }
-    }
-
-
-    
-
-
-
-    data->in_ternar_operator = 0;
-    return(SYN_OK);
-}
 
 
 /* ***************************************************************************************
@@ -720,20 +667,6 @@ static int statement(Data_t* data) {
             if (res != EXPRESSION_OK) {
                 return(res);
             } else {
-
-                if (data->token->token == TYPE_QUESTION_MARK) {
-                    // ternarny operator
-                    res = ternar_operator(data);
-                    if (res != SYN_OK) {
-                        return(res);
-                    }
-
-                }
-
-
-
-
-
                 return(prog(data));
             }
             
@@ -783,10 +716,6 @@ static int statement(Data_t* data) {
             return(ER_SYN);
     } else
 
-    // make statement return when in ternar operator
-    if ((data->token->token == TYPE_COLON && data->in_ternar_operator == 2) || (data->token->token == TYPE_EOL && data->in_ternar_operator == 1)) {
-        return(SYN_OK);
-    }
 
 
 
@@ -1700,7 +1629,6 @@ static bool init_struct(Data_t* data){
     data->in_while_or_if = 0;
     data->in_definition = false;
     data->in_declare = false;
-    data->in_ternar_operator = 0;
 
     return true;
 }

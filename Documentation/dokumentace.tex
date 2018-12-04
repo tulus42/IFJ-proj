@@ -79,8 +79,8 @@ Pre jednoduchšie spracovanie reťazcov sme sa rozhodli implementovať súbor \t
 
 \section{Syntaktická analýza}
 Syntaktická analýza je hlavnou časťou programu.
-Je založená na LL-gramatike a podľa pravidiel LL-tabuľky prechádza zdrojovým súborom rekurzívnym zostupom. Funkcie v syntaktickom analyzátore predstavujú jednotlivé časti LL-gramatiky. Toto platí pre celú syntaktickú analýzu s výnimkou spracovania výrazov. V rámci syntaktickej analýzy je volaná funkcia lexikálneho analyyzátoru get_next_token, ktorá naplní štruktúru Data_t aktuálne získaným tokenom. Na základe tohto tokenu sa syntaktický analyzátor rozhoduje, ktoré pravidlo z LL-tabuľky uplatniť a ktorú z funkcií následne zavolať.
-Štruktúra Data_t obsahuje okrem typu tokenu a jeho atribútov aj pomocné súčasti ako in_while_or_if, in_definition, in_declare, ktoré pomáhajú rozlíšiť situácie, v ktorých by bolo možné s jedným typom tokenu uplatniť viacero pravidiel. Vždy po analyzovaní tokenov potrebných na presné určenie o aký prípad sa jedná, je volaná príslušná funkcia na generovanie kódu. 
+Je založená na LL-gramatike a podľa pravidiel LL-tabuľky prechádza zdrojovým súborom rekurzívnym zostupom. Funkcie v syntaktickom analyzátore predstavujú jednotlivé časti LL-gramatiky. Toto platí pre celú syntaktickú analýzu s výnimkou spracovania výrazov. V rámci syntaktickej analýzy je volaná funkcia lexikálneho analyyzátoru get\_next\_token, ktorá naplní štruktúru Data\_t aktuálne získaným tokenom. Na základe tohto tokenu sa syntaktický analyzátor rozhoduje, ktoré pravidlo z LL-tabuľky uplatniť a ktorú z funkcií následne zavolať.
+Štruktúra Data\_t obsahuje okrem typu tokenu a jeho atribútov aj pomocné súčasti ako in\_while\_or\_if, in\_definition, in\_declare, ktoré pomáhajú rozlíšiť situácie, v ktorých by bolo možné s jedným typom tokenu uplatniť viacero pravidiel. Vždy po analyzovaní tokenov potrebných na presné určenie o aký prípad sa jedná, je volaná príslušná funkcia na generovanie kódu. 
 V prípade, že lexikálny analyzátor vráti ako token identifikátor, sú volané funkcie sémantickej analýzy, ktoré skontrolujú platnosť identifikátoru.
 
 

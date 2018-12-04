@@ -1,0 +1,2 @@
+my_string = "\A\h\o\j\n"
+print my_string

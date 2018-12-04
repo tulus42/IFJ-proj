@@ -1,1 +1,5 @@
-func?! 10
+def func?a ()
+	20
+end
+
+func?a 10

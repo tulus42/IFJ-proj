@@ -26,7 +26,7 @@ lex_t=$((lex_t + 1))
 
 echo -e "TEST_501: Invalid identifier name\c"
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
-if [ $? -eq 1 ]; then
+if [ $? -eq 2 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else
@@ -38,7 +38,7 @@ lex_t=$((lex_t + 1))
 
 echo -e "TEST_502: Invalid identifier name\c"
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
-if [ $? -eq 1 ]; then
+if [ $? -eq 2 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else
@@ -242,7 +242,7 @@ lex_t=$((lex_t + 1))
 
 echo -e "TEST_519: Invalid identifier\c"
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
-if [ $? -eq 1 ]; then
+if [ $? -eq 2 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else
@@ -254,7 +254,7 @@ lex_t=$((lex_t + 1))
 
 echo -e "TEST_520: Invalid identifier\c"
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
-if [ $? -eq 1 ]; then
+if [ $? -eq 2 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}"
 else

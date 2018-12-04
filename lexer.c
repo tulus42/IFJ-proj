@@ -219,14 +219,6 @@ int get_next_token(Token_t *token)
 					token->token = TYPE_COMMA;
 					return lexer_succesful(string_ptr);
 				}
-				else if(c == '?'){ // ?
-					token->token = TYPE_QUESTION_MARK;
-					return lexer_succesful(string_ptr);
-				}
-				else if(c == ':'){ //
-					token->token = TYPE_COLON;
-					return lexer_succesful(string_ptr);
-				}
 				else if(c == '<'){ // <
 					change_state(&current_status, STATE_LESS_THAN);
 				}

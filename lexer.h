@@ -44,9 +44,10 @@ Adrián Tulušák, xtulus00
 #define STATE_OCTAL_NUM 523
 #define STATE_HEXADECIMAL_NUM 525
 #define STATE_EXPECT_COMMENT 526 // states for comment
-#define STATE_EXPECT_NEWLINE 527
-#define STATE_INVALID_END 528 // no end
-#define EXPECT_WHITESPACE_OR_EOL_0 529
+#define STATE_INVALID_END 527 // no end
+#define STATE_EXPECT_WHITESPACE_OR_EOL_0 528
+#define STATE_EXPECT_WHITESPACE_OR_EOL_1 529
+#define STATE_COMMENT_OK 530
 
 typedef enum
 {
@@ -67,7 +68,7 @@ typedef enum
 	KEYWORD_SUBSTR,
 	KEYWORD_ORD,
 	KEYWORD_CHR,
-	KEYWORD_ELSEIF
+	KEYWORD_ELSIF
 } Keyword;
 
 typedef union

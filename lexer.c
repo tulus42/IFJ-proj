@@ -29,7 +29,6 @@ static int token_counter = 0;
 		return lexer_error(string_ptr, ER_INTERNAL);	\
 	}	\
 
-
 /**
  * Sets the source file
  */
@@ -118,9 +117,9 @@ void keywords(string_t *string_ptr, Token_t* token){
 		token->token = TYPE_KEYWORD;
 		token->attr.keyword = KEYWORD_CHR;
 	}
-	else if(compare_strings(string_ptr, "elseif")){
+	else if(compare_strings(string_ptr, "elsif")){
 		token->token = TYPE_KEYWORD;
-		token->attr.keyword = KEYWORD_ELSEIF;
+		token->attr.keyword = KEYWORD_ELSIF;
 	}
 	else{// if it is not any keyword, then it is identifier
 		token->token = TYPE_IDENTIFIER;
@@ -161,7 +160,6 @@ int get_next_token(Token_t *token)
 	/* Used variables */
 	int current_status = STATE_START; // current state is start
 	int registered_input; // counts how many chars have been entered for '=begin' and '=end'
-	bool end_of_comment = false;
 	int exponential_counter = 0;
 	
 	token->attr.string = dynamic_string;
@@ -383,7 +381,7 @@ int get_next_token(Token_t *token)
 
 				if(check_comment_begin(registered_input, string_ptr)){
 					if(registered_input == strlen("=begin")){ // it is '=begin'
-						change_state(&current_status, EXPECT_WHITESPACE_OR_EOL_0);
+						change_state(&current_status, STATE_EXPECT_WHITESPACE_OR_EOL_0);
 					}
 				}
 				else{
@@ -391,30 +389,15 @@ int get_next_token(Token_t *token)
 				}
 				break;
 
-			case(EXPECT_WHITESPACE_OR_EOL_0):
+			case(STATE_EXPECT_WHITESPACE_OR_EOL_0):
 				if(isspace(c) || c == '\n'){
+					ungetc(c, source);
 					change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
 				}
 				else{
 					return lexer_error(string_ptr, ER_LEX);
 				}
 				break;
-
-			// we wait for end, but have to retract if no end comes
-			case(STATE_INVALID_END):
-				ADDING_CHAR()
-				registered_input = strlen(string_ptr->s);
-				if(check_comment_end(registered_input, string_ptr)){ // it is '=end'
-					if(registered_input == strlen("=end")){
-						end_of_comment = true;
-						return lexer_error(string_ptr, ER_LEX);
-					}
-				}
-				else{
-					change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
-				}
-				break;
-
 
 			// waits for =, everything inside the block comment is ignored
 			case(STATE_INSIDE_BLOCK_COMMENT):
@@ -422,16 +405,8 @@ int get_next_token(Token_t *token)
 					clear_string_content(string_ptr);
 					change_state(&current_status, STATE_COMMENT_END);
 				}
-				break;
-
-			// expects newline
-			case(STATE_EXPECT_NEWLINE):
-				if(end_of_comment){
-					if(c == ' ' || c == '\n' || c == EOF){
-						ungetc(c, source);
-						token->token = TYPE_COMMENT;
-						return lexer_succesful(string_ptr);
-					}
+				else if(c == EOF){
+					return lexer_error(string_ptr, ER_LEX);
 				}
 				break;
 
@@ -441,12 +416,33 @@ int get_next_token(Token_t *token)
 				registered_input = strlen(string_ptr->s);
 				if(check_comment_end(registered_input, string_ptr)){ // it is '=end'
 					if(registered_input == strlen("=end")){
-						change_state(&current_status, STATE_EXPECT_NEWLINE);
+						change_state(&current_status, STATE_EXPECT_WHITESPACE_OR_EOL_1);
 					}
 				}
 				else{
+					ungetc(c, source);
 					clear_string_content(string_ptr); // Not matching - has to remove it completely and waint for another =
 					change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
+				}
+				break;
+
+			case(STATE_EXPECT_WHITESPACE_OR_EOL_1):
+				if(isspace(c) || c == '\n' || c == EOF){
+					change_state(&current_status, STATE_COMMENT_OK);
+					if(c == '\n' || c == EOF){
+						ungetc(c, source);
+					}
+				}
+				else{	// invalid end
+					clear_string_content(string_ptr);
+					change_state(&current_status, STATE_INSIDE_BLOCK_COMMENT);
+				}
+				break;
+
+			case(STATE_COMMENT_OK): // comment is ok, we just have to wait until EOL or EOF
+				if(c == '\n' || c == EOF){ // end of line
+					token->token = TYPE_COMMENT;
+					return lexer_succesful(string_ptr);
 				}
 				break;
 

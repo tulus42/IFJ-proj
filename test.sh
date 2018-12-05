@@ -169,7 +169,7 @@ lex_t=$((lex_t + 1))
 echo -e "TEST_511: Invalid string escape sequence\c"
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
 tmp_res=$?
-if [ $tmp_res -eq 1 ]; then
+if [ $tmp_res -eq 0 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}\c"
 else
@@ -306,7 +306,7 @@ lex_t=$((lex_t + 1))
 echo -e "TEST_521: Using keyword as identifier\c"
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
 tmp_res=$?
-if [ $tmp_res -eq 2 ]; then
+if [ $tmp_res -eq 6 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}\c"
 else
@@ -527,7 +527,7 @@ i=$((i+1))
 echo -e "TEST_3:\c"
 ./ifj2018 < our_tests/test_$i &>/dev/null
 tmp_res=$?
-if [ $tmp_res -eq 4 ]; then
+if [ $tmp_res -eq 0 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}\c"
 else

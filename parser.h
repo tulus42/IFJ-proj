@@ -9,7 +9,7 @@ Adrián Tulušák, xtulus00
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "lexer.h"
+#include "scanner.h"
 
 #ifndef PARSER
 #define PARSER
@@ -28,17 +28,16 @@ typedef struct {
 } Data_t;
 
 // forward declarations
-/*
-static int statement(Data_t* data);
-static int declare(Data_t* data);
-static int params(Data_t* data);
-static int param(Data_t* data);
-static int argvs(Data_t* data);
-static int arg(Data_t* data);
-static int value(Data_t* data);
-static int function(Data_t* data);
-static int print(Data_t* data);
-*/
+
+int statement(Data_t* data);
+int declare(Data_t* data);
+int params(Data_t* data);
+int param(Data_t* data);
+int argvs(Data_t* data);
+int arg(Data_t* data);
+int function(Data_t* data);
+int print(Data_t* data);
+
 
 int start_parser();
 int buffer_testing(Data_t* data);

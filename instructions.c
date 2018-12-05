@@ -11,14 +11,15 @@ Adrián Tulušák, xtulus00
 #include "dynamic_string.h"
 #include <ctype.h>
 
-// todo vestavene funkce typ kontrola + navrat
-
+// macro for simple instruction adding
 #define ADD_INST(_inst)		\
 	if (!add_const_string(&code[code_idx], (_inst "\n"))) return false 
 
+// macro for addding part of instruction
 #define ADD_CODE(_code)		\
 	if (!add_const_string(&code[code_idx], (_code))) return false
 
+// macro for adding integer to code
 #define ADD_INT(_code)				\
 	do {							\
 		char num[41];				\
@@ -26,6 +27,7 @@ Adrián Tulušák, xtulus00
 		ADD_CODE(num);				\
 	} while (0) 					
 
+// macro for generating length functon
 #define FUNC_LEN				\
 	"\n LABEL &length"			\
 	"\n PUSHFRAME"				\
@@ -39,6 +41,7 @@ Adrián Tulušák, xtulus00
 	"\n LABEL &strlenexit"	    \
 	"\n EXIT int@4"	    
 
+// macro for generating substring functon
 #define FUNC_SUBS													\
 	"\n LABEL &substr"												\
 	"\n PUSHFRAME"													\
@@ -99,6 +102,7 @@ Adrián Tulušák, xtulus00
 	"\n LABEL &substrexit"	    \
 	"\n EXIT int@4"	 												
 
+// macro for generating ord functon
 #define FUNC_ORD											\
 	"\n LABEL &ord"											\
 	"\n PUSHFRAME"											\
@@ -128,6 +132,7 @@ Adrián Tulušák, xtulus00
 	"\n LABEL &ordexit"	    \
 	"\n EXIT int@4"	 	
 
+// macro for generating chr functon
 #define FUNC_CHR										\
 	"\n LABEL &chr"										\
 	"\n PUSHFRAME"										\
@@ -150,14 +155,17 @@ Adrián Tulušák, xtulus00
 
 
 
-string_t code[1000];
 
-int code_idx = 0;
+string_t code[1000]; // array of dynamic strings, used as simple solution for the "if problem"
 
-int auxcat = 1;
-int auxdiv = 1;
+int code_idx = 0; // counter of generated dynamic strings
 
-static bool generate_header()
+int auxcat = 1; // aux counter for generating concat labels
+int auxdiv = 1; // aux counter for generating div labels
+int auxprint = 1; // aux counter for generating print labels
+
+
+static bool generate_header() // generates the head of program
 {
 	ADD_INST(".IFJcode18");
 	ADD_INST("DEFVAR GF@_exp_res");
@@ -175,7 +183,7 @@ static bool generate_header()
 	return true;
 }
 
-static bool gen_type_check()
+static bool gen_type_check() // genereates type checking function
 {
 	ADD_INST("LABEL &type_check");
 	ADD_INST("PUSHFRAME");
@@ -223,6 +231,8 @@ static bool gen_type_check()
 
 	ADD_INST("LABEL &type_check_true");
 
+	ADD_INST("TYPE GF@_aux_1_type GF@_aux_1");
+	ADD_INST("TYPE GF@_aux_2_type GF@_aux_2");
 	ADD_INST("PUSHS GF@_aux_2");
 	ADD_INST("PUSHS GF@_aux_1");
 
@@ -233,7 +243,7 @@ static bool gen_type_check()
 
 }
 
-static bool gen_builtin_funcs()
+static bool gen_builtin_funcs() // generates builtin functions
 {
 	ADD_INST(FUNC_LEN);
 	ADD_INST(FUNC_SUBS);
@@ -243,7 +253,7 @@ static bool gen_builtin_funcs()
 	return true;
 }
 
-bool generator_start()
+bool generator_start() // allocates dynamic string and generates header + builtin functions + type check function
 {
 		
 	if (!allocate_string(&code[0])) return false;
@@ -261,7 +271,7 @@ bool generator_start()
 
 
 
-bool gen_new_part()
+bool gen_new_part() // allocates new dynamic string, solves the "if problem"
 {
 	code_idx++;
 	if (!allocate_string(&code[code_idx])) return false;
@@ -269,7 +279,7 @@ bool gen_new_part()
 
 }
 
-bool gen_defvar_2_old(char *var_id)
+bool gen_defvar_2_old(char *var_id) // generates defvar instruction in if part of code. solves the "if problem"
 {
 	if (!add_const_string(&code[code_idx-1], "DEFVAR LF@")) return false;
 	if (!add_const_string(&code[code_idx-1], var_id)) return false;
@@ -282,7 +292,7 @@ bool gen_defvar_2_old(char *var_id)
 }
 
 
-bool gen_mainscope_start()
+bool gen_mainscope_start() // generates main
 {
 	ADD_INST("LABEL &&main");
 	ADD_INST("CREATEFRAME");
@@ -291,7 +301,7 @@ bool gen_mainscope_start()
 	return true;
 }
 
-bool gen_mainscope_end()
+bool gen_mainscope_end() // generates end of main
 {
 	ADD_INST("POPFRAME");
 	ADD_INST("CLEARS");
@@ -300,7 +310,7 @@ bool gen_mainscope_end()
 }
 
 
-void clear_code()
+void clear_code() // free dynamic strings
 {
 	for (int i = 0; i <= code_idx; i++)
     {
@@ -309,7 +319,7 @@ void clear_code()
 	
 }
 
-void flush_code(FILE *dst_file)
+void flush_code(FILE *dst_file) // print generated code to file and free dynamic string
 {
 	for (int i = 0; i <= code_idx; i++)
     {
@@ -320,7 +330,7 @@ void flush_code(FILE *dst_file)
 	clear_code();
 }
 
-bool gen_func_start(char *func_id)
+bool gen_func_start(char *func_id)	//generates start of function declare
 {
 
 	ADD_CODE("JUMP &endof_");
@@ -335,7 +345,7 @@ bool gen_func_start(char *func_id)
 }
 
 
-bool gen_func_end(char *func_id)
+bool gen_func_end(char *func_id) //generates end of function declare
 {
 
 	ADD_CODE("LABEL &");
@@ -349,7 +359,7 @@ bool gen_func_end(char *func_id)
 	return true;
 }
 
-bool gen_func_call(char *func_id)
+bool gen_func_call(char *func_id) // generates function call
 {
 	ADD_CODE("CALL &");
 	ADD_CODE(func_id);
@@ -357,7 +367,7 @@ bool gen_func_call(char *func_id)
 	return true;
 }
 
-bool gen_func_param(char *param_id, int idx)
+bool gen_func_param(char *param_id, int idx) //generates function parameter
 {
 	ADD_CODE("DEFVAR LF@");
 	ADD_CODE(param_id);
@@ -381,13 +391,13 @@ bool gen_func_param(char *param_id, int idx)
 	return true;
 }
 
-bool gen_func_prep_for_params()
+bool gen_func_prep_for_params() // generates preparation frame for function call
 {
 	ADD_INST("CREATEFRAME");
 	return true;
 }
 
-static bool gen_def_varval()
+static bool gen_def_varval() // generates nil value
 {
 	ADD_CODE("nil@nil");
 
@@ -395,7 +405,7 @@ static bool gen_def_varval()
 }
 
 
-static bool gen_term_val(Tmp_Token_t t)
+static bool gen_term_val(Tmp_Token_t t) // generates term value from token of expresion
 {
 	unsigned char c;
 	char t_str[41];
@@ -454,7 +464,7 @@ static bool gen_term_val(Tmp_Token_t t)
 	return true;
 }
 
-static bool gen_term_val_classic(Token_t t)
+static bool gen_term_val_classic(Token_t t) // generates term value from token
 {
 	unsigned char c;
 	char t_str[41];
@@ -513,7 +523,7 @@ static bool gen_term_val_classic(Token_t t)
 	return true;
 }
 
-bool gen_func_pass_param(Token_t t, int idx)
+bool gen_func_pass_param(Token_t t, int idx) // generates passing arguments to function
 {
 	ADD_CODE("DEFVAR TF@_");
 	ADD_INT(idx);
@@ -530,7 +540,7 @@ bool gen_func_pass_param(Token_t t, int idx)
 }
 
 
-bool gen_func_ret(char *func_id)
+bool gen_func_ret(char *func_id) // generates function return
 {
 	ADD_INST("MOVE LF@_rval GF@_exp_res");
 	ADD_CODE("JUMP &");
@@ -541,7 +551,7 @@ bool gen_func_ret(char *func_id)
 
 
 
-bool gen_var_declar(char *var_id)
+bool gen_var_declar(char *var_id) // generates declaration of variable
 {
 	ADD_CODE("DEFVAR LF@");
 	ADD_CODE(var_id);
@@ -559,7 +569,7 @@ bool gen_var_declar(char *var_id)
 }
 
 
-bool gen_var_defval(char *var_id)
+bool gen_var_defval(char *var_id) // generates default value assign to variable
 {
 	ADD_CODE("MOVE LF@");
 	ADD_CODE(var_id);
@@ -570,7 +580,7 @@ bool gen_var_defval(char *var_id)
 	return true;
 }
 
-bool gen_push(Tmp_Token_t t)
+bool gen_push(Tmp_Token_t t) // generates push instruction, used for expresions
 {
 	ADD_CODE("PUSHS ");
 	if (!gen_term_val(t))
@@ -581,7 +591,7 @@ bool gen_push(Tmp_Token_t t)
 }
 
 
-bool gen_stackop(Precedential_table_symbol symb) // rules?
+bool gen_stackop(Precedential_table_symbol symb) // generates operation to do according to symbol passed
 {
 
 	auxcat++;
@@ -768,18 +778,8 @@ bool gen_stackop(Precedential_table_symbol symb) // rules?
 }
 
 
-bool generate_concat_stack_strings()
-{
-	ADD_INST("POPS GF@_aux_3");
-	ADD_INST("POPS GF@_aux_2");
-	ADD_INST("CONCAT GF@_aux_1 GF@_aux_2 GF@_aux_3");
-	ADD_INST("PUSHS GF@_aux_1");
 
-	return true;
-}
-
-
-bool gen_input(char *var_id, Type_of_tHTItem t, bool assign)
+bool gen_input(char *var_id, Type_of_tHTItem t, bool assign) // generates input call
 {
 	if (assign)
 	{
@@ -835,9 +835,8 @@ bool gen_input(char *var_id, Type_of_tHTItem t, bool assign)
 	}
 }
 
-int auxprint = 1;
 
-bool gen_print()
+bool gen_print() // generates print call
 {
 	ADD_INST("TYPE GF@_exp_res_type GF@_exp_res");
 
@@ -870,7 +869,7 @@ bool gen_print()
 	return true;
 }
 
-static bool gen_label(int l_idx, int deep, bool tc)
+static bool gen_label(int l_idx, int deep, bool tc) // generates label, used in ifs an whiles
 {
 	if (!tc)
 	{
@@ -895,7 +894,7 @@ static bool gen_label(int l_idx, int deep, bool tc)
 }
 
 
-static bool get_gf_type2bool(int l_idx, int deep)
+static bool get_gf_type2bool(int l_idx, int deep) // generates type conversion of expression to bool value
 {
 	ADD_INST("TYPE GF@_exp_res_type GF@_exp_res");
 
@@ -951,42 +950,9 @@ static bool get_gf_type2bool(int l_idx, int deep)
 	
 }
 
-bool gen_sop1_2flt()
-{
-	ADD_INST("INT2FLOATS");
-	return true;
-}
 
 
-bool gen_sop1_2int()
-{
-	ADD_INST("FLOAT2INTS");
-	return true;
-}
-
-
-bool gen_sop2_2flt()
-{
-	ADD_INST("POPS GF@_aux_1");
-	ADD_INST("INT2FLOATS");
-	ADD_INST("PUSHS GF@_aux_1");
-	return true;
-}
-
-
-bool gen_sop2_2int()
-{
-	ADD_INST("POPS GF@_aux_1");
-	ADD_INST("FLOAT2INTS");
-	ADD_INST("PUSHS GF@_aux_1");
-	return true;
-}
-
-
-
-
-
-bool gen_if_start(int l_idx, int deep)
+bool gen_if_start(int l_idx, int deep) // generates start of if
 {
 	
 	get_gf_type2bool(l_idx, deep);
@@ -1000,7 +966,7 @@ bool gen_if_start(int l_idx, int deep)
 }
 
 
-bool gen_if_else(int l_idx, int deep)
+bool gen_if_else(int l_idx, int deep) // generates start of else
 {
 	ADD_CODE("JUMP &");
 
@@ -1014,7 +980,7 @@ bool gen_if_else(int l_idx, int deep)
 }
 
 
-bool gen_if_end(int l_idx, int deep)
+bool gen_if_end(int l_idx, int deep) // generates end of if
 {
 	if (!gen_label(l_idx, deep,false))
 		return false;
@@ -1022,7 +988,7 @@ bool gen_if_end(int l_idx, int deep)
 }
 
 
-bool gen_while_header(int l_idx, int deep)
+bool gen_while_header(int l_idx, int deep) // generates header label of while
 {
 	if (!gen_label(l_idx, deep,false))
 		return false;
@@ -1033,7 +999,7 @@ bool gen_while_header(int l_idx, int deep)
 
 
 
-bool gen_while_start(int l_idx, int deep)
+bool gen_while_start(int l_idx, int deep) // generates start of while
 {
 	get_gf_type2bool(l_idx, deep);
 	
@@ -1048,7 +1014,7 @@ bool gen_while_start(int l_idx, int deep)
 }
 
 
-bool gen_while_end(int l_idx, int deep)
+bool gen_while_end(int l_idx, int deep) // generates end of while
 {
 	ADD_CODE("JUMP &");
 
@@ -1061,14 +1027,14 @@ bool gen_while_end(int l_idx, int deep)
 	return true;
 }
 
-bool gen_func_rval()
+bool gen_func_rval() // generates function return variable
 {
 	ADD_INST("DEFVAR LF@_rval");
 
 	return true;
 }
 
-bool gen_func_rval_assign(char *var_id)
+bool gen_func_rval_assign(char *var_id) // generates assign of function return value to variable
 {
 
 
@@ -1083,39 +1049,9 @@ bool gen_func_rval_assign(char *var_id)
 	return true;
 }
 
-/*
-bool gen_func_conv_param(Type_of_tHTItem one, Type_of_tHTItem two, int idx)
-{
-	if (one == PRASATKO_S_PAPUCKAMI_FLT && two == INTEGER)
-	{
-		ADD_CODE("FLOAT2INT TF@_");
-		ADD_INT(idx);
-		ADD_CODE(" TF@_");
-		ADD_INT(idx);
-		ADD_CODE("\n");
-	}
-	else if (one == INTEGER && two == PRASATKO_S_PAPUCKAMI_FLT)
-	{
-		ADD_CODE("INT2FLOAT TF@_");
-		ADD_INT(idx);
-		ADD_CODE(" TF@_");
-		ADD_INT(idx);
-		ADD_CODE("\n");
-	}
-	return true;
-} */
-
-bool gen_concat_str() // konkatenace todo
-{
-	ADD_INST("POPS GF@_aux_3");
-	ADD_INST("POPS GF@_aux_2");
-	ADD_INST("CONCAT GF@_aux_1 GF@_aux_2 GF@_aux_3");
-	ADD_INST("PUSHS GF@_aux_1");
-	return true;
-}
 
 
-bool gen_assign(char *var_id)
+bool gen_assign(char *var_id) // generates assign of expression result to variable
 {
 
 
@@ -1130,12 +1066,11 @@ bool gen_assign(char *var_id)
 }
 
 
-bool gen_save_expr_res()
+bool gen_save_expr_res() // generates assing of expression result to aux variable
 {
 
-	ADD_INST("POPS GF@_exp_res");
+	ADD_INST("POPS GF@_exp_res"); 
 
 	return true;
 }
-
 

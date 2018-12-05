@@ -1,9 +1,10 @@
 x=1
 z= "string"
-len = lenght(z)
+len = length(z)
 i=0
-while i<len
-	x=x+ord(z,i)
+while i<len do
+	x=ord(z,i)
 	i=i+1
 end
 x
+

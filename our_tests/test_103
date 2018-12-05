@@ -1,6 +1,6 @@
 
 
  b=42
-while b do
-	b-2
+while b>0 do
+	b =b-2
 end 

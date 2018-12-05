@@ -1,4 +1,4 @@
-if ((-2+7/(10))*0) then
+if ((2+7/(10))*0) then
 	print("somthing went wrong")
 else
 print("ok guess")

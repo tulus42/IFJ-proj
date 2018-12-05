@@ -1,6 +1,7 @@
-def try?(a)
-a= length(a)
+def try(a)
+	a= length(a)
+	a+3
 end
 
-res = try?('10')
-res
+res = try("10")
+print res

@@ -1,12 +1,14 @@
 def bar (a,b)
-a+b
+	b+a
+	
 end
+
 a=5
-b=10
-c=a-b
-a=a-c
-c=nil
+b=5
+c = 1
+
 if b==a then
-d= bar (c,b) 
+	d= bar (c,b) 
 end
+
 print d

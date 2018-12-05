@@ -493,12 +493,12 @@ static int statement(Data_t* data) {
         save_id(&identifier, data);
         save_id(&identifier_declare, data);
 
-        //insert_to_buffer(&buffer, data);
-        
+        insert_to_buffer(&buffer, data);
+    
 
         GET_TOKEN();
 
-        //insert_to_buffer(&buffer, data);
+        insert_to_buffer(&buffer, data);
 
         // <statement> -> ID_FUNC 
         if (check_define(global_ST, (&identifier)->s) == FUNCTION_DEFINED) {

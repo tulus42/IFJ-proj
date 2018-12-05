@@ -1,6 +1,6 @@
 #som test
 
-if 42 	
+if 42 then
 	bar()
 
 end

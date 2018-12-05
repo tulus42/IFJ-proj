@@ -1,8 +1,8 @@
 def foo (a,b)
-	b+ bar (a)
+	bar(2)
 end
 
-bar (c)
+def bar (c)
 	c/10
 end
 

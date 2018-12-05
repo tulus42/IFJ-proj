@@ -4,3 +4,4 @@ while a > 10 do
     print b
     a = a - 1
 end
+

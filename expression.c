@@ -744,6 +744,9 @@ Precedential_table_symbol get_symbol_from_token(Data_t* data){
             return MEQ;
         case(TYPE_MTN):
             return MTN;
+        case(TYPE_ASSIGN):
+            return_code = OTHER_SYNTACTICAL_ERRORS;
+            return DOLLAR;
         default:
             return DOLLAR;
     }

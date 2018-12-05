@@ -5,7 +5,7 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amsfonts}
-\usepackage[czech]{babel}
+\usepackage[slovak]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage[IL2]{fontenc}
 \usepackage{verbatim}
@@ -59,9 +59,9 @@ Adrián Tulušák  & xtulus00  & \quad25\,\%\\
 Naším cieľom je implementovať prekladač imperatívneho jazyka IFJ18 do predmetov IFJ a IAL v jazyku C. Hlavnou náplňou práce bola implementácia: lexikálneho analyzátora, parsera (syntaktická a sématická analýza) a generátora inštrukcií.
 
 \section{Lexikálna analýza}
-Na začiatku sme implementovali lexikálny analyzátor v súbore \texttt{lexer.c}, ktorého základom je deterministický konečný automat (ďalej iba DKA).  Hlavnou funkciou v tomto súbore je \texttt{get\_next\_token}, ktorá číta jednotlivé znaky a pomocou príkazu \texttt{switch} prechádza do nasledujúcich stavov podľa DKA až kým nevyhodnotí  lexikálne správny token, inak vracia \texttt{ER\_LEX}. Lexikálny analyzátor musí mať nadstavený vstupný súbor, ktorý obsahuje program napísaný v jazyku IFJ18.
+Na začiatku sme implementovali lexikálny analyzátor v súbore \texttt{scanner.c}, ktorého základom je deterministický konečný automat (ďalej iba DKA).  Hlavnou funkciou v tomto súbore je \texttt{get\_next\_token}, ktorá číta jednotlivé znaky a pomocou príkazu \texttt{switch} prechádza do nasledujúcich stavov podľa DKA až kým nevyhodnotí  lexikálne správny token, inak vracia \texttt{ER\_LEX}. Lexikálny analyzátor musí mať nadstavený vstupný súbor, ktorý obsahuje program napísaný v jazyku IFJ18.
 
-Pri úspešnom vyhodnotení tokenu sa správne uvoľní všetká alokovaná pamäť. Matematické a relačné operátory sú vyhodnotené vcelku rýchlo a jednoducho, identifikátory, reťazce a čísla vyžadujú viacej prechodov a používajú dynamický reťazec, o ktorom ďalej pojednáva sekcia Spracovanie reťazcov. Pri identifikátore sa kontrolujú povolené znaky na základe pozície v reťazci a na záver sa identifikátor porovná so všetkými kľúčovými slovami, ak sa nájde zhoda, je to kľúčové slovo, inak je to identifikátor. Reťazce sú ohraničené dvojitými úvodzovkami (") a môžu obsahovať escape sequence. Pre tento prípad existuje špeciálny stav \texttt{STATE\_BACKSLASH\_LITERAL}, do ktorého sa prechádza pri  prečítaní znaku \textbackslash. 
+Pri úspešnom vyhodnotení tokenu sa správne uvoľní všetká alokovaná pamäť. Matematické a relačné operátory sú vyhodnotené vcelku rýchlo a jednoducho, identifikátory, reťazce a čísla vyžadujú viacej prechodov a používajú dynamický reťazec, o ktorom ďalej pojednáva sekcia Spracovanie reťazcov. Pri identifikátore sa kontrolujú povolené znaky na základe pozície v reťazci a na záver sa identifikátor porovná so všetkými kľúčovými slovami; ak sa nájde zhoda, je to kľúčové slovo, inak je to identifikátor. Reťazce sú ohraničené dvojitými úvodzovkami (") a môžu obsahovať escape sequence. Pre tento prípad existuje špeciálny stav \texttt{STATE\_BACKSLASH\_LITERAL}, do ktorého sa prechádza pri  prečítaní znaku spätné lomítko, (\textbackslash) za ktorým môže nasledovať escape sekvencia. V prípade, že bol tento znak prečítaný ale nasleduje znak ktorý nepatrí  do známej escape sekvencie, je spätné lomítko ignorované.
 
 \subsection{Štruktúra Token\_t}
 Pre jednoduchšiu prácu s tokenmi sme použili štruktúru \texttt{Token\_t}, ktorá obsahovala:
@@ -79,7 +79,7 @@ Pre jednoduchšie spracovanie reťazcov sme sa rozhodli implementovať súbor \t
 
 \section{Syntaktická analýza}
 Syntaktická analýza je hlavnou časťou programu.
-Je založená na LL-gramatike a podľa pravidiel LL-tabuľky prechádza zdrojovým súborom rekurzívnym zostupom. Funkcie v syntaktickom analyzátore predstavujú jednotlivé časti LL-gramatiky. Toto platí pre celú syntaktickú analýzu s výnimkou spracovania výrazov. V rámci syntaktickej analýzy je volaná funkcia lexikálneho analyyzátoru get\_next\_token, ktorá naplní štruktúru Data\_t aktuálne získaným tokenom. Na základe tohto tokenu sa syntaktický analyzátor rozhoduje, ktoré pravidlo z LL-tabuľky uplatniť a ktorú z funkcií následne zavolať.
+Je založená na LL-gramatike a podľa pravidiel LL-tabuľky prechádza zdrojovým súborom rekurzívnym zostupom. Funkcie v syntaktickom analyzátore predstavujú jednotlivé časti LL-gramatiky. Toto platí pre celú syntaktickú analýzu s výnimkou spracovania výrazov. V rámci syntaktickej analýzy je volaná funkcia lexikálneho analyzátoru get\_next\_token, ktorá naplní štruktúru Data\_t aktuálne získaným tokenom. Na základe tohto tokenu sa syntaktický analyzátor rozhoduje, ktoré pravidlo z LL-tabuľky uplatniť a ktorú z funkcií následne zavolať.
 
 
 Štruktúra Data\_t obsahuje okrem typu tokenu a jeho atribútov aj pomocné súčasti ako in\_while\_or\_if, in\_definition, in\_declare, ktoré pomáhajú rozlíšiť situácie, v ktorých by bolo možné s jedným typom tokenu uplatniť viacero pravidiel. Vždy po analyzovaní tokenov potrebných na presné určenie o aký prípad sa jedná, je volaná príslušná funkcia na generovanie kódu. 
@@ -89,32 +89,24 @@ V prípade, že lexikálny analyzátor vráti ako token identifikátor, sú vola
 \subsection{Precedenčná analýza výrazov}
 Syntaktická analýza výrazov je implementovaná v súbore \texttt{expression.c} pomocou precedenčnej tabuľky. Hlavné telo \texttt{expression.c} pozostáva z funkcie \texttt{handle\_expression}, ktorá postupne spracováva jednotlivé tokeny alebo symboly a vyhodnocuje ich syntaktickú správnosť. Keďže nie je vždy úplne jednoznačne možné určiť, či nasledujúci token bude súšasťou výrazu alebo nie, rozhodli sme sa implementovať jednosmerne viazaný zoznam s pracovným názvom \texttt{buffer}, kam sa postupne ukladajú tokeny vždy na koniec zoznamu.
 
- Ak parser vyhodnotí, že dané tokeny nie sú súšasťou výrazu, vyčistí buffer a a syntaktická analýza pokračuje v parseri. V opačnom prípade je zavolaná funkcia \texttt{handle\_expression}, ktorá pri spracovaní používa tokeny v bufferi, až kým nie je buffer prázdny a ďalej si žiada tokeny pomocou funkcie \texttt{get\_next\_token}. Z každého tokenu si vytvoríme symbol na základe jeho typu, ktorý si ďalej ukladáme na zásobník. Spracovávanie symbolov je naprogramované na základe algoritmu uvedeného v prezentácii \cite{IFJpred}. Symboly majú svoj status, ktorý sa kopíruje aj pri redukcii danej časti výrazu. Časti výrazu sa postupne dávajú na zásobník generátora a akonáhle už raz bol daný výraz daný do generátora, jeho status sa mení na \texttt{ON\_GENERATOR\_STACK} a pri daľšej redukcii už nebude znova pridaný na zásobník generátora. 
+ Ak parser vyhodnotí, že dané tokeny nie sú súšasťou výrazu, vyčistí buffer a syntaktická analýza pokračuje v parseri. V opačnom prípade je zavolaná funkcia \texttt{handle\_expression}, ktorá pri spracovaní používa tokeny v bufferi, až kým nie je buffer prázdny a ďalej si žiada tokeny pomocou funkcie \texttt{get\_next\_token}. Z každého tokenu si vytvoríme symbol na základe jeho typu, ktorý si ďalej ukladáme na zásobník. Spracovávanie symbolov je naprogramované na základe algoritmu uvedeného v prezentácii \cite{IFJpred}. Symboly majú svoj status, ktorý sa kopíruje aj pri redukcii danej časti výrazu. Časti výrazu sa postupne dávajú na zásobník generátora a akonáhle už raz bol daný výraz daný do generátora, jeho status sa mení na \texttt{ON\_GENERATOR\_STACK} a pri daľšej redukcii už nebude znova pridaný na zásobník generátora. 
 
-Pri spracovaní výrazov máme flag \texttt{return\_code}, ktorý môže nadobúdať hodnotu:
-\begin{itemize}
-\item \textbf{EXPRESSION\_OK} - výraz má správnu syntax aj sématiku
-\item \textbf{SYNTACTICAL\_ERRORS} - výraz má syntaktickú chybu
-\item \textbf{UNDEFINED\_ID\_EXPRESSION} - výraz má sématickú chybu
-\item \textbf{ER\_INTERNAL} - interná chyba (neúspešný malloc, neúspešné pridanie do zásobníku a pod.)
-\end{itemize}
-
-Pri kontrole jednotlivých symbolov na zásobníku sa zároveň kontroluje aj tento flag, a jeho nadstavenie na čokoľvek iné ako \texttt{EXPRESSION\_OK} vedie na ukončenie spracovávania výrazov s adekvátnym návratovým kódom.
+Pri kontrole jednotlivých symbolov na zásobníku sa zároveň kontroluje aj tento flag errorov, a jeho nadstavenie na čokoľvek iné ako \texttt{EXPRESSION\_OK} vedie na ukončenie spracovávania výrazov s adekvátnym návratovým kódom.
 
 \subsection{Sématická analýza}
-Sématickú analýzu sme implementovali ako tabuľku s rozptýlenými položkami. Synonymá sú v tabuľke zoradené explicitne, čo zabezpečuje tereticky neobmedzený počet položiek uchovávateľných tabuľkou symbolov. Synonymá sú zreťazené v jednosmerne viazaných zoznamoch. Veľkosť mapovacieho poľa sme vyberali tak, aby bola rovná prvočíslu. Naša tabuľka má veľkosť 6421. Očakávame, že naplnenie tabuľky nepresiahne 75\%. Mapovaciu funkciu sme prevzali z druhej domácej úlohy z IAL, lebo nám pripadala efektívna a ľahko pochopiteľná. 
+Sématickú analýzu sme implementovali ako tabuľku s rozptýlenými položkami v súbore \texttt{symtable.c}. Synonymá sú v tabuľke zoradené explicitne, čo zabezpečuje toereticky neobmedzený počet položiek uchovávateľných tabuľkou symbolov. Synonymá sú zreťazené v jednosmerne viazaných zoznamoch. Veľkosť mapovacieho poľa sme vyberali tak, aby bola rovná prvočíslu. Naša tabuľka má veľkosť 6421. Očakávame, že naplnenie tabuľky nepresiahne 75\%. Mapovaciu funkciu sme prevzali z druhej domácej úlohy z predmetu \texttt{IAL}, lebo nám pripadala efektívna a ľahko pochopiteľná. 
 
-Funkcia spočítava ASCII hodnotu jednotlivých znakov kľúča a nakoniec vracia modulo veľkosti tabuľky z daného súčtu. Každá položka tabuľky obsahuje svoj vlastný unikátny kľúč, ktorý sa ukladá v podobe reťazca. Kľúče značia identifikátory funkcii a premenných. Každá položka taktiež obsahuje svoj typ, značiaci či sa jedná o premennú alebo funkciu, boolovskú hodnotu, určujúca či bola položka definovaná, ukazateľ na ďalší prvok v zozname a integer značiaci počet parametrov v prípade, že sa jedná o funkciu. Položky sa ukladajú do 2 identických tabuliek s rozptýlenými položkami v závislosti od toho, či sa jedná o lokálne alebo globálne premenné.
+Funkcia spočítava \texttt{ASCII} hodnotu jednotlivých znakov kľúča a nakoniec vracia modulo veľkosti tabuľky z daného súčtu. Každá položka tabuľky obsahuje svoj vlastný unikátny kľúč, ktorý sa ukladá v podobe reťazca. Kľúče značia identifikátory funkcii a premenných. Každá položka taktiež obsahuje svoj typ, značiaci či sa jedná o premennú alebo funkciu, boolovskú hodnotu, určujúca či bola položka definovaná, ukazateľ na ďalší prvok v zozname a integer značiaci počet parametrov v prípade, že sa jedná o funkciu. Položky sa ukladajú do 2 identických tabuliek s rozptýlenými položkami v závislosti od toho, či sa jedná o lokálne alebo globálne premenné.
 
-Všetky funkcie sa ukladajú do globálnej tabuľky symbolov. Implementovali sme taktiež niekoľko funkcii zabezpečujúce pohodlnú prácu s tabuľkou. Funkcie zabezpečujú inicializáciu, výpis chybových hlásení, pridávanie prvkov, vyhľadávanie v tabuľke, kontrolu jednotlivých atribútov položiek a čistenie tabuľky.
+Všetky funkcie sa ukladajú do globálnej tabuľky symbolov. Implementovali sme taktiež niekoľko funkcii zabezpečujúce pohodlnú prácu s tabuľkou. Funkcie zabezpečujú inicializáciu, pridávanie prvkov, vyhľadávanie v tabuľke, kontrolu jednotlivých atribútov položiek a čistenie tabuľky.
 
 \section{Generovanie inštrukcií}
-Generovanie inštrukcií je realizované v module instructions.c. Na začiatku činnosti parseru sa inicializuje pamäť na ukladanie inštrukcií a vygeneruje sa hlavička medzikódu, ktorá obsahuje vstavané funkcie a interné funkcie určené na typovú kontrolu. Po skotrolovaní syntaktickej správnosti časti kódu, volá parser príslušnú funkciu realizujúcu generovanie inštrukcií. Podobne ako pri lexikálnej analýze aj tu sa využíva štruktúra dynamického reťazeca, ktorý je používaný na "lepenie" inštrukcií. Ak syntaktický analyzátor vyhodnotí kód ako preložiteľný, obsah dynamického reťazca sa vypíše na štandartný výstup.
+Generovanie inštrukcií je realizované súbore \texttt{instructions.c}. Na začiatku činnosti parseru sa inicializuje pamäť na ukladanie inštrukcií a vygeneruje sa hlavička medzikódu, ktorá obsahuje vstavané funkcie a interné funkcie určené na typovú kontrolu. Po skotrolovaní syntaktickej správnosti časti kódu, volá parser príslušnú funkciu realizujúcu generovanie inštrukcií. Podobne ako pri lexikálnej analýze aj tu sa využíva štruktúra dynamického reťazeca, ktorý je používaný na ``lepenie'' inštrukcií. Ak syntaktický analyzátor vyhodnotí kód ako preložiteľný, obsah dynamického reťazca sa vypíše na štandartný výstup.
 
 \section{Práca v tíme}
 Náš tím sme si zostavili pomerne skoro. Po rozdelení práce na menšie celky sme začali každý pracovať na časti pridelenej vedúcim tímu. Približne 3 týždne pred pokusným odovzdaním sme začali jednotlivé časti spájať do celku. 
 
-Pokusné odovzdávanie sme využili, no výsledok nás nemilo prekvapil. Zistili sme, že hoci všetko fungovvalo pomerne správne, návratové hodnoty sme vždy "natvrdo" vracali buď ako 0 alebo 1, čo sa aj prejavilo na celkovom percentuálnom hodnotení. Pri tejto príležitosti sme spravili riadnu revíziu kódu a poopravovali čo najviac chýb a nedostatkov. Práca v tíme bola rozdelená nasledovne:
+Pokusné odovzdávanie sme využili, no výsledok nás nemilo prekvapil. Zistili sme, že hoci všetko fungovvalo pomerne správne, návratové hodnoty sme vždy ``natvrdo'' vracali buď ako 0 alebo 1, čo sa aj prejavilo na celkovom percentuálnom hodnotení. Pri tejto príležitosti sme spravili riadnu revíziu kódu a poopravovali čo najviac chýb a nedostatkov. Práca v tíme bola rozdelená nasledovne:
 
 \begin{table}[H]
 \centering
@@ -127,6 +119,7 @@ Adam Hostin & sématická analýza, dokumentácia, testovanie, diagramy\\
 Adrián Tulušák & syntaktická analýza, sématická analýza, testovanie, dokumentácia\\
 \hline
 \end{tabular}
+\caption{Rozdelenie práce}
 \end{table}
 
 \subsection{Komunikácia}
@@ -193,12 +186,11 @@ F26&\qquad ľavá zátvorka\\
         \item \verb|<prog> -> <statement> <prog>|
         
         \item \verb|<statement> -> IF <expression> THEN EOL <statement> ELSE| \\ 
-\verb|EOL <statement> END <prog>|
+\verb|EOL <statement> END|
         \item \verb|<statement> -> WHILE <expression> DO EOL <statement> END EOL|
         \item \verb|<statement> -> <function> EOL|
-        \item \verb|<statement> -> ID EOL|
         \item \verb|<statement> -> ID <declare> EOL|
-        \item \verb|<statement> -> EOL <prog>|
+	\item \verb|<statement> -> <expression> EOL|
         
         \item \verb|<declare> -> = <value>|
         \item \verb|<declare> -> = <expression>|
@@ -238,22 +230,21 @@ F26&\qquad ľavá zátvorka\\
 \begin{table}[H]
 \centering
 \scalebox{0.65}{
-\begin{tabular}{|ccccccccccccccccccc|}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
 \hline
-& DEF & EOL & EOF & ID & INT  & FLOAT & STRING & ID & PRINT & LENGTH & SUBSTR & ORD & CHR & INPUTS & INPUTI & INPUTF & ID\_FUNC\\
-%\textless{}prog\textgreater{}      &     &     &     &  &  &  & &     &   &  &  &  &  & & & \\
-%\textless{}statement\textgreater{} &     &     &     &  &  &  &  \\
-%\textless{}declare\textgreater{}   &     &     &     &  &  &  &  \\
-%\textless{}params\textgreater{}    &     &     &     &  &  &  &  \\
-%\textless{}param\textgreater{}     &     &     &     &  &  &  &  \\
-%\textless{}argvs\textgreater{}     &     &     &     &  &  &  &  \\
-%\textless{}argv\textgreater{}      &     &     &     &  &  &  & \\
-%\textless{}value\textgreater{}      &     &     &     &  &  &  & \\
-%\textless{}function\textgreater{}      &     &     &     &  &  &  & \\
-\hline
+& INT & FLOAT & STRING & PRINT & LENGTH & SUBSTR & ORD & CHR & INPUTS & INPUTI & INPUTF & ID\_FUNC & DEF & EOL & EOF & IF & DEF & ID & \$ \\ \hline
+\textless{}prog\textgreater{}    &  9    &  9     &   9  &       &        &        &     &     &        &        &        &          &     &     &     &    &   1  &    &    \\ \hline
+\textless{}statement\textgreater{} &     &       &        &       &        &        &     &     &        &        &        &          &     &     &     &    &     &    &    \\ \hline
+\textless{}declare\textgreater{}   &     &       &        &       &        &        &     &     &        &        &        &          &     &     &     &    &     &    &    \\ \hline
+\textless{}params\textgreater{}    &     &       &        &       &        &        &     &     &        &        &        &          &     &     &     &    &     &    &    \\ \hline
+\textless{}param\textgreater{}     &     &       &        &       &        &        &     &     &        &        &        &          &     &     &     &    &     &    &    \\ \hline
+\textless{}argvs\textgreater{}     &     &       &        &       &        &        &     &     &        &        &        &          &     &     &     &    &     &    &    \\ \hline
+\textless{}arg\textgreater{}       &     &       &        &       &        &        &     &     &        &        &        &          &     &     &     &    &     &    &    \\ \hline
+\textless{}value\textgreater{}     &     &       &        &       &        &        &     &     &        &        &        &          &     &     &     &    &     &    &    \\ \hline
+\textless{}function\textgreater{}  &     &       &        &       &        &        &     &     &        &        &        &          &     &     &     &    &     &    &   \\ \hline
 \end{tabular}
 }
-\caption{Tabuľka LL-gramatiky}
+\caption{LL-gramatika}
 \end{table}
 
 \section{Precedenčná tabuľka}
@@ -272,7 +263,7 @@ F26&\qquad ľavá zátvorka\\
 \textbf{R}  & \textless{}    & \textless{}    & \textless{}    & \textless{}    & \textless{} & \textgreater{} & \textless{} &                & \textgreater{} \\ \hline
 \textbf{\$} & \textless{}    & \textless{}    & \textless{}    & \textless{}    & \textless{} &                & \textless{} & \textless{}    &                \\ \hline
 \end{tabular}
-\caption{Tabuľka syntaktickej analýzy výrazov}
+\caption{Precedenčná analýza výrazov}
 \end{table}
 
 

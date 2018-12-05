@@ -11,7 +11,7 @@
 \usepackage{verbatim}
 \usepackage{graphics}
 \usepackage{graphicx}
-\usepackage[unicode]{hyperref}
+\usepackage[hidelinks]{hyperref}
 \usepackage{enumitem}
 \usepackage{float}
 \usepackage{multicol}
@@ -22,15 +22,16 @@
 %%% Title page %%%
 \Huge
 \textsc{Fakulta informačních technologií\\
-Vysoké učení technické v Brně}
+Vysoké učení technické v~Brně}
 \\[84mm]
 \Huge \textbf{Dokumentácia -- IFJ 2018}\\
-\LARGE Tím 40, varianta II
+\LARGE Tím 40, varianta II\\
+\LARGE Rozšírenie: BASE
 \vspace{\stretch{9.5}}
 \end{center}
 
-
 \hfill
+
 
 %%% Names %%%
 \begin{minipage}[l]{0.6 \textwidth}
@@ -56,15 +57,15 @@ Adrián Tulušák  & xtulus00  & \quad25\,\%\\
 
 
 \section{Úvod}
-Naším cieľom je implementovať prekladač imperatívneho jazyka IFJ18 do predmetov IFJ a IAL v jazyku C. Hlavnou náplňou práce bola implementácia: lexikálneho analyzátora, parsera (syntaktická a sématická analýza) a generátora inštrukcií.
+Naším cieľom je implementovať prekladač imperatívneho jazyka IFJ18 do predmetov IFJ a IAL v~jazyku C. Hlavnou náplňou práce bola implementácia: lexikálneho analyzátora, parsera (syntaktická a sématická analýza) a generátora inštrukcií.
 
 \section{Lexikálna analýza}
-Na začiatku sme implementovali lexikálny analyzátor v súbore \texttt{scanner.c}, ktorého základom je deterministický konečný automat (ďalej iba DKA).  Hlavnou funkciou v tomto súbore je \texttt{get\_next\_token}, ktorá číta jednotlivé znaky a pomocou príkazu \texttt{switch} prechádza do nasledujúcich stavov podľa DKA až kým nevyhodnotí  lexikálne správny token, inak vracia \texttt{ER\_LEX}. Lexikálny analyzátor musí mať nadstavený vstupný súbor, ktorý obsahuje program napísaný v jazyku IFJ18.
+Na začiatku sme implementovali lexikálny analyzátor v~súbore \texttt{scanner.c}, ktorého základom je deterministický konečný automat (ďalej iba DKA).  Hlavnou funkciou v~tomto súbore je \texttt{get\_next\_token}, ktorá číta jednotlivé znaky a pomocou príkazu \texttt{switch} prechádza do nasledujúcich stavov podľa DKA až kým nevyhodnotí  lexikálne správny token, inak vracia \texttt{ER\_LEX}. Lexikálny analyzátor musí mať nadstavený vstupný súbor, ktorý obsahuje program napísaný v~jazyku IFJ18.
 
-Pri úspešnom vyhodnotení tokenu sa správne uvoľní všetká alokovaná pamäť. Matematické a relačné operátory sú vyhodnotené vcelku rýchlo a jednoducho, identifikátory, reťazce a čísla vyžadujú viacej prechodov a používajú dynamický reťazec, o ktorom ďalej pojednáva sekcia Spracovanie reťazcov. Pri identifikátore sa kontrolujú povolené znaky na základe pozície v reťazci a na záver sa identifikátor porovná so všetkými kľúčovými slovami; ak sa nájde zhoda, je to kľúčové slovo, inak je to identifikátor. Reťazce sú ohraničené dvojitými úvodzovkami (") a môžu obsahovať escape sequence. Pre tento prípad existuje špeciálny stav \texttt{STATE\_BACKSLASH\_LITERAL}, do ktorého sa prechádza pri  prečítaní znaku spätné lomítko, (\textbackslash) za ktorým môže nasledovať escape sekvencia. V prípade, že bol tento znak prečítaný ale nasleduje znak ktorý nepatrí  do známej escape sekvencie, je spätné lomítko ignorované.
+Pri úspešnom vyhodnotení tokenu sa správne uvoľní všetká alokovaná pamäť. Matematické a relačné operátory sú vyhodnotené vcelku rýchlo a jednoducho, identifikátory, reťazce a čísla vyžadujú viacej prechodov a používajú dynamický reťazec, o~ktorom ďalej pojednáva sekcia Spracovanie reťazcov. Pri identifikátore sa kontrolujú povolené znaky na základe pozície v~reťazci a na záver sa identifikátor porovná so všetkými kľúčovými slovami; ak sa nájde zhoda, je to kľúčové slovo, inak je to identifikátor. Reťazce sú ohraničené dvojitými úvodzovkami (") a môžu obsahovať escape sequence. Pre tento prípad existuje špeciálny stav \texttt{STATE\_BACKSLASH\_LITERAL}, do ktorého sa prechádza pri  prečítaní znaku spätné lomítko, (\textbackslash) za ktorým môže nasledovať escape sekvencia. V~prípade, že bol tento znak prečítaný ale nasleduje znak ktorý nepatrí  do známej escape sekvencie, je spätné lomítko ignorované.
 
 \subsection{Štruktúra Token\_t}
-Pre jednoduchšiu prácu s tokenmi sme použili štruktúru \texttt{Token\_t}, ktorá obsahovala:
+Pre jednoduchšiu prácu s~tokenmi sme použili štruktúru \texttt{Token\_t}, ktorá obsahovala:
 
 \begin{itemize}
 \item \textbf{union Token\_attr}
@@ -75,39 +76,49 @@ Pre jednoduchšiu prácu s tokenmi sme použili štruktúru \texttt{Token\_t}, k
 
 
 \subsection{Spracovanie reťazcov}
-Pre jednoduchšie spracovanie reťazcov sme sa rozhodli implementovať súbor \texttt{dynamic\_string.c}. Jeho súčasťou je aj štruktúra \texttt{string\_t}, ktorá obsahuje samotný ukazateľ na dynamický reťazec, súčastnú veľkosť reťazca a celkovú veľkosť bufferu. Na začiatku je alokovaný reťazec s veľkosťou 10 bytov a pri každom pridaní znaku sa kontroluje, či je ešte v reťazci miesto. Keď sa blížime k zaplneniu reťazca, funkcia \texttt{check\_empty\_bites} zväčší veľkosť buffera o 5, čím zaistí dostatočnú veľkosť pre reťazec. Všetky alokácie pamäte sú kontrolované a ich zlyhanie je adekvátne ošetrené vrátením internej chyby \texttt{ER\_INTERNAL}.
+Pre jednoduchšie spracovanie reťazcov sme sa rozhodli implementovať súbor \texttt{dynamic\_string.c}. Jeho súčasťou je aj štruktúra \texttt{string\_t}, ktorá obsahuje samotný ukazateľ na dynamický reťazec, súčastnú veľkosť reťazca a celkovú veľkosť bufferu. Na začiatku je alokovaný reťazec s~veľkosťou 10 bytov a pri každom pridaní znaku sa kontroluje, či je ešte v~reťazci miesto. 
+
+Keď sa blížime k~zaplneniu reťazca, funkcia \texttt{check\_empty\_bites} zväčší veľkosť buffera o~5, čím zaistí dostatočnú veľkosť pre reťazec. Všetky alokácie pamäte sú kontrolované a ich zlyhanie je adekvátne ošetrené vrátením internej chyby \texttt{ER\_INTERNAL}.
 
 \section{Syntaktická analýza}
 Syntaktická analýza je hlavnou časťou programu.
-Je založená na LL-gramatike a podľa pravidiel LL-tabuľky prechádza zdrojovým súborom rekurzívnym zostupom. Funkcie v syntaktickom analyzátore predstavujú jednotlivé časti LL-gramatiky. Toto platí pre celú syntaktickú analýzu s výnimkou spracovania výrazov. V rámci syntaktickej analýzy je volaná funkcia lexikálneho analyzátoru get\_next\_token, ktorá naplní štruktúru Data\_t aktuálne získaným tokenom. Na základe tohto tokenu sa syntaktický analyzátor rozhoduje, ktoré pravidlo z LL-tabuľky uplatniť a ktorú z funkcií následne zavolať.
+Je založená na LL-gramatike a podľa pravidiel LL-tabuľky prechádza zdrojovým súborom rekurzívnym zostupom. Funkcie v~syntaktickom analyzátore predstavujú jednotlivé časti LL-gramatiky. Toto platí pre celú syntaktickú analýzu s~výnimkou spracovania výrazov. V~rámci syntaktickej analýzy je volaná funkcia lexikálneho analyzátoru \texttt{get\_next\_token}, ktorá naplní štruktúru \texttt{Data\_t} aktuálne získaným tokenom. Ak je daný token komentár, je funkcia volaná v cykle až kým daný token nie je komentár. Na základe tohto tokenu sa syntaktický analyzátor rozhoduje, ktoré pravidlo z~LL-tabuľky uplatniť a ktorú z~funkcií následne zavolať.
 
 
-Štruktúra Data\_t obsahuje okrem typu tokenu a jeho atribútov aj pomocné súčasti ako in\_while\_or\_if, in\_definition, in\_declare, ktoré pomáhajú rozlíšiť situácie, v ktorých by bolo možné s jedným typom tokenu uplatniť viacero pravidiel. Vždy po analyzovaní tokenov potrebných na presné určenie o aký prípad sa jedná, je volaná príslušná funkcia na generovanie kódu. 
-V prípade, že lexikálny analyzátor vráti ako token identifikátor, sú volané funkcie sémantickej analýzy, ktoré skontrolujú platnosť identifikátoru.
+Štruktúra \texttt{Data\_t} obsahuje okrem typu tokenu a jeho atribútov aj pomocné súčasti ako \texttt{in\_while\_or\_if}, \texttt{in\_definition}, \texttt{in\_declare}, ktoré pomáhajú rozlíšiť situácie, v~ktorých by bolo možné s~jedným typom tokenu uplatniť viacero pravidiel. Vždy po analyzovaní tokenov potrebných na presné určenie o~aký prípad sa jedná, je volaná príslušná funkcia na generovanie kódu. 
+V~prípade, že lexikálny analyzátor vráti ako token identifikátor, sú volané funkcie sémantickej analýzy, ktoré skontrolujú platnosť identifikátoru.
 
 
 \subsection{Precedenčná analýza výrazov}
-Syntaktická analýza výrazov je implementovaná v súbore \texttt{expression.c} pomocou precedenčnej tabuľky. Hlavné telo \texttt{expression.c} pozostáva z funkcie \texttt{handle\_expression}, ktorá postupne spracováva jednotlivé tokeny alebo symboly a vyhodnocuje ich syntaktickú správnosť. Keďže nie je vždy úplne jednoznačne možné určiť, či nasledujúci token bude súšasťou výrazu alebo nie, rozhodli sme sa implementovať jednosmerne viazaný zoznam s pracovným názvom \texttt{buffer}, kam sa postupne ukladajú tokeny vždy na koniec zoznamu.
+Syntaktická analýza výrazov je implementovaná v~súbore \texttt{expression.c} pomocou precedenčnej tabuľky. Hlavné telo \texttt{expression.c} pozostáva z~funkcie \texttt{handle\_expression}, ktorá postupne spracováva jednotlivé tokeny alebo symboly a vyhodnocuje ich syntaktickú správnosť. Keďže nie je vždy úplne jednoznačne možné určiť, či nasledujúci token bude súšasťou výrazu alebo nie, rozhodli sme sa implementovať jednosmerne viazaný zoznam s~pracovným názvom \texttt{buffer}, kam sa postupne ukladajú tokeny vždy na koniec zoznamu.
 
- Ak parser vyhodnotí, že dané tokeny nie sú súšasťou výrazu, vyčistí buffer a syntaktická analýza pokračuje v parseri. V opačnom prípade je zavolaná funkcia \texttt{handle\_expression}, ktorá pri spracovaní používa tokeny v bufferi, až kým nie je buffer prázdny a ďalej si žiada tokeny pomocou funkcie \texttt{get\_next\_token}. Z každého tokenu si vytvoríme symbol na základe jeho typu, ktorý si ďalej ukladáme na zásobník. Spracovávanie symbolov je naprogramované na základe algoritmu uvedeného v prezentácii \cite{IFJpred}. Symboly majú svoj status, ktorý sa kopíruje aj pri redukcii danej časti výrazu. Časti výrazu sa postupne dávajú na zásobník generátora a akonáhle už raz bol daný výraz daný do generátora, jeho status sa mení na \texttt{ON\_GENERATOR\_STACK} a pri daľšej redukcii už nebude znova pridaný na zásobník generátora. 
+ Ak parser vyhodnotí, že dané tokeny nie sú súšasťou výrazu, vyčistí buffer a syntaktická analýza pokračuje v~parseri. V~opačnom prípade je zavolaná funkcia \texttt{handle\_expression}, ktorá pri spracovaní používa tokeny v~bufferi, až kým nie je buffer prázdny a ďalej si žiada tokeny pomocou funkcie \texttt{get\_next\_token}. Z~každého tokenu si vytvoríme symbol na základe jeho typu, ktorý si ďalej ukladáme na zásobník. Spracovávanie symbolov je naprogramované na základe algoritmu uvedeného v~prezentácii \cite{IFJpred}. Symboly majú svoj status, ktorý sa kopíruje aj pri redukcii danej časti výrazu. Časti výrazu sa postupne dávajú na zásobník generátora a akonáhle už raz bol daný výraz daný do generátora, jeho status sa mení na \texttt{ON\_GENERATOR\_STACK} a pri daľšej redukcii už nebude znova pridaný na zásobník generátora. Ak prebehne syntaktická analýza výrazu bez problémov, výsledok, ktorý je na vrchole zásobníka sa popne a adekvátne spracuje.
 
-Pri kontrole jednotlivých symbolov na zásobníku sa zároveň kontroluje aj tento flag errorov, a jeho nadstavenie na čokoľvek iné ako \texttt{EXPRESSION\_OK} vedie na ukončenie spracovávania výrazov s adekvátnym návratovým kódom.
+Pri kontrole jednotlivých symbolov na zásobníku sa zároveň kontroluje aj flag errorov, a jeho nadstavenie na čokoľvek iné ako \texttt{EXPRESSION\_OK} vedie na ukončenie spracovávania výrazov s~adekvátnym návratovým kódom.
 
 \subsection{Sématická analýza}
-Sématickú analýzu sme implementovali ako tabuľku s rozptýlenými položkami v súbore \texttt{symtable.c}. Synonymá sú v tabuľke zoradené explicitne, čo zabezpečuje toereticky neobmedzený počet položiek uchovávateľných tabuľkou symbolov. Synonymá sú zreťazené v jednosmerne viazaných zoznamoch. Veľkosť mapovacieho poľa sme vyberali tak, aby bola rovná prvočíslu. Naša tabuľka má veľkosť 6421. Očakávame, že naplnenie tabuľky nepresiahne 75\%. Mapovaciu funkciu sme prevzali z druhej domácej úlohy z predmetu \texttt{IAL}, lebo nám pripadala efektívna a ľahko pochopiteľná. 
+Sématickú analýzu sme implementovali ako tabuľku s~rozptýlenými položkami v~súbore \texttt{symtable.c}. Synonymá sú v~tabuľke zoradené explicitne, čo zabezpečuje toereticky neobmedzený počet položiek uchovávateľných tabuľkou symbolov. Synonymá sú zreťazené v~jednosmerne viazaných zoznamoch. Veľkosť mapovacieho poľa sme vyberali tak, aby bola rovná prvočíslu. Naša tabuľka má veľkosť 6 421. Očakávame, že naplnenie tabuľky nepresiahne 75\%. Mapovaciu funkciu sme prevzali z~druhej domácej úlohy z~predmetu \texttt{IAL}, lebo nám pripadala efektívna a ľahko pochopiteľná. 
 
-Funkcia spočítava \texttt{ASCII} hodnotu jednotlivých znakov kľúča a nakoniec vracia modulo veľkosti tabuľky z daného súčtu. Každá položka tabuľky obsahuje svoj vlastný unikátny kľúč, ktorý sa ukladá v podobe reťazca. Kľúče značia identifikátory funkcii a premenných. Každá položka taktiež obsahuje svoj typ, značiaci či sa jedná o premennú alebo funkciu, boolovskú hodnotu, určujúca či bola položka definovaná, ukazateľ na ďalší prvok v zozname a integer značiaci počet parametrov v prípade, že sa jedná o funkciu. Položky sa ukladajú do 2 identických tabuliek s rozptýlenými položkami v závislosti od toho, či sa jedná o lokálne alebo globálne premenné.
+Funkcia spočítava \texttt{ASCII} hodnotu jednotlivých znakov kľúča a nakoniec vracia modulo veľkosti tabuľky z~daného súčtu. Každá položka tabuľky obsahuje svoj vlastný unikátny kľúč, ktorý sa ukladá v~podobe reťazca. Kľúče značia identifikátory funkcii a premenných. Každá položka taktiež obsahuje svoj typ, značiaci či sa jedná o~premennú alebo funkciu, boolovskú hodnotu, určujúca či bola položka definovaná, ukazateľ na ďalší prvok v~zozname a integer značiaci počet parametrov v~prípade, že sa jedná o~funkciu. Položky sa ukladajú do 2 identických tabuliek s~rozptýlenými položkami v~závislosti od toho, či sa jedná o~lokálne alebo globálne premenné.
 
-Všetky funkcie sa ukladajú do globálnej tabuľky symbolov. Implementovali sme taktiež niekoľko funkcii zabezpečujúce pohodlnú prácu s tabuľkou. Funkcie zabezpečujú inicializáciu, pridávanie prvkov, vyhľadávanie v tabuľke, kontrolu jednotlivých atribútov položiek a čistenie tabuľky.
+Všetky funkcie sa ukladajú do globálnej tabuľky symbolov. Implementovali sme taktiež niekoľko funkcii zabezpečujúce pohodlnú prácu s~tabuľkou. Funkcie zabezpečujú inicializáciu, pridávanie prvkov, vyhľadávanie v~tabuľke, kontrolu jednotlivých atribútov položiek a čistenie tabuľky.
+
+Keďže nie je možné skontrolovať všetkú sématiku počas prekladu, mnohé sématické kontroly prebehnú až pri interpretácií kódu.
 
 \section{Generovanie inštrukcií}
-Generovanie inštrukcií je realizované súbore \texttt{instructions.c}. Na začiatku činnosti parseru sa inicializuje pamäť na ukladanie inštrukcií a vygeneruje sa hlavička medzikódu, ktorá obsahuje vstavané funkcie a interné funkcie určené na typovú kontrolu. Po skotrolovaní syntaktickej správnosti časti kódu, volá parser príslušnú funkciu realizujúcu generovanie inštrukcií. Podobne ako pri lexikálnej analýze aj tu sa využíva štruktúra dynamického reťazeca, ktorý je používaný na ``lepenie'' inštrukcií. Ak syntaktický analyzátor vyhodnotí kód ako preložiteľný, obsah dynamického reťazca sa vypíše na štandartný výstup.
+Generovanie inštrukcií je realizované v~súbore \texttt{instructions.c}. Na začiatku činnosti parseru sa inicializuje pamäť na ukladanie inštrukcií a vygeneruje sa hlavička medzikódu, ktorá obsahuje vstavané funkcie a interné funkcie určené na typovú kontrolu. 
 
-\section{Práca v tíme}
+Po skotrolovaní syntaktickej správnosti časti kódu, volá parser príslušnú funkciu realizujúcu generovanie inštrukcií. Podobne ako pri lexikálnej analýze aj tu sa využíva štruktúra dynamického reťazeca, ktorý je používaný na ``lepenie'' inštrukcií. Ak syntaktický analyzátor vyhodnotí kód ako preložiteľný, obsah dynamického reťazca sa vypíše na štandartný výstup.
+
+Pri testovaní inštrukcií sme narazili na problém s inštrukciou \texttt{DEFVAR} v prípade cyklu \texttt{while} alebo \texttt{if}-e. Tento problém sme vyriešili použitím pomocného dynamického stringu, kam sa ukladali všetky inštrukcie okrem \texttt{DEFVAR}-ov a keď sa skončil cyklus \texttt{while} alebo \texttt{if}, obsah pomocného dynamického stringu sa prilepil na koniec nášho hlavného dynamického stringu.
+
+\section{Práca v~tíme}
 Náš tím sme si zostavili pomerne skoro. Po rozdelení práce na menšie celky sme začali každý pracovať na časti pridelenej vedúcim tímu. Približne 3 týždne pred pokusným odovzdaním sme začali jednotlivé časti spájať do celku. 
 
-Pokusné odovzdávanie sme využili, no výsledok nás nemilo prekvapil. Zistili sme, že hoci všetko fungovvalo pomerne správne, návratové hodnoty sme vždy ``natvrdo'' vracali buď ako 0 alebo 1, čo sa aj prejavilo na celkovom percentuálnom hodnotení. Pri tejto príležitosti sme spravili riadnu revíziu kódu a poopravovali čo najviac chýb a nedostatkov. Práca v tíme bola rozdelená nasledovne:
+Pokusné odovzdávanie sme využili, no výsledok nás nemilo prekvapil. Zistili sme, že hoci všetko fungovvalo pomerne správne, návratové hodnoty sme vždy ``natvrdo'' vracali buď ako 0 alebo 1, čo sa aj prejavilo na celkovom percentuálnom hodnotení. Pri tejto príležitosti sme spravili riadnu revíziu kódu a poopravovali čo najviac chýb a nedostatkov.
 
+\subsection{Rozdelenie práce}
+Prácu sme si rozdelili na základe osobitých požiadaviek členov a ich skúseností nasledovne:
 \begin{table}[H]
 \centering
 \begin{tabular}{|l|l|}
@@ -123,13 +134,16 @@ Adrián Tulušák & syntaktická analýza, sématická analýza, testovanie, dok
 \end{table}
 
 \subsection{Komunikácia}
-Už na začiatku sme sa dohodli na pravidelných týždenných stretnutiach, kde sme diskutovali o našej ďaľšej práci na nadchádzajúci týždeň. Komunikovali sme najmä cez facebook a skype a osobné stretnutia boli veľmi príjemné. 
+Už na začiatku sme sa dohodli na pravidelných týždenných stretnutiach, kde sme diskutovali o~našej ďaľšej práci na nadchádzajúci týždeň. Komunikovali sme najmä cez facebook a skype a každú nedeľu sme sa stretli a prebrali výsledky našej práce za posledný pracovný týždeň. 
 
 \subsection{Verzovanie}
 Pre správu projektu sme používali verzovací systém Git a zdieľaný repozitár GitHub. Tento spôsob správy projektu nám umožňoval pracovať na viacerých častiach projektu súčasne. Po otestovaní jednotlivých podčastí sme súbory začali spájať do celku a každý mal možnosť testovať projekt už ako celok.
 
+\subsection{Testovanie}
+Keďže bolo pomerne náročné odladiť tento projekt, rozhodli sme sa rozdeliť si úlohy nasledovne - 2 ľudia písali testy a chystali testovací skript, ktorý spustil všetky testy naraz aj s~vyhodnotením, a zvyšní 2 riešili výsledky týchto testov a hľadali bugy. Tento spôsob sa nám veľmi overil, a podarilo sa nám relatívne dobre odladiť veľké množstvo chýb.
+
 \subsection{Hodnotenie}
-Celkovo hodnotíme tento projekt kladne, hoci na začiatku vyzeral pomerne zložito, postupne sme mali nápady ako dané problémy vyriešiť a nakoniec sme všetko stihli v časovom predstihu, takže sme mali možnosť odstraňovať chyby a testovať správnosť a určite tento projekt prispel k zlepšeniu našich programátorských schopností.
+Celkovo hodnotíme tento projekt kladne, hoci na začiatku vyzeral pomerne zložito, postupne sme mali nápady ako dané problémy vyriešiť a nakoniec sme všetko stihli v~časovom predstihu, takže sme mali možnosť odstraňovať chyby a testovať správnosť a určite tento projekt prispel k~zlepšeniu našich programátorských schopností.
 \newpage
 \bibliographystyle{czechiso}
 \renewcommand{\refname}{Použitá literatúra}
@@ -145,7 +159,7 @@ Celkovo hodnotíme tento projekt kladne, hoci na začiatku vyzeral pomerne zlož
 \begin{table}[h]
 \begin{tabular}{l l}
 Legenda:& \\
-S &\qquad start\\
+S~&\qquad start\\
 F1 &\qquad čiarka\\
 F2 &\qquad EOF\\
 F3 &\qquad div\\
@@ -154,11 +168,11 @@ F5 &\qquad priradenie\\
 F6 &\qquad rovná sa\\
 F7 &\qquad nula\\
 F8 &\qquad binárne číslo\\
-F9 & \qquad číslo v osmičkovej sústave\\
-F10&\qquad číslo v hexadecimálnej sústave\\
-F11&\qquad celé číslo v desiatkovej sústave\\
+F9 & \qquad číslo v~osmičkovej sústave\\
+F10&\qquad číslo v~hexadecimálnej sústave\\
+F11&\qquad celé číslo v~desiatkovej sústave\\
 F12&\qquad desatinné číslo\\
-F13&\qquad číslo s exponentom\\
+F13&\qquad číslo s~exponentom\\
 F14&\qquad reťazec\\
 F15& \qquad mínus\\
 F16&\qquad plus\\
@@ -213,18 +227,24 @@ F26&\qquad ľavá zátvorka\\
         \item \verb|<value> -> STRING|
         \item \verb|<value> -> ID|
        
-        \item \verb|<function> -> PRINT ( <argvs> ) EOL|
-        \item \verb|<function> -> LENGTH ( <argvs> ) EOL|
-        \item \verb|<function> -> SUBSTR ( <argvs> ) EOL|
-        \item \verb|<function> -> ORD ( <argvs> ) EOL|
-        \item \verb|<function> -> CHR ( <argvs> ) EOL|
-        \item \verb|<function> -> INPUTS EOL|
-        \item \verb|<function> -> INPUTI EOL|
-        \item \verb|<function> -> INPUTF EOL|
+        \item \verb|<function> -> PRINT ( <argvs> )|
+        \item \verb|<function> -> LENGTH ( <argvs> )|
+        \item \verb|<function> -> SUBSTR ( <argvs> )|
+        \item \verb|<function> -> ORD ( <argvs> )|
+        \item \verb|<function> -> CHR ( <argvs> )|
+        \item \verb|<function> -> INPUTS|
+        \item \verb|<function> -> INPUTI|
+        \item \verb|<function> -> INPUTF|
         \item \verb|<function> -> ID_FUNC ( <argvs> )|
 	\end{enumerate}
 \end{table}
 
+\section{Tabuľka LL-gramatiky}
+\begin{table}[H]
+\centering
+\scalebox{0.34}{\includegraphics{LL-grammar.png}}
+\caption{LL-gramatika}
+\end{table}
 
 \section{Precedenčná tabuľka}
 \begin{table}[H]

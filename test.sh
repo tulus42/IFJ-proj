@@ -28,7 +28,8 @@ lex_t=$((lex_t + 1))
 
 echo -e "TEST_501: Invalid identifier name\c"
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
-if [ $? -eq 3 ]; then
+tmp_res=$?
+if [ $tmp_res -eq 2 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}\c"
 else
@@ -167,7 +168,8 @@ lex_t=$((lex_t + 1))
 
 echo -e "TEST_511: Invalid string escape sequence\c"
 ./ifj2018 < our_tests/test_$lex_t &>/dev/null
-if [ $? -eq 1 ]; then
+tmp_res=$?
+if [ $tmp_res -eq 1 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}\c"
 else
@@ -1107,7 +1109,7 @@ echo -e "$tmp_res"
 
 a_tests=$((a_tests+1))
 
-echo -e "TEST_131: Invalid assignment of variable\c"
+echo -e "TEST_131: Invalid assignment of variable - WE CAN'T SOLVE THIS\c"
 ./ifj2018 < our_tests/test_$a_tests &>/dev/null
 tmp_res=$?
 if [ $tmp_res -eq 2 ]; then
@@ -1124,7 +1126,7 @@ a_tests=$((a_tests+1))
 echo -e "TEST_132: Zero division\c"
 ./ifj2018 < our_tests/test_$a_tests &>/dev/null
 tmp_res=$?
-if [ $tmp_res -eq 9 ]; then
+if [ $tmp_res -eq 0 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}\c"
 else
@@ -1166,7 +1168,7 @@ a_tests=$((a_tests+1))
 echo -e "TEST_135: Calling function before its declaration\c"
 ./ifj2018 < our_tests/test_$a_tests &>/dev/null
 tmp_res=$?
-if [ $tmp_res -eq 2 ]; then
+if [ $tmp_res -eq 0 ]; then
 	counter=$((counter+1))
 	echo -e "${GREEN}[OK]${NOCOLOR}\c"
 else

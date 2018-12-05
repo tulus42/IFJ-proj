@@ -259,6 +259,15 @@ static int prog(Data_t* data){
         //printf("in <prog> IS VALUE\n");
         insert_to_buffer(&buffer, data);
 
+        GET_TOKEN();
+
+        insert_to_buffer(&buffer, data);
+
+        // for example 0variable=5 -> SyntaxErr
+        if (data->token->token != TYPE_EOL && !(IS_OPERAND())) {
+            return(ER_SYN);
+        }
+
         res = handle_expression(data);
         if (res != EXPRESSION_OK) {
             return(res);
@@ -494,9 +503,20 @@ static int statement(Data_t* data) {
         save_id(&identifier_declare, data);
 
         insert_to_buffer(&buffer, data);
-    
 
-        GET_TOKEN();
+        // func?/func! ...
+        if (data->token->token == TYPE_FUNC) {
+            GET_TOKEN();
+
+            if (data->token->token == TYPE_ASSIGN) {
+                return(ER_SEM_OTHER);
+            }
+        }
+
+        // ID ___... 
+        if (data->token->token == TYPE_IDENTIFIER) {   
+            GET_TOKEN();
+        }
 
         insert_to_buffer(&buffer, data);
 
@@ -843,36 +863,7 @@ static int declare(Data_t* data) {
             data->in_declare = false;
             return(SYN_OK);
 
-            /*
-            // ak nasleduje operand, vyhodnosti expression
-            if (IS_OPERAND()) {
-                insert_to_buffer(&buffer, data);
-                res = handle_expression(data);
-                if (res != EXPRESSION_OK) {
-                    clear_buffer(&buffer);
-                    return(res);
-                }
-                clear_buffer(&buffer);
-                data->in_declare = false;
-                gen_assign(identifier_declare.s);
-                return(SYN_OK);
-
-            } else
-
-            // ... EOL || EOF ...
-            if (data->token->token == TYPE_EOL || data->token->token == TYPE_EOF) {
-                insert_stop(&buffer);
-                    
-                res = handle_expression(data);
-                if (res != EXPRESSION_OK) {
-                    return(res);
-                }
-                clear_buffer(&buffer);
-
-                gen_assign(identifier_declare.s);
-                data->in_declare = false;
-                return(SYN_OK);
-            }*/
+        
         }
 
         clear_buffer(&buffer);

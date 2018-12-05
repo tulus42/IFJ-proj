@@ -458,6 +458,7 @@ int get_next_token(Token_t *token)
 				else if(c == '?' || c == '!'){ // this has to be the end of string
 					ADDING_CHAR()
 					keywords(string_ptr, token); // compares it with all keywords
+					token->token = TYPE_FUNC;
 					return lexer_succesful(string_ptr);
 				}
 				else{ // string is complete

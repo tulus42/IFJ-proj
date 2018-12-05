@@ -8,7 +8,7 @@ Adrián Tulušák, xtulus00
 
 #include <stdlib.h>
 #include <string.h>
-#include "lexer.h"
+#include "scanner.h"
 #include "error.h"
 
 

@@ -13,7 +13,7 @@ Adrián Tulušák, xtulus00
 #include "symtable.h"
 #include "expression.h"
 #include "parser.h"
-#include "lexer.h"
+#include "scanner.h"
 
 #ifndef INSTRUCTIONS_H
 #define INSTRUCTIONS_H

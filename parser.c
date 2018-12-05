@@ -1589,7 +1589,6 @@ int start_parser(){
     CHECK_GEN(gen_mainscope_end())
 
     //printf("res = %d\n", res);
-    value(&our_data);
 
     if (res == SYN_OK) {
         res = STlast_check();

@@ -6,7 +6,7 @@ Dominik Peza, xpezad00
 Adrián Tulušák, xtulus00
 */
 
-#include "lexer.h"
+#include "scanner.h"
 #include "instructions.h"
 #include "dynamic_string.h"
 #include <ctype.h>

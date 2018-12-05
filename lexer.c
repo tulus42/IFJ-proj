@@ -162,6 +162,9 @@ int get_next_token(Token_t *token)
 	int registered_input; // counts how many chars have been entered for '=begin' and '=end'
 	int exponential_counter = 0;
 	int decimal_counter = 0;
+	int hex_counter = 0;
+	int binary_counter = 0;
+	int octal_counter = 0;
 	
 	token->attr.string = dynamic_string;
 	
@@ -314,20 +317,28 @@ int get_next_token(Token_t *token)
 			// hexadecimal number inside string literal
 			case(STATE_HEXADECIMAL_NUM):
 				if(isdigit(c)){	// hexadecimal number can contain digit
-					ADDING_CHAR()
+					ADDING_CHAR();
+					hex_counter++;
 				} // and these uppercase and lowercase letters
 				else if(c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'E' || c == 'F'){
-					ADDING_CHAR()
+					ADDING_CHAR();
+					hex_counter++;
 				}
 				else if(c == 'a' || c == 'b' || c == 'c' || c == 'd' || c == 'e' || c == 'f'){
-					ADDING_CHAR()
+					ADDING_CHAR();
+					hex_counter++;
 				}
 				else{
-					ungetc(c, source);
-					int hexadecimal_number = (int) strtol(string_ptr->s, NULL, 16);
-					token->token = TYPE_INT;
-					token->attr.integer = hexadecimal_number;
-					return lexer_succesful(string_ptr);
+					if(hex_counter == 0){
+						return lexer_error(string_ptr, ER_LEX);
+					}
+					else{
+						ungetc(c, source);
+						int hexadecimal_number = (int) strtol(string_ptr->s, NULL, 16);
+						token->token = TYPE_INT;
+						token->attr.integer = hexadecimal_number;
+						return lexer_succesful(string_ptr);
+					}
 				}
 				break;
 
@@ -581,28 +592,40 @@ int get_next_token(Token_t *token)
 			// it is binary number
 			case(STATE_BINARY_NUM):
 				if(c == '1' || c == '0'){
-					ADDING_CHAR()
+					ADDING_CHAR();
+					binary_counter++;
 				}
 				else{
-					ungetc(c, source);
-					int binary = (int) strtol(string_ptr->s, NULL, 2);
-					token->token = TYPE_INT;
-					token->attr.integer = binary;
-					return lexer_succesful(string_ptr);
+					if(binary_counter == 0){
+						return lexer_error(string_ptr, ER_LEX);
+					}
+					else{
+						ungetc(c, source);
+						int binary = (int) strtol(string_ptr->s, NULL, 2);
+						token->token = TYPE_INT;
+						token->attr.integer = binary;
+						return lexer_succesful(string_ptr);
+					}
 				}
 				break;
 
 			// it is octal number
 			case(STATE_OCTAL_NUM):
 				if(c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7'){
-					ADDING_CHAR()
+					ADDING_CHAR();
+					octal_counter++;
 				}
 				else{
-					ungetc(c, source);
-					int hex = (int) strtol(string_ptr->s, NULL, 8);
-					token->token = TYPE_INT;
-					token->attr.integer = hex;
-					return lexer_succesful(string_ptr);
+					if(octal_counter == 0){
+						return lexer_error(string_ptr, ER_LEX);
+					}
+					else{
+						ungetc(c, source);
+						int hex = (int) strtol(string_ptr->s, NULL, 8);
+						token->token = TYPE_INT;
+						token->attr.integer = hex;
+						return lexer_succesful(string_ptr);
+					}
 				}
 				break;
 

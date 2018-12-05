@@ -487,19 +487,6 @@ bool reduce_by_rule(Symbol_stack_t* stack){
                 // push it to generator
             }
 
-            if(tmp_first->my_token.type_token == TYPE_IDENTIFIER){
-                check_sematics(tmp_first);
-                if(return_code != EXPRESSION_OK){
-                    return false;
-                }
-            }
-            if(tmp_third->my_token.type_token == TYPE_IDENTIFIER){
-                check_sematics(tmp_third);
-                if(return_code != EXPRESSION_OK){
-                    return false;
-                }
-            }
-
             operand = tmp_second->symbol;
             if(operand == PLUS){         // E + E
                 GENERATE_EXPRESSION();
@@ -695,20 +682,20 @@ int expression_error(Symbol_stack_t* stack, Symbol_list* list,  int error_type){
 /**
  * Searches the table
  */
-void check_sematics(Symbol_item_t* item){
-    if(item->in_def == true){    // local
-        if(check_define(local_ST, item->my_token.attr_token.tmp_string) == PARAM_DEFINED){
+void check_sematics(Data_t* data){
+    if(data->in_definition == true){    // local
+        if(check_define(local_ST, data->token->attr.string->s) == PARAM_DEFINED){
             return_code = EXPRESSION_OK;
             return;
         }
     }
     else{                               // global
-        if(check_define(global_ST, item->my_token.attr_token.tmp_string) == PARAM_DEFINED){
+        if(check_define(global_ST, data->token->attr.string->s) == PARAM_DEFINED){
             return_code = EXPRESSION_OK;
             return;
         }
     }                                   // function
-    if(check_define(global_ST, item->my_token.attr_token.tmp_string) == FUNCTION_DEFINED){
+    if(check_define(global_ST, data->token->attr.string->s) == FUNCTION_DEFINED){
         return_code = EXPRESSION_OK;
         return;
     }
@@ -743,6 +730,7 @@ Precedential_table_symbol get_symbol_from_token(Data_t* data){
         case(TYPE_FLOAT):
             return ID;
         case(TYPE_IDENTIFIER):
+            check_sematics(data);
             return ID;
         case(TYPE_EQ):
             return EQL;
@@ -961,6 +949,8 @@ void init_buffer(Symbol_list* list){
 void clear_buffer(Symbol_list* list){
     Symbol_item_t* tmp = list->first;
     Symbol_item_t* to_delete;
+    return_code = EXPRESSION_OK;
+    
     if(tmp == NULL){
         return;
     }

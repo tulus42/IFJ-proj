@@ -103,7 +103,7 @@ Symbol_list buffer;
  * 
  **********************************************************/
 void pop_count(int n);
-void check_sematics(Symbol_item_t* item);
+void check_sematics(Data_t* data);
 
 bool allowed_string_operations(Precedential_table_symbol symbol);
 bool check_operations(Symbol_stack_t* stack, int to_pop, Precedential_table_symbol operand);

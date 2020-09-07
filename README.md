@@ -6,8 +6,7 @@ Sabína Gregušová, xgregu02<br />
 Dominik Peza, xpezad00<br />
 Adrián Tulušák, xtulus00
 
-TODO:<br />
-lexer (testing) - Sabína <br />
-parser - Aďo, Sabína <br />
-hash-table - Adam <br />
-instruction generator - Dominik
+Hodnotenie:
+Projekt: 14/15
+Dokumentácia: 4/5
+Obhajoba: 5/5

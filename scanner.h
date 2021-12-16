@@ -8,6 +8,15 @@ Adrián Tulušák, xtulus00
 
 #include <stdio.h>
 
+
+#include "dynamic_string.h"
+
+#ifndef SCANNER_H
+#define SCANNER_H
+
+#define LEXER_OK 0
+
+// add keywords
 // TODO - Finish the state list, give it proper numbers
 #define STATE_START 500 // start
 #define STATE_ASSIGN 501 // =
@@ -25,12 +34,20 @@ Adrián Tulušák, xtulus00
 #define STATE_COMMENT_START 513 // '=begin'
 #define STATE_INSIDE_BLOCK_COMMENT 514
 #define STATE_COMMENT_END 515 // '=end'
-#define STATE_STRING_LITERAL 516 // "xxxxxx"
+#define STATE_STRING 516 // "xxxxxx"
 #define STATE_BACKSLASH_LITERAL 517 // backslash
 #define STATE_HEX_NUM 518 // xx
 #define STATE_DECIMAL 519 // 5.42
-#define STATE_EXPONENTIAL 520
-#define STATE_EXPONENTIAL_SIGN 521
+#define STATE_EXPONENTIAL 520 // e
+#define STATE_EXPONENTIAL_SIGN 521 // +, - or nothing
+#define STATE_BINARY_NUM 522 // rozsirenie
+#define STATE_OCTAL_NUM 523
+#define STATE_HEXADECIMAL_NUM 525
+#define STATE_EXPECT_COMMENT 526 // states for comment
+#define STATE_INVALID_END 527 // no end
+#define STATE_EXPECT_WHITESPACE_OR_EOL_0 528
+#define STATE_EXPECT_WHITESPACE_OR_EOL_1 529
+#define STATE_COMMENT_OK 530
 
 typedef enum
 {
@@ -43,12 +60,20 @@ typedef enum
 	KEYWORD_NIL,
 	KEYWORD_THEN,
 	KEYWORD_WHILE,
-
+	KEYWORD_PRINT,
+	KEYWORD_INPUTS,
+	KEYWORD_INPUTI,
+	KEYWORD_INPUTF,
+	KEYWORD_LENGTH,
+	KEYWORD_SUBSTR,
+	KEYWORD_ORD,
+	KEYWORD_CHR,
+	KEYWORD_ELSIF
 } Keyword;
 
 typedef union
 {
-	char *string; 
+	string_t* string; 
 	int integer; 
 	Keyword keyword; 
 	double flt; // float
@@ -60,7 +85,6 @@ typedef enum
 	TYPE_EOL, 
 	TYPE_IDENTIFIER, 
 	TYPE_KEYWORD,
-	TYPE_STRING_LITERAL, 
 
 	TYPE_ASSIGN, // =
 	TYPE_NEQ, // !=
@@ -73,7 +97,7 @@ typedef enum
 	TYPE_PLUS, // +
 	TYPE_MINUS, //  -
 	TYPE_MUL, // *
-	TYPE_DIV, // / 
+	TYPE_DIV, // /
 
 	TYPE_LEFT_BRACKET, // (
 	TYPE_RIGHT_BRACKET, // )
@@ -85,7 +109,8 @@ typedef enum
 
 	TYPE_INT, 
 	TYPE_FLOAT, 
-	TYPE_STRING, /// STRING A STRING LITERAL - ROZDIEL?????
+	TYPE_STRING, /// STRING LITERAL
+	TYPE_FUNC
 } Token_type;
 
 typedef struct
@@ -94,9 +119,27 @@ typedef struct
     Token_attr attr;
 } Token_t;
 
-//void keywords(struct string_t *string_ptr, Token_t* token);
-//int lexer_error(struct string_t* string_ptr);
-void get_source(FILE *f);
+typedef union{
+	char* tmp_string;
+	int tmp_integer; 
+	Keyword tmp_keyword; 
+	double tmp_flt; // float
+} Tmp_token_attr_t;
+
+typedef struct
+{
+	Token_type type_token;
+	Tmp_token_attr_t attr_token;
+} Tmp_Token_t;
+
+int lexer_error(string_t* string_ptr, int error_type);
+int lexer_succesful(string_t* string_ptr);
 int get_next_token(Token_t *token);
+
+void keywords(string_t *string_ptr, Token_t* token);
 void change_state(int * current_state, int next_state);
+void get_source(FILE *f);
+void set_string(string_t* string);
+
+#endif
 

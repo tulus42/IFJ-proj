@@ -6,31 +6,36 @@ Dominik Peza, xpezad00
 Adrián Tulušák, xtulus00
 */
 
-
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "parser.h"
+#include "error.h"
 #include "instructions.h"
 
 
-
-int main(int argc, char* argv[])
-{
-	FILE* source;
-
-	source = stdin;
+int main(){
+    FILE* input_file = stdin;
+    int parser_result;
+    get_source(input_file);
 
 
-	get_source(source);
+    if (generator_start() == false) { 
+        return(99);
+    }
 
-	int error = 0;
-/*	if (error = parse())
-	{
-		return error;
-	} 
-*/
+    parser_result = start_parser();
+    
+    
+    if(parser_result == SYN_OK){
+        
+        flush_code(stdout);
 
-	return EXIT_SUCCESS;
+    }else
+    {
+        clear_code();
+        return(parser_result);
+    }
+   
 
+    return 0;
 }
